@@ -101,6 +101,28 @@
   const realInit = window.google.accounts.id.initialize;
   window.google.accounts.id.initialize = o => { window.__gsiCallback = o.callback; realInit(o); };
 
+  // preview-only: a small role switcher so a demo needs no URL editing
+  function roleBar() {
+    const roles = [['student', '👤 Student'], ['student2', '👤 Student 2'], ['teacher', '🧑‍🏫 Teacher'], ['unknown', 'Not listed'], ['anon', 'Signed out']];
+    const bar = document.createElement('div');
+    bar.setAttribute('style', 'position:fixed;left:50%;transform:translateX(-50%);bottom:8px;z-index:9999;display:flex;gap:4px;background:#201b1d;padding:5px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 12px Inter,system-ui,sans-serif');
+    roles.forEach(([r, label]) => {
+      const a = document.createElement('a');
+      const on = (q.get('role') || 'student') === r;
+      a.textContent = label;
+      a.href = '?role=' + r;
+      a.setAttribute('style', 'color:' + (on ? '#3a1008' : '#f0d3d8') + ';background:' + (on ? '#e7b64b' : 'transparent') + ';text-decoration:none;padding:5px 11px;border-radius:999px');
+      bar.appendChild(a);
+    });
+    const tag = document.createElement('span');
+    tag.textContent = 'PREVIEW · sample data';
+    tag.setAttribute('style', 'color:#8c817d;padding:5px 8px;align-self:center');
+    bar.appendChild(tag);
+    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(bar));
+    if (document.body) document.body.appendChild(bar);
+  }
+  roleBar();
+
   // fake API transport: window.fetch → doPost in-page
   const realFetch = window.fetch;
   window.fetch = (url, opts) => {
