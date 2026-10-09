@@ -98,10 +98,52 @@ check('teacher / wrong domain / no token cannot save', /class list/.test(as(T, '
 check('client-supplied email in the body is ignored', (() => { as(S2, 'savePrediction', { checkpoint: 'intro', answers: full, email: S1, Email: S1 }); const rows = readTab_('Predictions'); return rows.length === 2 && rows.filter(r => r.Email === S2).length === 1; })());
 check('bootstrap payload never carries another student\'s rows', !JSON.stringify(as(S2, 'bootstrap')).includes('sample.one'));
 
+console.log('v3 combine (student self-entry)');
+check('student with no data → combine null', as(S3, 'bootstrap').data.student.combine === null);
+check('saveCombine stores the caller\'s fitness numbers', (() => {
+  const r = as(S1, 'saveCombine', { checkpoint: 'sept', results: { mile: 612, pushups: 14, sprint: 5.9, stork: 7 } });
+  if (!r.ok) return false;
+  const c = as(S1, 'bootstrap').data.student.combine;
+  return c && c.fitness.mile.sept === 612 && c.fitness.pushups.sept === 14 && c.fitness.sprint.sept === 5.9;
+})());
+check('blank fields are skipped, not zeroed', (() => { const c = as(S1, 'bootstrap').data.student.combine; return !('grip' in c.fitness); })());
+check('second checkpoint builds the trend', (() => { as(S1, 'saveCombine', { checkpoint: 'jan', results: { mile: 590 } }); const c = as(S1, 'bootstrap').data.student.combine; return c.fitness.mile.sept === 612 && c.fitness.mile.jan === 590; })());
+check('out-of-range value refused', (() => { const r = as(S1, 'saveCombine', { checkpoint: 'sept', results: { mile: 50 } }); return !r.ok && /range/i.test(r.error); })());
+check('non-number refused', (() => { const r = as(S1, 'saveCombine', { checkpoint: 'sept', results: { mile: 'fast' } }); return !r.ok && /number/i.test(r.error); })());
+check('unknown checkpoint refused', (() => { const r = as(S1, 'saveCombine', { checkpoint: 'xx', results: { mile: 600 } }); return !r.ok && /checkpoint/i.test(r.error); })());
+check('teacher (not on roster) cannot saveCombine', /class list/.test(as(T, 'saveCombine', { checkpoint: 'sept', results: { mile: 600 } }).error));
+check('one Combine row per student per checkpoint', readTab_('Combine').filter(r => lower_(r.Email) === S1).length === 2);
+check('another student sees no combine', as(S2, 'bootstrap').data.student.combine === null);
+
+console.log('v3 goals + plan (student)');
+check('saveGoals keeps valid components, drops junk', (() => {
+  const r = as(S1, 'saveGoals', { goals: [{ component: 'mile', goal: 'under 9:30' }, { component: 'nope', goal: 'x' }, { component: 'throw', goal: 'reach L5' }] });
+  return r.ok && r.data.goals.length === 2 && as(S1, 'bootstrap').data.student.combine.goals.length === 2;
+})());
+check('saveGoals replaces the whole set', (() => { as(S1, 'saveGoals', { goals: [{ component: 'stork', goal: 'fewer losses' }] }); const g = as(S1, 'bootstrap').data.student.combine.goals; return g.length === 1 && g[0].component === 'stork'; })());
+check('savePlan stores and reads back', (() => { const plan = { days: [{ focus: 'cv', items: ['run 20 min'] }] }; const r = as(S1, 'savePlan', { plan: plan }); return r.ok && as(S1, 'bootstrap').data.student.combine.plan.days[0].focus === 'cv'; })());
+check('teacher (not on roster) cannot saveGoals', /class list/.test(as(T, 'saveGoals', { goals: [] }).error));
+
+console.log('v3 skills (teacher-entered) + class view');
+check('teacher records a student\'s skill levels', (() => {
+  const r = as(T, 'saveSkills', { email: S1, checkpoint: 'sept', levels: { throw: 4, catch: 5, core: 5 } });
+  const c = as(S1, 'bootstrap').data.student.combine;
+  return r.ok && c.skills.throw.sept === 4 && c.skills.catch.sept === 5;
+})());
+check('owner (student+teacher) can record skills too', as(OWNER, 'saveSkills', { email: S1, checkpoint: 'sept', levels: { kick: 4 } }).ok === true);
+check('a plain student cannot record skills', (() => { const r = as(S2, 'saveSkills', { email: S1, checkpoint: 'sept', levels: { throw: 3 } }); return !r.ok && /teacher/i.test(r.error); })());
+check('skill level outside 1-6 refused', (() => { const r = as(T, 'saveSkills', { email: S1, checkpoint: 'sept', levels: { throw: 9 } }); return !r.ok && /must be/i.test(r.error); })());
+check('skills for a non-roster student refused', (() => { const r = as(T, 'saveSkills', { email: 'ghost@example.edu', checkpoint: 'sept', levels: { throw: 3 } }); return !r.ok && /class list/.test(r.error); })());
+check('classOverview: teacher sees the roster with data', (() => { const r = as(T, 'classOverview'); return r.ok && r.data.role === 'class' && r.data.students.length === 4 && r.data.students.some(s => s.skills.throw && s.skills.throw.sept === 4); })());
+check('classOverview refused for a non-teacher student', (() => { const r = as(S2, 'classOverview'); return !r.ok && /teacher/i.test(r.error); })());
+check('classStudent: teacher reads one student', (() => { const r = as(T, 'classStudent', { email: S1 }); return r.ok && r.data.student.name === 'Sample One' && r.data.student.fitness.mile.sept === 612; })());
+check('classStudent refused for a non-teacher', (() => !as(S2, 'classStudent', { email: S1 }).ok)());
+check('student bootstrap still carries no other student (after v3 data)', !JSON.stringify(as(S1, 'bootstrap')).includes('sample.two'));
+
 console.log('retention');
 FakeSheets.uiAnswer = 'YES';
 clearProfileData();
-check('clearProfileData empties Profile + Predictions, keeps Students', readTab_('Profile').length === 0 && readTab_('Predictions').length === 0 && readTab_('Students').length === 4);
+check('clearProfileData empties all student data, keeps Students', readTab_('Profile').length === 0 && readTab_('Predictions').length === 0 && readTab_('Combine').length === 0 && readTab_('Skills').length === 0 && readTab_('Goals').length === 0 && readTab_('Plan').length === 0 && readTab_('Students').length === 4);
 
 console.log(failed ? `\n${failed} check(s) FAILED` : '\nall checks passed');
 process.exit(failed ? 1 : 0);

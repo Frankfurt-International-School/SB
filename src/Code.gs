@@ -38,12 +38,47 @@ function predictionHeaders_() {
   return h;
 }
 
+// ---------- v3 model: Combine fitness, skill ladders, participation, bands ----------
+// The seven fundamental skills (balance & agility live on the fitness side now).
+var SKILL_KEYS = ['throw', 'catch', 'strike', 'dribble', 'kick', 'jump', 'core'];
+// The fitness Combine tests, with the direction a better result moves and a sane range.
+var FITNESS = [
+  { key: 'mile',     label: 'Mile run',         unit: 'sec',    dir: 'down', min: 180, max: 1200 },
+  { key: 'pushups',  label: 'Push-ups',         unit: 'reps',   dir: 'up',   min: 0,   max: 150 },
+  { key: 'sitstand', label: 'Sit-to-stand',     unit: 'reps',   dir: 'up',   min: 0,   max: 150 },
+  { key: 'broad',    label: 'Broad jump',       unit: 'cm',     dir: 'up',   min: 40,  max: 360 },
+  { key: 'grip',     label: 'Grip strength',    unit: 'kg',     dir: 'up',   min: 3,   max: 90 },
+  { key: 'sprint',   label: '30 m sprint',      unit: 'sec',    dir: 'down', min: 3,   max: 15 },
+  { key: 'illinois', label: 'Illinois agility', unit: 'sec',    dir: 'down', min: 10,  max: 45 },
+  { key: 'stork',    label: 'Stork balance',    unit: 'losses', dir: 'down', min: 0,   max: 80 }
+];
+var FIT_KEYS = FITNESS.map(function (f) { return f.key; });
+var FIT_BY_KEY = {}; FITNESS.forEach(function (f) { FIT_BY_KEY[f.key] = f; });
+var AP_KEYS = ['ready', 'effort', 'growth', 'team', 'manage'];
+var BAND_KEYS = ['knowledge', 'skills', 'concept'];
+var COMBINE_CHECKPOINTS = ['sept', 'jan', 'may'];
+var SKILL_MIN = 1, SKILL_MAX = 6;
+var GOAL_COMPONENTS = FIT_KEYS.concat(SKILL_KEYS).concat(['overall']);
+function apHeaders_() {
+  var h = ['Email'];
+  AP_KEYS.forEach(function (k) { h.push(k + '_self'); h.push(k + '_tchr'); });
+  h.push('Updated');
+  return h;
+}
+
 var TABS = {
-  Config:      ['Key', 'Value', 'What it does'],
-  Students:    ['Email', 'Name', 'Class'],
-  Teachers:    ['Email', 'Name'],
-  Profile:     ['Email', 'Style', 'Goal', 'Updated'],
-  Predictions: predictionHeaders_()
+  Config:        ['Key', 'Value', 'What it does'],
+  Students:      ['Email', 'Name', 'Class'],
+  Teachers:      ['Email', 'Name'],
+  Profile:       ['Email', 'Style', 'Goal', 'Updated'],
+  Predictions:   predictionHeaders_(),
+  // v3 data. Combine & Skills carry one row per student per checkpoint.
+  Combine:       ['Email', 'Checkpoint'].concat(FIT_KEYS).concat(['Updated']),   // students enter their own fitness numbers
+  Skills:        ['Email', 'Checkpoint'].concat(SKILL_KEYS).concat(['Updated']), // teachers enter the skill-ladder levels
+  Participation: apHeaders_(),                                                   // teacher-reported, self + teacher per key
+  Bands:         ['Email'].concat(BAND_KEYS).concat(['Updated']),                // the three report bands
+  Goals:         ['Email', 'Component', 'Goal', 'Updated'],                      // the student's component goals
+  Plan:          ['Email', 'Plan', 'Updated']                                    // the student's personal workout plan (JSON)
 };
 var PROFILE_KEY = 'Email';
 
@@ -231,6 +266,12 @@ function handle_(body) {
     case 'saveStyle':       return saveStyle_(cfg, id, body.style);
     case 'saveGoal':        return saveGoal_(cfg, id, body.goal);
     case 'savePrediction':  return savePrediction_(cfg, id, body.checkpoint, body.answers);
+    case 'saveCombine':     return saveCombine_(cfg, id, body.checkpoint, body.results);
+    case 'saveGoals':       return saveGoals_(cfg, id, body.goals);
+    case 'savePlan':        return savePlan_(cfg, id, body.plan);
+    case 'saveSkills':      return saveSkills_(cfg, id, body.email, body.checkpoint, body.levels);
+    case 'classOverview':   return classOverview_(cfg, id);
+    case 'classStudent':    return classStudent_(cfg, id, body.email);
     default: throw new Error('Unknown action');
   }
 }
@@ -255,9 +296,74 @@ function predictionsFor_(email) {
   });
   return out;
 }
-// v3: the caller's Combine measurements, keyed like PREDICT_ITEMS. Nothing is
-// collected yet, so the compare view shows "not yet measured".
-function combineFor_(email) { return null; }
+// ---------- v3 reads (all for the caller's own row) ----------
+function numOrNull_(v) { var s = str_(v); if (s === '') return null; var n = Number(s); return isFinite(n) ? n : null; }
+
+// Per-checkpoint numbers for one set of keys → { key: { sept, jan, may } }, only
+// keys that have at least one value. Returns {} if nothing recorded.
+function seriesByCheckpoint_(tabName, email, keys) {
+  var out = {};
+  readTab_(tabName).forEach(function (r) {
+    if (lower_(r.Email) !== email) return;
+    var cp = lower_(r.Checkpoint);
+    if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) return;
+    keys.forEach(function (k) {
+      var n = numOrNull_(r[k]);
+      if (n === null) return;
+      if (!out[k]) out[k] = {};
+      out[k][cp] = n;
+    });
+  });
+  return out;
+}
+function fitnessFor_(email) { return seriesByCheckpoint_('Combine', email, FIT_KEYS); }
+function skillsFor_(email) { return seriesByCheckpoint_('Skills', email, SKILL_KEYS); }
+
+function apFor_(email) {
+  var row = readTab_('Participation').filter(function (r) { return lower_(r.Email) === email; })[0];
+  if (!row) return {};
+  var out = {};
+  AP_KEYS.forEach(function (k) {
+    var self = numOrNull_(row[k + '_self']), tchr = numOrNull_(row[k + '_tchr']);
+    if (self !== null || tchr !== null) out[k] = { self: self, tchr: tchr };
+  });
+  return out;
+}
+function bandsFor_(email) {
+  var row = readTab_('Bands').filter(function (r) { return lower_(r.Email) === email; })[0];
+  if (!row) return {};
+  var out = {};
+  BAND_KEYS.forEach(function (k) { var n = numOrNull_(row[k]); if (n !== null) out[k] = n; });
+  return out;
+}
+function goalsFor_(email) {
+  var out = [];
+  readTab_('Goals').forEach(function (r) {
+    if (lower_(r.Email) !== email) return;
+    var c = lower_(r.Component), g = str_(r.Goal);
+    if (GOAL_COMPONENTS.indexOf(c) !== -1 && g) out.push({ component: c, goal: g });
+  });
+  return out;
+}
+function planFor_(email) {
+  var row = readTab_('Plan').filter(function (r) { return lower_(r.Email) === email; })[0];
+  if (!row) return null;
+  var raw = str_(row.Plan);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch (e) { return null; }
+}
+
+// The caller's measured picture, or null if nothing has been recorded yet (keeps
+// the profile in its "fills in at the Combine" state until there is real data).
+function measuredFor_(email) {
+  var fitness = fitnessFor_(email), skills = skillsFor_(email),
+      ap = apFor_(email), bands = bandsFor_(email),
+      goals = goalsFor_(email), plan = planFor_(email);
+  var any = Object.keys(fitness).length || Object.keys(skills).length ||
+            Object.keys(ap).length || Object.keys(bands).length || goals.length || plan;
+  if (!any) return null;
+  return { fitness: fitness, skills: skills, ap: ap, bands: bands, goals: goals, plan: plan };
+}
 
 // Everything the page needs, for the caller only.
 function bootstrap_(cfg, id) {
@@ -278,14 +384,30 @@ function bootstrap_(cfg, id) {
       goal: str_(p.Goal),
       photoUrl: /^https:\/\/[a-z0-9.-]+\.googleusercontent\.com\//.test(id.picture) ? id.picture : '',
       predictions: predictionsFor_(id.email),
-      combine: combineFor_(id.email)
+      combine: measuredFor_(id.email)
     };
     out.predict = { items: PREDICT_ITEMS, checkpoints: PREDICT_CHECKPOINTS, ratings: RATINGS, freqs: FREQS };
+    out.meta = combineMeta_();
     if (id.teacher) out.alsoTeacher = true;
   } else if (id.role === 'teacher' || id.role === 'unknown') {
     out.email = id.email; // the caller's own address, so they can see which account they used
+    if (id.role === 'teacher') out.meta = combineMeta_();
   }
   return out;
+}
+
+// Labels, units and order the client renders from, so wording stays in one place.
+function combineMeta_() {
+  return {
+    fitness: FITNESS,
+    skills: SKILL_KEYS,
+    checkpoints: COMBINE_CHECKPOINTS,
+    ap: AP_KEYS,
+    bands: BAND_KEYS,
+    skillMin: SKILL_MIN,
+    skillMax: SKILL_MAX,
+    goalComponents: GOAL_COMPONENTS
+  };
 }
 
 // ---------- Writes (always for the caller's own row) ----------
@@ -356,6 +478,110 @@ function savePrediction_(cfg, id, checkpoint, answers) {
   return { ok: true, checkpoint: cp, prediction: predictionsFor_(id.email)[cp] };
 }
 
+// ---------- v3 writes ----------
+function requireTeacher_(id) {
+  if (!(id.role === 'teacher' || id.teacher === true)) throw new Error('This needs a PE teacher account');
+  return id;
+}
+
+// A student enters their own Combine fitness numbers for one checkpoint. Blank
+// fields are left untouched; out-of-range values are refused.
+function saveCombine_(cfg, id, checkpoint, results) {
+  requireStudent_(id);
+  var cp = lower_(checkpoint);
+  if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) throw new Error('Unknown checkpoint');
+  if (!results || typeof results !== 'object') throw new Error('Missing results');
+  var fields = { Updated: new Date() }, saved = {};
+  FIT_KEYS.forEach(function (k) {
+    if (!(k in results) || results[k] === '' || results[k] === null) return;
+    var meta = FIT_BY_KEY[k], n = Number(results[k]);
+    if (!isFinite(n)) throw new Error('Not a number for ' + meta.label);
+    if (n < meta.min || n > meta.max) throw new Error(meta.label + ' is out of range (' + meta.min + '–' + meta.max + ' ' + meta.unit + ')');
+    fields[k] = n; saved[k] = n;
+  });
+  upsert_('Combine', { Email: id.email, Checkpoint: cp }, fields);
+  return { ok: true, checkpoint: cp, results: saved };
+}
+
+// The student's component goals (which parts they want to improve). Replaces the
+// whole set each save, so unticking a component removes its goal.
+function replaceGoals_(email, items) {
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var s = ensureTab_('Goals', TABS.Goals), headers = TABS.Goals;
+    var keep = readTab_('Goals').filter(function (r) { return lower_(r.Email) !== email; });
+    items.forEach(function (it) { keep.push({ Email: email, Component: it.component, Goal: it.goal, Updated: new Date() }); });
+    if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
+    if (keep.length) {
+      var rows = keep.map(function (r) { return headers.map(function (h) { return r[h] === undefined ? '' : r[h]; }); });
+      s.getRange(2, 1, rows.length, headers.length).setValues(rows);
+    }
+  } finally { lock.releaseLock(); }
+}
+function saveGoals_(cfg, id, goals) {
+  requireStudent_(id);
+  if (Object.prototype.toString.call(goals) !== '[object Array]') throw new Error('Missing goals');
+  var clean = [];
+  goals.forEach(function (g) {
+    if (!g || typeof g !== 'object') return;
+    var c = lower_(g.component), text = str_(g.goal).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').slice(0, 160);
+    if (GOAL_COMPONENTS.indexOf(c) !== -1 && text && !clean.some(function (x) { return x.component === c; })) clean.push({ component: c, goal: text });
+  });
+  replaceGoals_(id.email, clean);
+  return { ok: true, goals: clean };
+}
+
+// The student's personal workout plan (a small JSON structure built in the app).
+function savePlan_(cfg, id, plan) {
+  requireStudent_(id);
+  if (plan === null || plan === undefined) throw new Error('Missing plan');
+  var json; try { json = JSON.stringify(plan); } catch (e) { throw new Error('Bad plan'); }
+  if (json.length > 8000) throw new Error('Plan is too long');
+  upsert_('Plan', { Email: id.email }, { Plan: json, Updated: new Date() });
+  return { ok: true, plan: plan };
+}
+
+// A teacher records the skill-ladder levels for a student on the roster (the
+// "other Combine skill tests" the PE team runs). Teacher-gated; levels 1–6.
+function saveSkills_(cfg, id, targetEmail, checkpoint, levels) {
+  requireTeacher_(id);
+  var email = lower_(targetEmail);
+  if (!email) throw new Error('Missing student');
+  if (!readTab_('Students').some(function (r) { return lower_(r.Email) === email; })) throw new Error('That student is not on the class list');
+  var cp = lower_(checkpoint);
+  if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) throw new Error('Unknown checkpoint');
+  if (!levels || typeof levels !== 'object') throw new Error('Missing levels');
+  var fields = { Updated: new Date() }, saved = {};
+  SKILL_KEYS.forEach(function (k) {
+    if (!(k in levels) || levels[k] === '' || levels[k] === null) return;
+    var n = Number(levels[k]);
+    if (!isFinite(n) || n % 1 !== 0 || n < SKILL_MIN || n > SKILL_MAX) throw new Error('Level for ' + k + ' must be ' + SKILL_MIN + '–' + SKILL_MAX);
+    fields[k] = n; saved[k] = n;
+  });
+  upsert_('Skills', { Email: email, Checkpoint: cp }, fields);
+  return { ok: true, email: email, checkpoint: cp, levels: saved };
+}
+
+// ---------- Teacher reads (teacher-gated; the one place class data is returned) ----------
+function classOverview_(cfg, id) {
+  requireTeacher_(id);
+  var out = [];
+  readTab_('Students').forEach(function (r) {
+    var email = lower_(r.Email); if (!email) return;
+    out.push({ id: email, name: str_(r.Name), klass: str_(r.Class),
+      fitness: fitnessFor_(email), skills: skillsFor_(email), ap: apFor_(email), bands: bandsFor_(email) });
+  });
+  return { role: 'class', students: out, meta: combineMeta_() };
+}
+function classStudent_(cfg, id, targetEmail) {
+  requireTeacher_(id);
+  var email = lower_(targetEmail);
+  var r = readTab_('Students').filter(function (x) { return lower_(x.Email) === email; })[0];
+  if (!r) throw new Error('That student is not on the class list');
+  return { role: 'classStudent', student: { id: email, name: str_(r.Name), klass: str_(r.Class),
+    fitness: fitnessFor_(email), skills: skillsFor_(email), ap: apFor_(email), bands: bandsFor_(email) } };
+}
+
 // ---------- Sheet menu (teacher, inside the Sheet) ----------
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('PE Profile')
@@ -382,9 +608,9 @@ function setupTabs() {
 // Retention: wipes every student-written row (styles, goals, predictions). Roster is untouched.
 function clearProfileData() {
   var ui = SpreadsheetApp.getUi();
-  var ans = ui.alert('Clear all student data?', 'This deletes every student\'s saved style, goal and self-predictions (Profile and Predictions tabs). The Students tab is not touched. Continue?', ui.ButtonSet.YES_NO);
+  var ans = ui.alert('Clear all student data?', 'This deletes every student\'s saved style, goals, self-predictions, Combine, skills, participation, bands and workout plan. The Students roster is not touched. Continue?', ui.ButtonSet.YES_NO);
   if (ans !== ui.Button.YES) return;
-  ['Profile', 'Predictions'].forEach(function (n) {
+  ['Profile', 'Predictions', 'Combine', 'Skills', 'Participation', 'Bands', 'Goals', 'Plan'].forEach(function (n) {
     var s = ensureTab_(n, TABS[n]);
     if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
   });
