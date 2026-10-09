@@ -50,6 +50,26 @@
     callApi({ action: 'saveStyle', token: tok, style: 'improver' }); // one student has already chosen
     const ans = {}; PREDICT_ITEMS.forEach((k, i) => { ans[k] = { rating: RATINGS[i % 3], freq: FREQS[(i + 1) % 3] }; });
     callApi({ action: 'savePrediction', token: tok, checkpoint: 'intro', answers: ans }); // ...and made their Lesson 1 prediction
+
+    // ── synthetic v3 data: sample.one is a fully-populated student; the class has a spread ──
+    const T1 = tokenFor('sample.one@example.edu');
+    callApi({ action: 'saveStyle', token: T1, style: 'improver' });
+    callApi({ action: 'saveCombine', token: T1, checkpoint: 'sept', results: { mile: 612, pushups: 14, sitstand: 28, broad: 168, grip: 24, sprint: 5.9, illinois: 18.9, stork: 7 } });
+    callApi({ action: 'saveCombine', token: T1, checkpoint: 'jan',  results: { mile: 584, pushups: 18, sitstand: 31, broad: 176, grip: 26, sprint: 5.7, illinois: 18.1, stork: 5 } });
+    callApi({ action: 'saveGoals', token: T1, goals: [{ component: 'mile', goal: 'Break 9:00 by May' }, { component: 'dribble', goal: 'Get the weak-hand slalom clean' }] });
+    callApi({ action: 'savePlan', token: T1, plan: { focus: ['mile', 'grip'], days: 3, notes: 'Run Tue/Thu 20 min; grip + push-ups after PE.' } });
+    const TT = tokenFor('teacher@example.edu'); // the owner is a teacher
+    const seedSkills = (email, lv) => callApi({ action: 'saveSkills', token: TT, email, checkpoint: 'sept', levels: lv });
+    seedSkills('sample.one@example.edu',   { throw: 4, catch: 5, strike: 3, dribble: 4, kick: 4, jump: 4, core: 5 });
+    seedSkills('sample.two@example.edu',   { throw: 3, catch: 3, strike: 3, dribble: 2, kick: 3, jump: 3, core: 3 });
+    seedSkills('sample.three@example.edu', { throw: 5, catch: 5, strike: 4, dribble: 5, kick: 5, jump: 4, core: 5 });
+    seedSkills('sample.four@example.edu',  { throw: 2, catch: 3, strike: 2, dribble: 3, kick: 3, jump: 2, core: 3 });
+    // participation + report bands (no API write; teacher-reported, seeded straight to the Sheet)
+    const setRow = (tabName, vals) => { const s = FakeSheets.book.getSheetByName(tabName); s.getRange(s.getLastRow() + 1, 1, 1, vals.length).setValues([vals]); };
+    setRow('Participation', ['sample.one@example.edu', 5, 4, 5, 5, 4, 4, 6, 5, 4, 4, '2026-09-20']);
+    setRow('Bands', ['sample.one@example.edu', 5, 5, 4, '2026-09-20']);
+    callApi({ action: 'saveSkills', token: TT, email: 'sample.one@example.edu', checkpoint: 'jan', levels: { throw: 5, catch: 5, dribble: 5, core: 5 } }); // a January bump → trend arrows
+    callApi({ action: 'saveCombine', token: tokenFor('sample.three@example.edu'), checkpoint: 'sept', results: { mile: 545, pushups: 22, broad: 195, sprint: 5.3 } });
   }
   if (!FakeSheets.book.getSheetByName('Students')) seed();
   FakeSheets.owner = 'teacher@example.edu';
