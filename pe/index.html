@@ -222,6 +222,67 @@ h3.sec .em{font-size:16px;width:31px;height:31px;border-radius:9px;display:inlin
 .msg code{background:var(--paper);padding:2px 7px;border-radius:6px;font-size:13px;color:var(--ink)}
 .msg .btn{display:inline-block;margin-top:10px;background:linear-gradient(145deg,#f3d689,#c9982f);color:#3a1008;border:none;font-family:var(--disp);font-weight:700;font-size:14px;padding:10px 20px;border-radius:11px;cursor:pointer;text-decoration:none}
 .small{font-size:11.5px;color:var(--muted);text-align:center;margin-top:30px;line-height:1.5}
+
+/* ── v3: results / goals / plan / teacher ── */
+.planstrip{background:linear-gradient(135deg,var(--maroon),#8a2435);border-radius:15px;padding:13px 15px;margin:14px 0 4px;color:#fff;box-shadow:0 4px 14px rgba(111,29,44,.22)}
+.planstrip .ps-h{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.02em;margin-bottom:9px}
+.planstrip .ps-row{display:flex;gap:8px;flex-wrap:wrap}
+.ps-btn{flex:1 1 auto;min-width:0;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:9px 12px;font-family:var(--disp);font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;transition:.15s}
+.ps-btn:hover{background:rgba(255,255,255,.24)}
+.ps-btn.primary{background:linear-gradient(145deg,#f3d689,#c9982f);color:#3a1008;border-color:transparent}
+.goalchips{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:12px 0 2px}
+.goalchips .gc-h{font-family:var(--disp);font-weight:700;font-size:12px;color:var(--maroon)}
+.gchip{background:var(--gold);color:#3a1008;font-weight:700;font-size:12px;padding:3px 10px;border-radius:20px}
+.dlt{font-family:var(--disp);font-weight:700;font-size:12px;margin-left:7px;vertical-align:middle}
+.dlt.up{color:var(--ap)}.dlt.down{color:#c0392b}
+.tile.has .measure{color:var(--ink)}
+.lbar{display:flex;gap:3px;margin:8px 0 2px}
+.lbar i{height:7px;flex:1;border-radius:2px;background:var(--line);position:relative}
+.lbar i.on{background:var(--fund)}
+.lbar i.band:after{content:"";position:absolute;inset:-3px -1px;border:1.5px dashed var(--gold);border-radius:3px}
+.tile.a-fund.below .lbar i.on{background:#c0392b}.tile.a-fund.meet .lbar i.on{background:var(--fit)}.tile.a-fund.ok .lbar i.on{background:var(--ap)}
+.btrack.ap{display:flex;gap:3px;margin:8px 0 6px}.btrack.ap i{height:7px;flex:1;border-radius:2px;background:var(--line)}.btrack.ap i.on{background:var(--ap)}
+.tile.a-ap.below .btrack.ap i.on{background:#c0392b}.tile.a-ap.meet .btrack.ap i.on{background:var(--fit)}
+.band.ok .btrack i.on{background:#7fe0a6}.band.meet .btrack i.on{background:#f3c07a}.band.below .btrack i.on{background:#f0a097}
+/* overlay trend */
+.ovtrend{display:flex;gap:8px;margin-top:10px}
+.ovtrend .ovt{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.ovtrend .ovt span{display:block;font-family:var(--disp);font-size:10px;letter-spacing:.1em;color:var(--muted)}
+.ovtrend .ovt b{font-family:var(--disp);font-size:20px;color:var(--ink)}
+.lad.here{border-color:var(--fund);background:var(--fund-t)}
+.lad .youre{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:10px;color:var(--fund);align-self:center;white-space:nowrap}
+/* entry + goals + plan forms */
+.phero.tight{margin:8px 0 2px}
+.cpick{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:700;font-size:13px;color:var(--ink-soft);margin-top:4px}
+.cpick select,.lvsel,.daysin{font-family:var(--disp);font-weight:700;font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 10px;cursor:pointer}
+.enform{display:flex;flex-direction:column;gap:7px;margin:8px 0 80px}
+.enrow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:9px 13px}
+.enrow .en-n{font-family:var(--disp);font-weight:700;font-size:14px}
+.enrow .en-in{display:flex;align-items:center;gap:8px}
+.enrow .en-in small{color:var(--muted);font-size:11px;white-space:nowrap}
+.enrow input[type=number]{width:78px;font-family:var(--disp);font-weight:700;font-size:17px;text-align:right;border:1px solid var(--line);border-radius:9px;padding:7px 9px;color:var(--ink)}
+.enrow input:focus,.goalrow input:focus,textarea:focus,select:focus{outline:2px solid var(--maroon);outline-offset:1px}
+.goalrow{display:flex;flex-direction:column;gap:5px;margin-bottom:9px}
+.goalrow .gr-n{font-family:var(--disp);font-weight:700;font-size:14px}
+.goalrow input{width:100%;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink)}
+.fchips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 2px}
+.fchip{background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:8px 13px;font-family:var(--disp);font-weight:700;font-size:13px;cursor:pointer;color:var(--ink-soft)}
+.fchip.on{background:var(--fit-t);border-color:var(--fit);color:var(--fit)}
+textarea{width:100%;font-family:var(--body);font-size:14px;border:1px solid var(--line);border-radius:11px;padding:11px 13px;color:var(--ink);resize:vertical;margin-top:4px}
+.daysin{width:80px;margin-top:4px}
+/* teacher table */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff;margin-top:10px}
+.tablewrap table{border-collapse:collapse;width:100%;min-width:560px;font-size:13px}
+.tablewrap th{font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+.tablewrap th.num,.tablewrap td.num{text-align:center}
+.tablewrap td{padding:9px 12px;border-bottom:1px solid var(--line)}
+.tablewrap tbody tr:last-child td{border-bottom:none}
+.tablewrap td.name{font-weight:600}.tablewrap td.sec{color:var(--muted);font-size:12px}
+.tablewrap .muted{color:#c9c1c0}
+.pill{display:inline-grid;place-items:center;min-width:26px;height:24px;border-radius:7px;font-family:var(--disp);font-weight:700;font-size:13px;padding:0 6px}
+.pill.g-hi{background:var(--ap-t);color:var(--ap)}.pill.g-mid{background:var(--fit-t);color:var(--fit)}.pill.g-lo{background:#f9e5e2;color:#c0392b}
+.minib{background:var(--maroon-t);color:var(--maroon);border:none;border-radius:8px;font-family:var(--disp);font-weight:700;font-size:12px;padding:6px 10px;cursor:pointer}
+.minib:hover{background:#ecd5d9}
 </style>
 
 </head>
@@ -238,82 +299,78 @@ window.RUBRICS = {
   "throw": {
    "name": "Throw",
    "levels": [
-    "Short throw to a partner, stationary — step and follow through",
-    "Accurate overarm to a target over distance",
-    "Throw on the move, or vary power and height",
-    "Accurate under pressure or off-balance; disguise the throw"
+    "Overarm pattern — steps with the opposite foot",
+    "Into a wide zone over a short distance",
+    "Into a 1 m target from mid distance",
+    "1 m target from further back",
+    "1 m target at speed (five in 25 s)",
+    "1 m target from distance, at speed"
    ]
   },
   "catch": {
    "name": "Catch",
    "levels": [
-    "Large ball, two hands, gentle throw, still",
-    "Smaller ball, two hands, on the move",
-    "One-handed, or while changing direction",
-    "Under pressure — rebound, at speed, or with a distraction"
+    "Large ball, two hands, off the wall rebound",
+    "Large ball, two hands, clean every time",
+    "Tennis ball, two hands, off the rebound",
+    "Tennis ball, two hands, consistently",
+    "Tennis ball, one hand (dominant)",
+    "Tennis ball, one hand, each hand"
    ]
   },
   "strike": {
    "name": "Strike",
    "levels": [
-    "Strike a stationary ball with control",
-    "Strike a moving/tossed ball with accuracy",
-    "Strike with direction and power to a target",
-    "Under pressure — vary placement, beat an opponent"
+    "Off a tee, travels forward past the line",
+    "Off the tee through a wide gate",
+    "Off the tee through a narrow gate at distance",
+    "Tossed ball, strike it forward",
+    "Tossed ball through a wide gate",
+    "Tossed ball through a narrow gate"
    ]
   },
   "dribble": {
    "name": "Dribble",
    "levels": [
-    "Control at walking pace, straight line",
-    "Jogging pace, change direction round cones",
-    "At speed, close control, both sides/hands",
-    "Under pressure — protect the ball, beat a defender, head up"
+    "On the spot, pushed not slapped, controlled",
+    "Straight line, dominant hand, in control",
+    "Through a cone slalom, dominant hand",
+    "Slalom with the weak hand",
+    "Slalom head-up, calling a number",
+    "Tight slalom, switching hands, head up"
    ]
   },
   "kick": {
    "name": "Kick",
    "levels": [
-    "Stationary ball to a partner, basic control",
-    "Accurate to a target over distance (instep)",
-    "Kick a moving ball; use both feet",
-    "Under pressure — pass/shoot on the move, vary power and placement"
-   ]
-  },
-  "balance": {
-   "name": "Balance",
-   "levels": [
-    "Hold a still balance, two/one foot, a few seconds",
-    "One foot eyes closed, or different shapes",
-    "Move into and out of balances with control",
-    "Under challenge — narrow base, added movement, on apparatus"
-   ]
-  },
-  "agility": {
-   "name": "Agility",
-   "levels": [
-    "Change direction at jogging pace with control",
-    "Change direction at speed through a course",
-    "React and change direction to a signal",
-    "Under pressure — dodge an opponent, unpredictable cue"
+    "Into a wide goal, plant foot beside the ball, instep",
+    "Into a narrower goal at distance",
+    "Into a 1 m target at distance",
+    "1 m target from further back",
+    "Moving ball into the 1 m target",
+    "Moving ball into the target from distance"
    ]
   },
   "jump": {
    "name": "Jump & land",
    "levels": [
-    "Jump and land on two feet, balanced (absorb)",
-    "Jump for distance/height, land under control",
-    "One-foot take-off / landing, in combinations",
-    "Jump-land-link into the next move under control"
+    "Two-foot jump, land soft and stick it",
+    "Drop off a ~30 cm box, land soft and stick",
+    "Drop-vertical-jump: drop, land, spring up, stick",
+    "Three two-foot jumps forward, stick the last",
+    "One-foot hop and stick, each leg",
+    "Three one-foot hops forward, stick the last, each leg"
    ]
   },
   "core": {
    "name": "Core stability",
    "levels": [
-    "Hold a plank with good form for a short time",
-    "Hold longer, or a side plank, form intact",
-    "Keep a stable core while a limb moves (bird-dog, dead-bug)",
-    "Keep core control under load or in dynamic movement"
+    "Forearm plank, hips level",
+    "Longer plank, form intact",
+    "Plank shoulder-taps, no hip sway",
+    "Trunk Stability Push-Up, thumbs at collarbone",
+    "TSPU, thumbs at chin",
+    "TSPU, thumbs at forehead"
    ]
   }
  }
@@ -430,16 +487,16 @@ function radar(skin) {
 }
 
 // ═══════════════ profile content (v1: everything is "coming"; data arrives in v2–v4) ═══════════════
-const FUND = [['throw', '🎯'], ['catch', '🧤'], ['strike', '🏏'], ['dribble', '⛹️'], ['kick', '⚽'], ['balance', '🤸'], ['agility', '🏃'], ['jump', '⬆️'], ['core', '🧱']];
+const FUND = [['throw', '🎯'], ['catch', '🧤'], ['strike', '🏏'], ['dribble', '⛹️'], ['kick', '⚽'], ['jump', '⬆️'], ['core', '🧱']];
 const D = {
-  'gl-fit':   { e: '🏃', t: 'Fitness', m: 'Combine trend', what: 'Five measures of your physical capacities: the mile, push-ups, sit-to-stand, broad jump and the 40 m sprint.', when: 'Your first numbers come from the September Combine. Then you chase your own records in January and May.' },
-  'gl-fund':  { e: '🧩', t: 'Fundamental skills', m: 'Nine building blocks, on the Combine ladder', what: 'Throw, catch, strike, dribble, kick, balance, agility, jump & land, core stability. Each is a 4-level ladder: stationary → on the move → isolated challenge → under pressure.', when: 'Tested identically every Combine, so your level is a trend. Cleared self → peer → teacher.' },
+  'gl-fit':   { e: '🏃', t: 'Fitness', m: 'Combine trend', what: 'Eight measures of your physical capacities: the mile, push-ups, sit-to-stand, broad jump, grip, the 30 m sprint, Illinois agility and stork balance.', when: 'Your first numbers come from the September Combine. Then you chase your own records in January and May.' },
+  'gl-fund':  { e: '🧩', t: 'Fundamental skills', m: 'Seven building blocks, on the Combine ladder', what: 'Throw, catch, strike, dribble, kick, jump & land, core stability. Each is a 6-level ladder where the technique stays the same but the constraint steps up. (Balance and agility are measured as scores on the fitness side.)', when: 'Everyone starts at L1, then climbs. Tested identically every Combine, so your level is a trend. Cleared self → peer → teacher.' },
   'gl-ap':    { e: '🤝', t: 'Participation', m: 'Your biggest all-year story', what: 'How you show up: five keys, tracked through every unit.', when: 'You rate yourself at the start and end of the year; your teacher checks in each unit.' },
   'gl-know':  { e: '🧠', t: 'Understanding', m: 'Using what you know in new games', what: 'Knowing the why: fitness concepts, safe practice, and taking a tactic from one game into another.', when: 'Grows through Fitness, Parkour and especially the Tactics Cup.' },
   'fit-cv':   { e: '🫀', t: 'Cardiovascular endurance', m: 'The mile run · Sept → Jan → May', what: 'Heart and lung staying power. The one everybody can move.', when: 'First mile at the September Combine.' },
   'fit-me':   { e: '💪', t: 'Muscular endurance', m: 'Push-ups (upper) & sit-to-stand (lower)', what: 'How many quality reps in 60 seconds. Sit-ups are retired; core stability is its own skill ladder.', when: 'September Combine.' },
   'fit-pw':   { e: '💥', t: 'Power', m: 'Standing broad jump', what: 'Explosive strength, measured in centimetres.', when: 'September Combine.' },
-  'fit-sp':   { e: '⚡', t: 'Speed', m: '40 m sprint', what: 'Acceleration and top speed, measured in seconds.', when: 'September Combine.' },
+  'fit-sp':   { e: '⚡', t: 'Speed', m: '30 m sprint', what: 'Acceleration and top speed, measured in seconds.', when: 'September Combine.' },
   'sk-net':   { e: '🏸', t: 'Net & wall', m: 'Badminton · Volleyball', what: 'Serve with purpose, sustain and vary a rally, read play and position early.', when: 'Assessed inside the Badminton unit.' },
   'sk-inv':   { e: '🏀', t: 'Invasion games', m: 'Basketball · Football · Tchoukball', what: 'Pass, support, find space, and contribute to the team.', when: 'Assessed inside Tchoukball and the Tactics Cup.' },
   'sk-str':   { e: '⚾', t: 'Striking & target', m: 'Accuracy & contact', what: 'Solid contact, reliable throw and catch, accuracy at a target.', when: 'Assessed inside the striking unit.' },
@@ -483,6 +540,76 @@ function lists(pred) {
 // ═══════════════ views ═══════════════
 let state = null, view = 'profile';
 
+// ── v3 measured-data helpers ──
+const CPS = ['sept', 'jan', 'may'], CP_LABEL = { sept: 'Sep', jan: 'Jan', may: 'May' };
+const FITMETA = () => (state.meta && state.meta.fitness) || [];
+const fitMeta = key => FITMETA().find(f => f.key === key) || { label: key, unit: '', dir: 'up' };
+const SKILL_ORDER = ['throw', 'catch', 'strike', 'dribble', 'kick', 'jump', 'core'];
+const FIT_KEYS_CLIENT = ['mile', 'pushups', 'sitstand', 'broad', 'grip', 'sprint', 'illinois', 'stork'];
+const G8_BAND = 4; // "meeting" sits at L4
+function measured() { return state.student && state.student.combine ? state.student.combine : null; }
+function latestOf(series) { if (!series) return null; for (let i = CPS.length - 1; i >= 0; i--) if (CPS[i] in series) return series[CPS[i]]; return null; }
+function firstOf(series) { if (!series) return null; for (const cp of CPS) if (cp in series) return series[cp]; return null; }
+function fmtNum(n) { return n == null ? '—' : String(Math.round(n * 10) / 10); }
+function improved(series, dir) { const a = firstOf(series), b = latestOf(series); if (a == null || b == null || a === b) return 0; const up = b > a; return (dir === 'down' ? !up : up) ? 1 : -1; }
+function lvlGrade(l) { return ({ 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 7 })[l] || null; }
+function skillsGradeNow() {
+  const m = measured(); if (!m || !m.skills) return null;
+  const gs = SKILL_ORDER.map(k => latestOf(m.skills[k])).filter(v => v != null).map(lvlGrade);
+  if (!gs.length) return null;
+  return Math.round(gs.reduce((a, b) => a + b, 0) / gs.length);
+}
+function apOverallNow() {
+  const m = measured(); if (!m || !m.ap) return null;
+  const vals = Object.keys(m.ap).map(k => m.ap[k].tchr != null ? m.ap[k].tchr : m.ap[k].self).filter(v => v != null);
+  if (!vals.length) return null;
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+}
+const FIT_EMOJI = { mile: '🫀', pushups: '💪', sitstand: '🦵', broad: '💥', grip: '✊', sprint: '⚡', illinois: '🔺', stork: '🦩' };
+const FITINFO = {
+  mile: 'Heart and lung staying power. Lower time is better.',
+  pushups: 'Upper-body muscular endurance — quality reps.',
+  sitstand: 'Lower-body muscular endurance in 60 seconds.',
+  broad: 'Explosive leg power, measured in centimetres.',
+  grip: 'Grip strength in kilograms.',
+  sprint: 'Acceleration and speed over 30 m.',
+  illinois: 'Agility — change of direction, timed.',
+  stork: 'Single-leg balance — fewer losses is better.'
+};
+const SKILLINFO = 'Everyone starts at L1 and climbs. Cleared self → peer → teacher.';
+function trendChip(series, dir) {
+  const t = improved(series, dir); if (t === 0) return '';
+  const d = Math.abs(Math.round((latestOf(series) - firstOf(series)) * 10) / 10);
+  return '<span class="dlt ' + (t > 0 ? 'up' : 'down') + '">' + (t > 0 ? '▲' : '▼') + ' ' + d + '</span>';
+}
+function fitTileV(key) {
+  const m = measured(), meta = fitMeta(key), series = m && m.fitness ? m.fitness[key] : null, val = latestOf(series), has = val != null;
+  return '<button type="button" class="tile a-fit' + (has ? ' has' : '') + '" data-ov="fit-' + key + '">' +
+    '<span class="plus">⊕</span><div class="tnrow"><span class="em">' + (FIT_EMOJI[key] || '•') + '</span><span class="tn">' + esc(meta.label) + '</span></div>' +
+    '<div class="measure">' + (has ? fmtNum(val) : '—') + '<small>' + esc(meta.unit) + '</small>' + (has ? trendChip(series, meta.dir) : '') + '</div></button>';
+}
+function fundTileV(key, em) {
+  const m = measured(), series = m && m.skills ? m.skills[key] : null, lv = latestOf(series), has = lv != null;
+  const bandCls = has ? (lv >= 5 ? 'ok' : lv >= G8_BAND ? 'meet' : 'below') : '';
+  const rung = has ? ('Level <b>' + lv + '</b> of 6' + trendChip(series, 'up')) : 'Level — of 6 · first Combine';
+  return '<button type="button" class="tile a-fund ' + bandCls + '" data-ov="fund-' + key + '"><span class="plus">⊕</span>' +
+    '<div class="tnrow"><span class="em">' + em + '</span><span class="tn">' + esc(RUBRICS.ladders[key].name) + '</span></div>' +
+    '<div class="tsub">building block</div>' + ladderBar(lv) + '<div class="rung">' + rung + '</div></button>';
+}
+function ladderBar(lv) {
+  let s = '<div class="lbar">';
+  for (let i = 1; i <= 6; i++) s += '<i class="' + (lv && i <= lv ? 'on' : '') + (i === G8_BAND ? ' band' : '') + '"></i>';
+  return s + '</div>';
+}
+function bandV(ovKey, em, name, repKey) {
+  const m = measured(), v = m && m.bands && m.bands[repKey] != null ? m.bands[repKey] : null;
+  const LBL = { 1: 'Beginning', 2: 'Developing', 3: 'Approaching', 4: 'Meeting', 5: 'Strong', 6: 'Advanced', 7: 'Exceptional' };
+  const cls = v == null ? '' : (v >= 5 ? 'ok' : v >= 4 ? 'meet' : 'below');
+  const bar = '<div class="btrack">' + [1, 2, 3, 4, 5, 6, 7].map(i => '<i class="' + (v && i <= v ? 'on' : '') + '"></i>').join('') + '</div>';
+  return '<button type="button" class="band ' + cls + '" data-ov="' + ovKey + '"><span class="plus">⊕</span><div class="bn">' + em + ' ' + esc(name) + '</div>' + bar +
+    '<div class="blab">' + (v == null ? 'not yet reported' : v + ' · ' + LBL[v]) + '</div></button>';
+}
+
 function avatar(st, cls) {
   const ini = esc(st.initials || '?');
   if (st.photoUrl) return '<span class="' + cls + '"><img src="' + esc(st.photoUrl) + '" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.textContent=\'' + ini + '\'"></span>';
@@ -499,34 +626,54 @@ function band(key, em, name) {
   return '<button type="button" class="band" data-ov="' + key + '"><span class="plus">⊕</span><div class="bn">' + em + ' ' + esc(name) + '</div><div class="btrack"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="blab">not yet reported</div></button>';
 }
 
+function mileStr(v) { return v == null ? '—' : (Math.floor(v / 60) + ':' + String(Math.round(v % 60)).padStart(2, '0')); }
 function profileView(b) {
-  const st = b.student, styles = b.styles, k = st.style, skin = SKINS[k];
-  const fund = FUND.map(([key, em]) => '<button type="button" class="tile a-fund" data-ov="fund-' + key + '"><span class="plus">⊕</span><div class="tnrow"><span class="em">' + em + '</span><span class="tn">' + esc(RUBRICS.ladders[key].name) + '</span></div><div class="tsub">building block</div>' + track('a-fund', 4) + '<div class="rung">Level — of 4 · first Combine</div></button>').join('');
+  const st = b.student, styles = b.styles, k = st.style, skin = SKINS[k], m = measured();
+  const mileV = m && m.fitness ? latestOf(m.fitness.mile) : null;
+  const skG = skillsGradeNow(), apO = apOverallNow();
+  const goals = (m && m.goals) || [], hasPlan = !!(m && m.plan);
+  const fund = FUND.map(([key, em]) => fundTileV(key, em)).join('');
+  const fitGrid = ['pushups', 'sitstand', 'broad', 'grip', 'sprint', 'illinois', 'stork'].map(fitTileV).join('');
+  const stat = (v, lab) => '<div><b>' + v + '</b><span>' + lab + '</span></div>';
   return '<div class="wrap">' +
-    '<div class="topline"><span class="demo-tag">Hi ' + esc(st.first) + ' · your profile fills in through the year · tap any tile</span><span class="yearlab">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</span></div>' +
+    '<div class="topline"><span class="demo-tag">Hi ' + esc(st.first) + ' · ' + (m ? 'your results are in — explore and plan' : 'your profile fills in at the Combine') + '</span><span class="yearlab">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</span></div>' +
     '<div class="cardteaser">' + avatar(st, 'ct-av') +
       '<div class="ct-id"><div class="ct-name">' + esc(st.name) + ' <span class="ct-tier">◆ BRONZE</span></div>' + (st.klass ? '<div class="ct-sub">' + esc(st.klass) + '</div>' : '') +
       '<div class="ct-arch">' + (skin ? skin.e + ' ' + esc(styles[k]).toUpperCase() : '✨ PICK YOUR PE STYLE') + '</div></div>' +
-      '<div class="ct-stats"><div><b>—</b><span>Mile</span></div><div><b>—</b><span>Skills</span></div><div><b>—</b><span>Effort</span></div></div>' +
+      '<div class="ct-stats">' + stat(mileStr(mileV), 'Mile') + stat(skG == null ? '—' : skG, 'Skills') + stat(apO == null ? '—' : apO, 'Effort') + '</div>' +
       '<button type="button" class="ct-btn' + (k ? '' : ' pulse') + '" id="tocard">' + (k ? 'View my card ↗' : 'Build my card ↗') + '</button>' +
     '</div>' +
+    // Fitness unit · Results and Planning — the lesson flow
+    '<div class="planstrip"><div class="ps-h">🏁 Fitness unit · Results &amp; Planning</div><div class="ps-row">' +
+      '<button type="button" class="ps-btn primary" id="toentry">📝 ' + (m && m.fitness ? 'Update' : 'Enter') + ' my Combine results</button>' +
+      '<button type="button" class="ps-btn" id="togoals">🎯 My goals' + (goals.length ? ' · ' + goals.length : '') + '</button>' +
+      '<button type="button" class="ps-btn" id="toplan">💪 Workout plan' + (hasPlan ? ' ✓' : '') + '</button>' +
+    '</div></div>' +
     lesson1Panel() +
+    (goals.length ? '<div class="goalchips"><span class="gc-h">🎯 I\'m working on</span>' + goals.map(g => '<span class="gchip">' + esc(goalLabel(g.component)) + '</span>').join('') + '</div>' : '') +
     '<h3 class="sec sec-glance"><span class="em">👀</span> At a glance <span class="tap">· tap to open</span></h3><p class="seclede">The whole picture in one look — position, not scores.</p>' +
-    '<div class="grid4">' + tile('a-fit', 'gl-fit', '🏃', 'Fitness', 'from September', 'at the Combine') + tile('a-fund', 'gl-fund', '🧩', 'Fundamental skills', '9 building blocks', 'Level 1 to 4') + tile('a-ap', 'gl-ap', '🤝', 'Participation', 'all year', 'your five keys') + tile('a-skill', 'gl-know', '🧠', 'Understanding', 'use it in new games', 'Tactics Cup') + '</div>' +
+    '<div class="grid4">' + tile('a-fit', 'gl-fit', '🏃', 'Fitness', m ? 'your results' : 'from September', 'at the Combine') + tile('a-fund', 'gl-fund', '🧩', 'Fundamental skills', '7 building blocks', 'Level 1 to 6') + tile('a-ap', 'gl-ap', '🤝', 'Participation', 'all year', 'your five keys') + tile('a-skill', 'gl-know', '🧠', 'Understanding', 'use it in new games', 'Tactics Cup') + '</div>' +
     '<h3 class="sec sec-fit"><span class="em">🏃</span> My fitness <span class="tap">· tap a part</span></h3><p class="seclede">Physical capacities — measured three times a year. Records that move.</p>' +
-    '<button type="button" class="fhero" data-ov="fit-cv"><div class="fx">🫀</div><div class="fm"><div class="n">Cardiovascular endurance</div><div class="s">Heart &amp; lung staying power · the mile run</div></div><div class="fv">—<span>September Combine</span></div></button>' +
-    '<div class="grid3">' + mtile('fit-me', '💪', 'Muscular endurance', 'push-ups · sit-to-stand', '') + mtile('fit-pw', '💥', 'Power', 'broad jump', 'cm') + mtile('fit-sp', '⚡', 'Speed', '40m sprint', 's') + '</div>' +
-    '<h3 class="sec sec-fund"><span class="em">🧩</span> Fundamental skills <span class="tap">· self → peer → teacher · tap a skill</span></h3><p class="seclede">Nine building blocks, each a 4-level ladder. Same test every Combine, so your level climbs over the year.</p>' +
+    '<button type="button" class="fhero' + (mileV != null ? ' has' : '') + '" data-ov="fit-mile"><div class="fx">🫀</div><div class="fm"><div class="n">Cardiovascular endurance</div><div class="s">Heart &amp; lung staying power · the mile run</div></div><div class="fv">' + (mileV != null ? mileStr(mileV) : '—') + '<span>' + (mileV != null ? trendWord(m.fitness.mile, 'down') : 'September Combine') + '</span></div></button>' +
+    '<div class="grid3">' + fitGrid + '</div>' +
+    '<h3 class="sec sec-fund"><span class="em">🧩</span> Fundamental skills <span class="tap">· self → peer → teacher · tap a skill</span></h3><p class="seclede">Seven building blocks, each a 6-level ladder. Same test every Combine, so your level climbs over the year.</p>' +
     '<div class="grid3">' + fund + '</div>' +
-    '<h3 class="sec sec-skill"><span class="em">🎯</span> Game skills <span class="tap">· in real games</span></h3><p class="seclede">The fundamentals, applied in a game. Assessed inside the units.</p>' +
-    '<div class="grid3">' + tile('a-skill', 'sk-net', '🏸', 'Net & wall', 'badminton · volleyball', 'coming') + tile('a-skill', 'sk-inv', '🏀', 'Invasion', 'basketball · football', 'coming') + tile('a-skill', 'sk-str', '⚾', 'Striking & target', 'accuracy & contact', 'coming') + '</div>' +
     '<h3 class="sec sec-ap"><span class="em">🤝</span> Active participation <span class="tap">· all year</span></h3><p class="seclede">Your biggest all-year story — how you show up, tracked through every unit.</p>' +
-    '<div class="grid3">' + tile('a-ap', 'ap-ready', '✅', 'Be ready', 'set to learn', 'all year') + tile('a-ap', 'ap-effort', '🔥', 'Best effort', 'give it my all', 'all year') + tile('a-ap', 'ap-growth', '🌱', 'Growth mindset', 'learn from setbacks', 'all year') + tile('a-ap', 'ap-team', '🙌', 'Great teammate', 'include & encourage', 'all year') + tile('a-ap', 'ap-manage', '🧘', 'Manage myself & feelings', 'listen · safe space', 'all year') + '</div>' +
+    '<div class="grid3">' + apTileV('ap-ready', '✅', 'Be ready', 'ready') + apTileV('ap-effort', '🔥', 'Best effort', 'effort') + apTileV('ap-growth', '🌱', 'Growth mindset', 'growth') + apTileV('ap-team', '🙌', 'Great teammate', 'team') + apTileV('ap-manage', '🧘', 'Manage myself', 'manage') + '</div>' +
     '<h3 class="sec sec-rep"><span class="em">🧠</span> My report picture <span class="tap">· tap for how it’s built</span></h3><p class="seclede">The three grades on your Canvas report — a best fit across the descriptors.</p>' +
-    '<div class="grid3">' + band('rp-know', '🧠', 'Knowledge') + band('rp-skill', '🎯', 'Skills') + band('rp-ct', '🔄', 'Concept transfer') + '</div>' +
+    '<div class="grid3">' + bandV('rp-know', '🧠', 'Knowledge', 'knowledge') + bandV('rp-skill', '🎯', 'Skills', 'skills') + bandV('rp-ct', '🔄', 'Concept transfer', 'concept') + '</div>' +
     '<div class="foot"><span class="arrow">↻</span><div><b>How this grows:</b> September sets the baseline; the same measures repeat in January and May. Always <b>you vs. your past self</b> — and it maps straight to your report.</div></div>' +
-    (b.alsoTeacher ? '<p class="small">You are on the Teachers tab too, so this is what a student sees.</p>' : '') +
+    (b.alsoTeacher ? '<p class="small"><button type="button" class="lnk" id="toteacher">Open the teacher view →</button> · this is what a student sees.</p>' : '') +
   '</div>';
+}
+function goalLabel(c) { const f = fitMeta(c); if (f && f.label && (state.meta.fitness || []).some(x => x.key === c)) return f.label; if (RUBRICS.ladders[c]) return RUBRICS.ladders[c].name; return c === 'overall' ? 'Overall' : c; }
+function trendWord(series, dir) { const t = improved(series, dir); return t > 0 ? 'improving ▲' : t < 0 ? 'down ▼ · chase it back' : 'latest'; }
+function apTileV(ovKey, em, name, key) {
+  const m = measured(), rec = m && m.ap ? m.ap[key] : null;
+  const v = rec ? (rec.tchr != null ? rec.tchr : rec.self) : null;
+  const bar = '<div class="btrack ap">' + [1, 2, 3, 4, 5, 6, 7].map(i => '<i class="' + (v && i <= v ? 'on' : '') + '"></i>').join('') + '</div>';
+  const cls = v == null ? '' : (v >= 5 ? 'ok' : v >= 4 ? 'meet' : 'below');
+  return '<button type="button" class="tile a-ap ' + cls + '" data-ov="' + ovKey + '"><span class="plus">⊕</span><div class="tnrow"><span class="em">' + em + '</span><span class="tn">' + esc(name) + '</span></div>' + bar + '<div class="rung">' + (v == null ? 'all year' : (rec.self != null ? 'me ' + rec.self : '') + (rec.tchr != null ? ' · teacher ' + rec.tchr : '')) + '</div></button>';
 }
 
 function lesson1Panel() {
@@ -618,6 +765,141 @@ function cardView(b) {
   '</div>';
 }
 
+// ═══════════════ v3 student views: enter results · goals · plan ═══════════════
+let entryCp = 'sept';
+function entryView(b) {
+  const m = measured(), fit = m && m.fitness ? m.fitness : {};
+  const rows = FITMETA().map(function (f) {
+    const cur = fit[f.key] && (entryCp in fit[f.key]) ? fit[f.key][entryCp] : '';
+    return '<label class="enrow"><span class="en-n">' + FIT_EMOJI[f.key] + ' ' + esc(f.label) + '</span>' +
+      '<span class="en-in"><input type="number" step="any" inputmode="decimal" id="en-' + f.key + '" value="' + (cur === '' ? '' : cur) + '" placeholder="—"><small>' + esc(f.unit) + (f.dir === 'down' ? ' · lower better' : '') + '</small></span></label>';
+  }).join('');
+  const cpOpts = CPS.map(function (cp) { return '<option value="' + cp + '"' + (cp === entryCp ? ' selected' : '') + '>' + CP_LABEL[cp] + '</option>'; }).join('');
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    '<div class="phero"><div class="k">FITNESS COMBINE</div><h1>Enter my results</h1><p>Type your numbers from your recording sheet, ' + esc(b.student.first) + '. Leave any blank if you didn’t do it.</p>' +
+    '<div class="cpick">Checkpoint <select id="encp">' + cpOpts + '</select></div></div>' +
+    '<div class="enform">' + rows + '</div>' +
+    '<div class="pbar"><div class="pcount">Your own numbers — honest counts beat big counts.</div><button type="button" class="ct-btn" id="ensave">Save my results</button></div>' +
+  '</div>';
+}
+async function saveEntry() {
+  const btn = $('#ensave'); btn.disabled = true; btn.textContent = 'Saving…';
+  const results = {};
+  FITMETA().forEach(function (f) { const el = $('#en-' + f.key); const v = el ? el.value.trim() : ''; if (v !== '') results[f.key] = Number(v); });
+  try {
+    const res = await call('saveCombine', { checkpoint: entryCp, results: results });
+    const m = state.student.combine || { fitness: {}, skills: {}, ap: {}, bands: {}, goals: [], plan: null };
+    m.fitness = m.fitness || {};
+    Object.keys(res.results).forEach(function (k) { m.fitness[k] = m.fitness[k] || {}; m.fitness[k][entryCp] = res.results[k]; });
+    state.student.combine = m;
+    toast('Results saved.'); show('profile');
+  } catch (e) { btn.disabled = false; btn.textContent = 'Save my results'; toast('Couldn’t save: ' + e.message, true); }
+}
+
+function goalsView(b) {
+  const m = measured(), have = {}; ((m && m.goals) || []).forEach(function (g) { have[g.component] = g.goal; });
+  const comp = function (key, label, em) { return '<label class="goalrow"><span class="gr-n">' + em + ' ' + esc(label) + '</span><input type="text" maxlength="160" id="gl-' + key + '" value="' + esc(have[key] || '') + '" placeholder="what do you want to improve?"></label>'; };
+  const fitRows = FITMETA().map(function (f) { return comp(f.key, f.label, FIT_EMOJI[f.key]); }).join('');
+  const skRows = SKILL_ORDER.map(function (k) { return comp(k, RUBRICS.ladders[k].name, (FUND.find(function (f) { return f[0] === k; }) || ['', '🧩'])[1]); }).join('');
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    '<div class="phero"><div class="k">SET MY GOALS</div><h1>What do you most want to improve?</h1><p>Choose the few parts you’ll chase, ' + esc(b.student.first) + ' — you don’t need a goal for everything.</p></div>' +
+    '<h3 class="sec sec-fit"><span class="em">🏃</span> Fitness</h3>' + fitRows +
+    '<h3 class="sec sec-fund"><span class="em">🧩</span> Skills</h3>' + skRows +
+    '<div class="pbar"><div class="pcount">Tip: pick 2–3 that matter most.</div><button type="button" class="ct-btn" id="gsave">Save my goals</button></div>' +
+  '</div>';
+}
+async function saveGoalsUI() {
+  const btn = $('#gsave'); btn.disabled = true; btn.textContent = 'Saving…';
+  const goals = [];
+  FITMETA().forEach(function (f) { const v = $('#gl-' + f.key).value.trim(); if (v) goals.push({ component: f.key, goal: v }); });
+  SKILL_ORDER.forEach(function (k) { const v = $('#gl-' + k).value.trim(); if (v) goals.push({ component: k, goal: v }); });
+  try { const res = await call('saveGoals', { goals: goals }); const m = state.student.combine || { fitness: {}, skills: {} }; m.goals = res.goals; state.student.combine = m; toast('Goals saved.'); show('profile'); }
+  catch (e) { btn.disabled = false; btn.textContent = 'Save my goals'; toast('Couldn’t save: ' + e.message, true); }
+}
+
+let planDraft = null;
+function planView(b) {
+  const m = measured(); planDraft = JSON.parse(JSON.stringify((m && m.plan) || { focus: [], days: 3, notes: '' }));
+  const on = {}; (planDraft.focus || []).forEach(function (f) { on[f] = 1; });
+  const chips = FITMETA().map(function (f) { return '<button type="button" class="fchip' + (on[f.key] ? ' on' : '') + '" data-f="' + f.key + '">' + FIT_EMOJI[f.key] + ' ' + esc(f.label) + '</button>'; }).join('');
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    '<div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Start your plan</h1><p>Pick what to focus on, how many days a week, and jot your first ideas. You’ll build this out through the unit.</p></div>' +
+    '<h3 class="sec"><span class="em">🎯</span> Focus areas</h3><div class="fchips" id="fchips">' + chips + '</div>' +
+    '<h3 class="sec"><span class="em">📅</span> Days per week</h3><input type="number" id="pdays" min="1" max="7" value="' + (planDraft.days || 3) + '" class="daysin">' +
+    '<h3 class="sec"><span class="em">✍️</span> My first ideas</h3><textarea id="pnotes" rows="4" maxlength="600" placeholder="e.g. run 20 min twice a week; push-ups every other day…">' + esc(planDraft.notes || '') + '</textarea>' +
+    '<div class="pbar"><div class="pcount">A plan you’ll actually do beats a perfect one.</div><button type="button" class="ct-btn" id="psaveplan">Save my plan</button></div>' +
+  '</div>';
+}
+async function savePlanUI() {
+  const btn = $('#psaveplan'); btn.disabled = true; btn.textContent = 'Saving…';
+  const focus = []; document.querySelectorAll('.fchip.on').forEach(function (c) { focus.push(c.dataset.f); });
+  const plan = { focus: focus, days: Math.max(1, Math.min(7, parseInt($('#pdays').value, 10) || 3)), notes: $('#pnotes').value.trim().slice(0, 600) };
+  try { const res = await call('savePlan', { plan: plan }); const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m; toast('Plan saved.'); show('profile'); }
+  catch (e) { btn.disabled = false; btn.textContent = 'Save my plan'; toast('Couldn’t save: ' + e.message, true); }
+}
+
+// ═══════════════ teacher views: class dashboard + skill entry ═══════════════
+let classData = null, teacherCp = 'sept', currentSid = null;
+function classGrade(s) {
+  const gs = SKILL_ORDER.map(function (k) { return latestOf(s.skills[k]); }).filter(function (v) { return v != null; }).map(lvlGrade);
+  if (!gs.length) return null;
+  return Math.round(gs.reduce(function (a, b) { return a + b; }, 0) / gs.length);
+}
+function teacherLanding(b) {
+  return '<div class="wrap"><div class="phero"><div class="k">TEACHER</div><h1>G8 PE — class view</h1><p>Signed in as <code>' + esc(b.email) + '</code>. Open the class dashboard to see everyone’s Combine and record the skill-ladder results your classes run.</p></div>' +
+    '<div class="done"><button type="button" class="ct-btn" id="toclass">Open class dashboard ↗</button></div>' +
+    '<p class="small"><button type="button" class="lnk" id="signout">Sign out</button></p></div>';
+}
+function classView() {
+  if (!classData) return '<div class="loading"><div class="spinner"></div>Loading the class…</div>';
+  const students = classData.students.slice().sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+  const rows = students.map(function (s) {
+    const g = classGrade(s), mile = latestOf(s.fitness.mile);
+    const nFit = FIT_KEYS_CLIENT.filter(function (k) { return latestOf(s.fitness[k]) != null; }).length;
+    const nSk = SKILL_ORDER.filter(function (k) { return latestOf(s.skills[k]) != null; }).length;
+    return '<tr data-id="' + esc(s.id) + '"><td class="name">' + esc(s.name) + '</td><td class="sec">' + esc(s.klass) + '</td>' +
+      '<td class="num">' + (g == null ? '<span class="muted">—</span>' : '<span class="pill ' + (g >= 5 ? 'g-hi' : g >= 4 ? 'g-mid' : 'g-lo') + '">' + g + '</span>') + '</td>' +
+      '<td class="num">' + (mile == null ? '<span class="muted">—</span>' : mileStr(mile)) + '</td>' +
+      '<td class="num">' + nFit + '/8</td><td class="num">' + nSk + '/7</td>' +
+      '<td class="num"><button type="button" class="minib" data-skills="' + esc(s.id) + '">Skills ✎</button></td></tr>';
+  }).join('');
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="toprofileT">← Back</button>' +
+    '<div class="phero tight"><div class="k">TEACHER · CLASS</div><h1>Class dashboard</h1><p>' + students.length + ' students. Click a row for a profile; use Skills ✎ to record the skill-ladder levels for the Combine.</p></div>' +
+    '<div class="tablewrap"><table><thead><tr><th>Student</th><th>Class</th><th class="num">Grade</th><th class="num">Mile</th><th class="num">Fitness</th><th class="num">Skills</th><th class="num">Record</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+  '</div>';
+}
+function skillEntryView(sid) {
+  const s = classData.students.find(function (x) { return x.id === sid; }); if (!s) return;
+  const cpOpts = CPS.map(function (cp) { return '<option value="' + cp + '"' + (cp === teacherCp ? ' selected' : '') + '>' + CP_LABEL[cp] + '</option>'; }).join('');
+  const rows = SKILL_ORDER.map(function (k) {
+    const cur = s.skills[k] && (teacherCp in s.skills[k]) ? s.skills[k][teacherCp] : '';
+    const opts = ['<option value="">—</option>'].concat([1, 2, 3, 4, 5, 6].map(function (n) { return '<option value="' + n + '"' + (cur === n ? ' selected' : '') + '>L' + n + '</option>'; })).join('');
+    return '<label class="enrow"><span class="en-n">' + (FUND.find(function (f) { return f[0] === k; }) || ['', '🧩'])[1] + ' ' + esc(RUBRICS.ladders[k].name) + '</span><span class="en-in"><select id="sk-' + k + '" class="lvsel">' + opts + '</select></span></label>';
+  }).join('');
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="toclassback">← Back to class</button>' +
+    '<div class="phero tight"><div class="k">RECORD SKILLS</div><h1>' + esc(s.name) + '</h1><p>' + esc(s.klass) + ' · set the skill-ladder level (1–6) for each. Leave blank if not tested yet.</p>' +
+    '<div class="cpick">Checkpoint <select id="skcp">' + cpOpts + '</select></div></div>' +
+    '<div class="enform">' + rows + '</div>' +
+    '<div class="pbar"><div class="pcount">Teacher sign-off — the final tick.</div><button type="button" class="ct-btn" id="sksave" data-id="' + esc(sid) + '">Save levels</button></div>' +
+  '</div>';
+}
+async function saveSkillsUI(sid) {
+  const btn = $('#sksave'); btn.disabled = true; btn.textContent = 'Saving…';
+  const levels = {};
+  SKILL_ORDER.forEach(function (k) { const v = $('#sk-' + k).value; if (v !== '') levels[k] = Number(v); });
+  try {
+    await call('saveSkills', { email: sid, checkpoint: teacherCp, levels: levels });
+    const s = classData.students.find(function (x) { return x.id === sid; });
+    if (s) Object.keys(levels).forEach(function (k) { s.skills[k] = s.skills[k] || {}; s.skills[k][teacherCp] = levels[k]; });
+    toast('Levels saved.'); show('class');
+  } catch (e) { btn.disabled = false; btn.textContent = 'Save levels'; toast('Couldn’t save: ' + e.message, true); }
+}
+
 function message(big, title, body, extra) {
   return '<div class="msg"><div class="big">' + big + '</div><h2>' + esc(title) + '</h2><p>' + body + '</p>' + (extra || '') + '</div>';
 }
@@ -647,9 +929,20 @@ function openOv(k) {
   let html = '<button class="x" type="button" data-close="1">✕</button>';
   if (k.startsWith('fund-')) {
     const key = k.slice(5), lad = RUBRICS.ladders[key], em = (FUND.find(f => f[0] === key) || ['', '🧩'])[1];
-    html += '<h4>' + em + ' ' + esc(lad.name) + '</h4><div class="om">Fundamental skill · 4-level ladder · cleared self → peer → teacher</div>';
-    lad.levels.forEach((t, i) => { html += '<div class="lad"><span class="lv">L' + (i + 1) + '</span><span>' + esc(t) + '</span></div>'; });
-    html += '<div class="ovfeeds"><b>Not yet tested.</b> Your first level comes from the September Combine, then Jan → May.</div>';
+    const m = measured(), lv = m && m.skills ? latestOf(m.skills[key]) : null;
+    html += '<h4>' + em + ' ' + esc(lad.name) + '</h4><div class="om">Fundamental skill · 6-level ladder · cleared self → peer → teacher</div>';
+    lad.levels.forEach((t, i) => { const on = lv === (i + 1); html += '<div class="lad' + (on ? ' here' : '') + '"><span class="lv">L' + (i + 1) + '</span><span>' + esc(t) + '</span>' + (on ? '<span class="youre">you are here</span>' : '') + '</div>'; });
+    html += lv == null ? '<div class="ovfeeds"><b>Not yet tested.</b> Your first level comes from the September Combine, then Jan → May.</div>'
+                       : '<div class="ovfeeds">You are at <b>Level ' + lv + '</b>. Grade 8 "meeting" is L' + G8_BAND + '. Keep climbing.</div>';
+  } else if (k.indexOf('fit-') === 0 && FIT_EMOJI[k.slice(4)]) {
+    const key = k.slice(4), meta = fitMeta(key), m = measured(), series = m && m.fitness ? m.fitness[key] : null;
+    html += '<h4>' + FIT_EMOJI[key] + ' ' + esc(meta.label) + '</h4><div class="om">' + esc(meta.unit) + ' · ' + (meta.dir === 'down' ? 'lower is better' : 'higher is better') + '</div>' +
+      '<div class="ovnow"><div class="l">WHAT THIS IS</div><div class="t">' + esc(FITINFO[key] || '') + '</div></div>';
+    if (series && Object.keys(series).length) {
+      html += '<div class="ovtrend">' + CPS.filter(cp => cp in series).map(cp => '<div class="ovt"><span>' + CP_LABEL[cp] + '</span><b>' + (key === 'mile' ? mileStr(series[cp]) : fmtNum(series[cp])) + '</b></div>').join('') + '</div>';
+    } else {
+      html += '<div class="ovnext"><div class="l">↗ WHEN IT FILLS IN</div><div class="t">Your first number comes from the September Combine, then Jan → May.</div></div>';
+    }
   } else {
     const d = D[k]; if (!d) return;
     html += '<h4>' + d.e + ' ' + esc(d.t) + '</h4><div class="om">' + esc(d.m) + '</div>' +
@@ -705,11 +998,11 @@ async function savePrediction() {
 }
 const wire = (id, fn) => { const el = $('#' + id); if (el) el.addEventListener('click', fn); };
 
-function show(v) {
+function show(v, arg) {
   view = v;
   const app = $('#app');
   document.body.classList.toggle('dark', v === 'card');
-  setSkin(state.student.style);
+  if (state.student) setSkin(state.student.style);
   if (v === 'predict') {
     const saved = predictionSaved(); draft = saved ? JSON.parse(JSON.stringify(saved.items)) : {};
     app.innerHTML = predictView(state);
@@ -726,10 +1019,32 @@ function show(v) {
     $('#styles').addEventListener('click', e => { const btn = e.target.closest('.sbtn'); if (btn) choose(btn.dataset.k); });
     $('#toprofile').addEventListener('click', () => show('profile'));
     $('#toprofile2').addEventListener('click', () => show('profile'));
+  } else if (v === 'entry') {
+    app.innerHTML = entryView(state);
+    wire('toprofile', () => show('profile')); wire('ensave', saveEntry);
+    const cp = $('#encp'); if (cp) cp.addEventListener('change', () => { entryCp = cp.value; show('entry'); });
+  } else if (v === 'goals') {
+    app.innerHTML = goalsView(state);
+    wire('toprofile', () => show('profile')); wire('gsave', saveGoalsUI);
+  } else if (v === 'plan') {
+    app.innerHTML = planView(state);
+    wire('toprofile', () => show('profile')); wire('psaveplan', savePlanUI);
+    const fc = $('#fchips'); if (fc) fc.addEventListener('click', e => { const c = e.target.closest('.fchip'); if (c) c.classList.toggle('on'); });
+  } else if (v === 'class') {
+    app.innerHTML = classView();
+    wire('toprofileT', () => { if (state.role === 'student') show('profile'); else renderTeacher(state); });
+    document.querySelectorAll('[data-skills]').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); show('skillentry', b.getAttribute('data-skills')); }));
+  } else if (v === 'skillentry') {
+    currentSid = arg || currentSid;
+    app.innerHTML = skillEntryView(currentSid);
+    wire('toclassback', () => show('class')); wire('sksave', () => saveSkillsUI(currentSid));
+    const cp = $('#skcp'); if (cp) cp.addEventListener('change', () => { teacherCp = cp.value; show('skillentry', currentSid); });
   } else {
     app.innerHTML = profileView(state);
     $('#tocard').addEventListener('click', () => show('card'));
     wire('topredict', () => show('predict')); wire('tocompare', () => show('compare'));
+    wire('toentry', () => show('entry')); wire('togoals', () => show('goals')); wire('toplan', () => show('plan'));
+    wire('toteacher', loadClass);
     app.addEventListener('click', e => { const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   }
   window.scrollTo(0, 0);
@@ -737,8 +1052,19 @@ function show(v) {
 
 function render(b) {
   state = b;
-  if (b.role !== 'student') { document.body.classList.remove('dark'); $('#app').innerHTML = otherView(b); wire('signout', signOut); return; }
-  show(b.student.style ? 'profile' : 'card'); // first visit goes straight to "build your card"
+  if (b.role === 'student') { show(b.student.style ? 'profile' : 'card'); return; } // first visit → build your card
+  if (b.role === 'teacher') { renderTeacher(b); return; }
+  document.body.classList.remove('dark'); $('#app').innerHTML = otherView(b); wire('signout', signOut);
+}
+function renderTeacher(b) {
+  document.body.classList.remove('dark');
+  $('#app').innerHTML = teacherLanding(b);
+  wire('toclass', loadClass); wire('signout', signOut);
+}
+async function loadClass() {
+  $('#app').innerHTML = '<div class="loading"><div class="spinner"></div>Loading the class…</div>';
+  try { classData = await call('classOverview'); show('class'); }
+  catch (e) { toast('Couldn’t load the class: ' + e.message, true); if (state.role === 'student') show('profile'); else renderTeacher(state); }
 }
 
 $('#ov').addEventListener('click', e => { if (e.target === e.currentTarget || e.target.closest('[data-close]')) closeOv(); });

@@ -1,6 +1,8 @@
 # Plan — G8 PE Profile
 
-Status: **rebuilt as GitHub Pages + token-verified API after the student web filter blocked Google-hosted script pages; passing local checks, awaiting redeploy.** Last updated 2026-09-23.
+Status: **v3 built on branch `v3-combine-profile` — the populated profile (Combine fitness, 7×6 skill ladders, participation, report bands), the student Results & Planning flow (enter results → goals → workout plan), and the teacher class dashboard + skill entry. Model reconciled to the final system (7 skills × 6 levels; 30 m sprint, Illinois, stork, grip). 77 server checks green; builds clean. Awaiting move to the FIS repo (`Frankfurt-International-School/SB`) and redeploy — see `DEPLOY.md`.** Last updated 2026-10-11.
+
+Earlier status (v1): rebuilt as GitHub Pages + token-verified API after the student web filter blocked Google-hosted script pages; passing local checks, awaiting redeploy. 2026-09-23.
 
 ## Decisions taken (and why)
 

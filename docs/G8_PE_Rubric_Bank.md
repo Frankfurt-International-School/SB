@@ -41,23 +41,21 @@ The three reported bands are **Knowledge · Skills · Concept Transfer**. Each i
 
 ## Fundamental Skills — the Combine ladder (repeatable)
 
-**New this year.** Nine athletic building blocks, each a **4-level ladder** where the skill stays the same but the **complexity steps up**. Tested identically every Combine (Sept · Jan · May) so the level is a **trend**, not a one-off. Clearance runs **self-assess → peer feedback → teacher sign-off**. Feeds **S1** (movement skills) — the repeatable partner to the in-context game skills below.
+**Seven athletic building blocks, each a 6-level ladder** where the skill stays the same but the constraint steps up. Everyone starts at L1 (show the technique), then climbs; a level is cleared **self → peer → teacher sign-off**. Tested identically every Combine (Sept · Jan · May) so the level is a **trend**, not a one-off. Feeds **S1** (movement skills). *Balance and agility are no longer here — they are measured as scores on the fitness side (stork balance, Illinois agility), because a number is a fitness output, not a technique ladder.*
 
-> Levels 1–4 map to the report scale as: **L1 → 1–2 · L2 → 3–4 · L3 → 5–6 · L4 → 7.**
+> The level maps to the Grade 8 report scale as: **L1 → 1 · L2 → 2 · L3 → 3 · L4 → 4 · L5 → 5 · L6 → 7** (G8 "meeting" sits at L4; v1, calibrate after the first full year).
 
-| Skill | L1 | L2 | L3 | L4 |
-|---|---|---|---|---|
-| **Throw** | Short throw to a partner, stationary — step and follow through | Accurate overarm to a target over distance | Throw on the move, or vary power and height | Accurate under pressure or off-balance; disguise the throw |
-| **Catch** | Large ball, two hands, gentle throw, still | Smaller ball, two hands, on the move | One-handed, or while changing direction | Under pressure — rebound, at speed, or with a distraction |
-| **Strike** | Strike a stationary ball with control | Strike a moving/tossed ball with accuracy | Strike with direction and power to a target | Under pressure — vary placement, beat an opponent |
-| **Dribble** | Control at walking pace, straight line | Jogging pace, change direction round cones | At speed, close control, both sides/hands | Under pressure — protect the ball, beat a defender, head up |
-| **Kick** | Stationary ball to a partner, basic control | Accurate to a target over distance (instep) | Kick a moving ball; use both feet | Under pressure — pass/shoot on the move, vary power and placement |
-| **Balance** | Hold a still balance, two/one foot, a few seconds | One foot eyes closed, or different shapes | Move into and out of balances with control | Under challenge — narrow base, added movement, on apparatus |
-| **Agility** | Change direction at jogging pace with control | Change direction at speed through a course | React and change direction to a signal | Under pressure — dodge an opponent, unpredictable cue |
-| **Jump & land** | Jump and land on two feet, balanced (absorb) | Jump for distance/height, land under control | One-foot take-off / landing, in combinations | Jump-land-link into the next move under control |
-| **Core stability** | Hold a plank with good form for a short time | Hold longer, or a side plank, form intact | Keep a stable core while a limb moves (bird-dog, dead-bug) | Keep core control under load or in dynamic movement |
+| Skill | L1 | L2 | L3 | L4 | L5 | L6 |
+|---|---|---|---|---|---|---|
+| **Throw** | Overarm pattern — steps with the opposite foot | Into a wide zone over a short distance | Into a 1 m target from mid distance | 1 m target from further back | 1 m target at speed (five in 25 s) | 1 m target from distance, at speed |
+| **Catch** | Large ball, two hands, off the wall rebound | Large ball, two hands, clean every time | Tennis ball, two hands, off the rebound | Tennis ball, two hands, consistently | Tennis ball, one hand (dominant) | Tennis ball, one hand, each hand |
+| **Strike** | Off a tee, travels forward past the line | Off the tee through a wide gate | Off the tee through a narrow gate at distance | Tossed ball, strike it forward | Tossed ball through a wide gate | Tossed ball through a narrow gate |
+| **Dribble** | On the spot, pushed not slapped, controlled | Straight line, dominant hand, in control | Through a cone slalom, dominant hand | Slalom with the weak hand | Slalom head-up, calling a number | Tight slalom, switching hands, head up |
+| **Kick** | Into a wide goal, plant foot beside the ball, instep | Into a narrower goal at distance | Into a 1 m target at distance | 1 m target from further back | Moving ball into the 1 m target | Moving ball into the target from distance |
+| **Jump & land** | Two-foot jump, land soft and stick it | Drop off a ~30 cm box, land soft and stick | Drop-vertical-jump: drop, land, spring up, stick | Three two-foot jumps forward, stick the last | One-foot hop and stick, each leg | Three one-foot hops forward, stick the last, each leg |
+| **Core stability** | Forearm plank, hips level | Longer plank, form intact | Plank shoulder-taps, no hip sway | Trunk Stability Push-Up, thumbs at collarbone | TSPU, thumbs at chin | TSPU, thumbs at forehead |
 
-*Descriptors are drafts — refine per skill. The pattern is deliberate: **stationary → on the move → isolated challenge → under pressure**.*
+*The safety gate on Jump & Land applies at every level: knees bend to absorb, track over the toes, stuck with no extra step. **Jump & Land is the one station with no skipping — each rung is climbed in order, and the box and single-leg rungs are teacher-watched, not peer-signed** (the one-foot drop off a box was removed as the single highest-risk movement). Strike's top three rungs use a standardised live toss (underhand, to the side, from 3 m; a wild toss is re-tossed). Descriptors are v1 — the architecture is fixed, the numbers calibrate. The pattern is deliberate: technique gated at the base, physics-enforced at the top.*
 
 ## 1 · AP & Cooperation
 
