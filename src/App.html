@@ -98,7 +98,7 @@ function setSkin(k) {
 
 // ═══════════════ radar (placeholder shape until Combine data exists — v3) ═══════════════
 const AX = ['STAMINA', 'STRENGTH', 'SPEED', 'SKILLS', 'TEAM', 'EFFORT'], PLACE = [.62, .55, .6, .55, .7, .72];
-const cx = 150, cy = 90, R = 60;
+const cx = 150, cy = 101, R = 68;
 function pt(i, v) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + R * v * Math.cos(a), cy + R * v * Math.sin(a)]; }
 function radar(skin, vals) {
   let g = '';
@@ -108,8 +108,8 @@ function radar(skin, vals) {
   const poly = shape || PLACE;
   g += '<polygon points="' + poly.map((v, i) => pt(i, v).map(n => n.toFixed(1)).join(',')).join(' ') + '" fill="' + hexA(skin.acc, .3) + '" stroke="' + skin.accs + '" stroke-width="2.2"/>';
   if (shape) { for (let i = 0; i < 6; i++) { const [x, y] = pt(i, poly[i]); g += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.6" fill="' + skin.accs + '"/>'; } }
-  else g += '<text x="150" y="187" text-anchor="middle" class="rnote">your shape fills in at the Combine</text>';
-  return '<svg viewBox="0 0 300 190" width="100%" height="160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six-sided fitness and skills chart">' + g + '</svg>';
+  else g += '<text x="150" y="198" text-anchor="middle" class="rnote">your shape fills in at the Combine</text>';
+  return '<svg viewBox="0 0 300 202" width="100%" height="216" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six-sided fitness and skills chart">' + g + '</svg>';
 }
 // Map the student's measured data onto the six card axes (0–1 each). Null until there is anything.
 function cardAxes(m) {
@@ -246,9 +246,9 @@ function ladderBar(lv) {
   for (let i = 1; i <= 6; i++) s += '<i class="' + (lv && i <= lv ? 'on' : '') + (i === G8_BAND ? ' mk' : '') + '"></i>';
   return s + '</div>';
 }
+const LBL = { 1: 'Beginning', 2: 'Beginning', 3: 'Intermediate', 4: 'Intermediate', 5: 'Proficient', 6: 'Proficient', 7: 'Advanced' };
 function bandV(ovKey, em, name, repKey) {
   const m = measured(), v = m && m.bands && m.bands[repKey] != null ? m.bands[repKey] : null;
-  const LBL = { 1: 'Beginning', 2: 'Beginning', 3: 'Intermediate', 4: 'Intermediate', 5: 'Proficient', 6: 'Proficient', 7: 'Advanced' };
   const cls = v == null ? '' : (v >= 5 ? 'ok' : v >= 4 ? 'meet' : 'below');
   const bar = '<div class="btrack">' + [1, 2, 3, 4, 5, 6, 7].map(i => '<i class="' + (v && i <= v ? 'on' : '') + '"></i>').join('') + '</div>';
   return '<button type="button" class="band ' + cls + '" data-ov="' + ovKey + '"><span class="plus">⊕</span><div class="bn">' + em + ' ' + esc(name) + '</div>' + bar +
@@ -487,6 +487,20 @@ const TIER_FRAME = {
   GOLD: 'linear-gradient(145deg,#fff0b3,#e2b23a 46%,#9a6f12 62%,#ffd86b)'
 };
 function applyTier() { document.documentElement.style.setProperty('--frame', TIER_FRAME[tierOf(earned().length)]); }
+function cardBadges() {
+  const got = earned(), left = BADGES.length - got.length;
+  return '<div class="cbadge">' + got.map(b => '<button type="button" class="bdg got" data-ov="badge-' + b[0] + '" title="' + esc(b[2]) + '" aria-label="' + esc(b[2]) + ' — earned">' + b[1] + '</button>').join('') +
+    (left ? '<span class="cmore" title="Badges still to earn">+' + left + '</span>' : '') + (got.length ? '' : '<span class="cnone">Your first badge lands here</span>') + '</div>';
+}
+function tierNext() {
+  const n = earned().length;
+  if (n < 4) return (4 - n) + ' more badge' + (4 - n === 1 ? '' : 's') + ' to Silver 🥈';
+  if (n < 8) return (8 - n) + ' more badge' + (8 - n === 1 ? '' : 's') + ' to Gold 🥇';
+  return n < BADGES.length ? '🥇 Gold card · ' + (BADGES.length - n) + ' badge' + (BADGES.length - n === 1 ? '' : 's') + ' left to collect' : '🏆 Every badge collected';
+}
+function cardStat(v, label) {
+  return '<div><b>' + (v == null ? '—' : v + '<small>/7</small>') + '</b><span>' + label + '</span>' + (v == null ? '' : '<em>' + LBL[v] + '</em>') + '</div>';
+}
 function badgeShelf(cls) {
   const got = earned().map(b => b[0]);
   return '<div class="' + cls + '">' + BADGES.map(b => '<button type="button" class="bdg' + (got.indexOf(b[0]) !== -1 ? ' got' : '') + '" data-ov="badge-' + b[0] + '" title="' + esc(b[2]) + '" aria-label="' + esc(b[2]) + (got.indexOf(b[0]) !== -1 ? ' — earned' : ' — not yet') + '">' + b[1] + '</button>').join('') + '</div>';
@@ -650,21 +664,23 @@ function cardView(b) {
     const s = SKINS[k];
     return '<button type="button" class="sbtn' + (k === chosen ? ' sel' : '') + '" data-k="' + k + '" aria-pressed="' + (k === chosen) + '"><span class="se">' + s.e + '</span><div class="sn">' + esc(styles[k]) + '</div><div class="sd">' + esc(s.d) + '</div></button>';
   }).join('');
-  return '<div class="wrap">' +
-    '<button type="button" class="back" id="toprofile">← Back to my profile</button>' +
-    '<div class="hero"><div class="k">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</div><h1>' + (chosen ? 'Your Athlete Card, ' + esc(st.first) : 'Hi ' + esc(st.first) + ', build your Athlete Card') + '</h1><p>Choose your PE Style and make it yours. Your card grows all year.</p></div>' +
-    '<div class="grid">' +
-      '<div><div class="step">1 · Choose your style <span class="saved" id="saved">' + (chosen ? '✓ saved' : '') + '</span></div><div class="styles" id="styles">' + pick + '</div></div>' +
-      '<div class="cardstage"><div class="card" id="card"><div class="cinner">' +
-        '<div class="chd"><span>FIS · PE ATHLETE · ' + esc(b.config.yearLabel) + '</span><span class="ctier">' + tierOf(earned().length) + '</span></div>' +
+  const T = { BRONZE: '🥉 BRONZE', SILVER: '🥈 SILVER', GOLD: '🥇 GOLD' }, tier = tierOf(earned().length);
+  const stage = '<div class="cardstage"><div class="card" id="card"><div class="cinner">' +
+        '<div class="chd"><span>FIS · PE ATHLETE · ' + esc(b.config.yearLabel) + '</span><span class="ctier t-' + tier.toLowerCase() + '">' + T[tier] + '</span></div>' +
         '<div class="cwho">' + avatar(st, 'cav') + '<div><div class="cname">' + esc(st.name) + '</div>' + (st.klass ? '<div class="cclass">' + esc(st.klass) + '</div>' : '') + '</div></div>' +
         '<div class="crib"><span id="archt">' + (chosen ? esc(styles[chosen]).toUpperCase() : 'PICK A STYLE') + '</span><span id="arche">' + (chosen ? SKINS[chosen].e : '✨') + '</span></div>' +
         '<div class="crad" id="rad">' + radar(SKINS[chosen] || DEFAULT_SKIN, ax) + '</div>' +
-        '<div class="cstat"><div><b>' + (m && m.fitness ? mileStr(latestOf(m.fitness.mile)) : '—') + '</b><span>Mile</span></div><div><b>' + (skillsGradeNow() == null ? '—' : skillsGradeNow()) + '</b><span>Skills</span></div><div><b>' + (apOverallNow() == null ? '—' : apOverallNow()) + '</b><span>Effort</span></div></div>' +
-        badgeShelf('cbadge') +
-        '<div class="cfoot">◆ Your card levels up as you grow ◆</div>' +
-      '</div></div><div class="cardhint">Your style is your choice. None is "better": it sets your card’s colour and identity.</div></div>' +
-    '</div>' +
+        '<div class="cstat"><div><b>' + (m && m.fitness && latestOf(m.fitness.mile) != null ? mileStr(latestOf(m.fitness.mile)) : '—') + '</b><span>Mile</span>' + (m && m.fitness && latestOf(m.fitness.mile) != null ? '<em>min : sec</em>' : '') + '</div>' + cardStat(skillsGradeNow(), 'Skills') + cardStat(apOverallNow(), 'Effort') + '</div>' +
+        cardBadges() +
+        '<div class="cfoot">' + tierNext() + '</div>' +
+      '</div></div><div class="cardhint">Your style is your choice. None is "better": it sets your card’s colour and identity.</div></div>';
+  const picker = '<div class="styles" id="styles">' + pick + '</div>';
+  return '<div class="wrap">' +
+    '<button type="button" class="back" id="toprofile">← Back to my profile</button>' +
+    '<div class="hero"><div class="k">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</div><h1>' + (chosen ? 'Your Athlete Card, ' + esc(st.first) : 'Hi ' + esc(st.first) + ', build your Athlete Card') + '</h1><p>' + (chosen ? 'Your card grows all year — every badge and every Combine changes it.' : 'Choose your PE Style and make it yours. Your card grows all year.') + '</p></div>' +
+    (chosen
+      ? '<div class="grid gchosen">' + stage + '<details class="stylepick"><summary>🎨 Change my style <span class="saved" id="saved">✓ saved</span></summary>' + picker + '</details></div>'
+      : '<div class="grid"><div><div class="step">Choose your style <span class="saved" id="saved"></span></div>' + picker + '</div>' + stage + '</div>') +
     '<div class="done"><button type="button" class="ct-btn" id="toprofile2">Done · back to my profile ↗</button></div>' +
   '</div>';
 }
