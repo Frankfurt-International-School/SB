@@ -60,11 +60,14 @@
     callApi({ action: 'saveCombine', token: T1, checkpoint: 'jan',  results: { mile: 584, pushups: 18, sitstand: 31, broad: 176, grip: 26, sprint: 5.7, illinois: 18.1, stork: 5 } });
     callApi({ action: 'saveGoals', token: T1, goals: [{ component: 'mile', target: 540 }, { component: 'dribble', target: 6 }, { component: 'pushups', target: 25 }], note: 'Run Tue/Thu, weak-hand dribble every session, push-ups after PE.' });
     const ago = d => { const x = new Date(Date.now() - d * 864e5); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
-    callApi({ action: 'savePlan', token: T1, plan: {
-      warmup: [{ n: 'Light jog', c: '', sets: '', reps: '3 min' }, { n: 'Dynamic stretches', c: '', sets: '', reps: '2 min' }],
-      main: [{ n: 'Running intervals', c: 'cv', sets: 4, reps: '1 min' }, { n: 'Push-ups', c: 'strength', sets: 3, reps: '10' }, { n: 'Squats', c: 'strength', sets: 3, reps: '12' }, { n: 'Plank', c: 'core', sets: 3, reps: '30s' }, { n: 'Ladder drills', c: 'agility', sets: '', reps: '3 min' }],
-      cooldown: [{ n: 'Static stretches', c: '', sets: '', reps: '3 min' }],
-      days: { tue: true, thu: true, sat: true }, time: '25 min', intensity: 'moderate',
+    callApi({ action: 'savePlan', token: T1, plan: { v: 3,
+      warmup: [{ n: 'Light jog', min: 3, int: 'easy' }, { n: 'Dynamic stretches', min: 2, int: 'easy' }],
+      cardio: [{ n: 'Running intervals', sets: 4, reps: '1 min', min: 6, int: 'hard' }, { n: 'Skipping rope', sets: '', reps: '', min: 4, int: 'moderate' }],
+      strength: [{ n: 'Push-ups (max reps)', sets: 2, reps: '20', min: 4, int: 'moderate' }, { n: 'Bodyweight squats', sets: 2, reps: '25', min: 4, int: 'moderate' }],
+      focus: [{ n: 'Sprints', sets: 4, reps: '20 m', min: 4, int: 'hard' }],
+      cooldown: [{ n: 'Static stretches', min: 4, int: 'easy' }],
+      sChoice: 'endurance', fChoice: 'speed', hr: '150–170 bpm', fWhy: '',
+      equip: ['water bottle'], days: { tue: true, thu: true, sat: true },
       log: [{ date: ago(1), who: 'friend' }, { date: ago(9), who: 'me' }], reflection: '' } });
     const TT = tokenFor('teacher@example.edu'); // the owner is a teacher
     const seedSkills = (email, lv) => callApi({ action: 'saveSkills', token: TT, email, checkpoint: 'sept', levels: lv });

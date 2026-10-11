@@ -378,7 +378,7 @@ body.wk-dragging,body.wk-dragging *{cursor:grabbing !important;user-select:none}
 .wr-x{border:0;background:#0000000d;color:#777;border-radius:50%;width:22px;height:22px;line-height:1;font-size:11px;cursor:pointer;flex:none}
 .wr-x:hover{background:#c0392b;color:#fff}
 .wk-empty{font-size:12.5px;color:var(--muted);padding:9px 11px;border:1.5px dashed var(--line);border-radius:11px}
-.wkpart[data-part=warmup] .wr-sets,.wkpart[data-part=warmup] .wr-sr b,.wkpart[data-part=cooldown] .wr-sets,.wkpart[data-part=cooldown] .wr-sr b{display:none}
+.wkpart[data-part=warmup] .wr-sr,.wkpart[data-part=cooldown] .wr-sr{display:none}
 .wk-pick{margin-top:9px}
 .wk-pick>summary{display:inline-flex;align-items:center;gap:4px;list-style:none;cursor:pointer;font-family:var(--disp);font-weight:800;font-size:13px;color:#0b6a62;background:var(--fund-t);border:1px solid #bfe6e2;border-radius:999px;padding:6px 13px}
 .wk-pick>summary::-webkit-details-marker{display:none}
@@ -393,6 +393,39 @@ body.wk-dragging,body.wk-dragging *{cursor:grabbing !important;user-select:none}
 .wk-owni{flex:1;border:1px solid var(--line);border-radius:9px;padding:6px 10px;font:inherit;font-size:12.5px}
 .wk-ownb{border:1px solid var(--line);background:#fff;border-radius:9px;padding:0 12px;font-weight:800;cursor:pointer;color:var(--maroon);white-space:nowrap;font-size:12.5px}
 @media(max-width:520px){.wr-reps{width:60px}.wr-sets{width:32px}.wr-n{font-size:13px}.wr-tag{display:none}}
+/* five-section plan (class "Build your plan") */
+.wkpart{position:relative}
+.wkpart.ok{box-shadow:inset 3px 0 0 #1f9d57}
+.wk-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.wk-ht{font-family:var(--disp);font-weight:800;font-size:16px;color:var(--maroon)}
+.wk-req{font-family:var(--body);font-weight:700;font-size:11px;color:#926410;background:#fbf0d4;border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:4px}
+.wk-time{font-family:var(--disp);font-weight:800;font-size:12px;color:#8a6f30;background:#fbf3e2;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.wk-time.ok{color:#15724a;background:#e4f5ec}
+.wk-brief{margin:0 0 9px;padding-left:18px;font-size:12.5px;color:var(--muted)}
+.wk-brief li{margin:1px 0}
+.wk-choice{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 10px}
+.wk-cl{font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-right:2px}
+.wk-cbtn{display:inline-flex;flex-direction:column;align-items:flex-start;gap:0;font-family:var(--disp);font-weight:800;font-size:13.5px;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:7px 12px;cursor:pointer;color:var(--ink);text-align:left}
+.wk-cbtn small{font-family:var(--body);font-weight:600;font-size:11px;color:var(--muted)}
+.wk-cbtn .wk-hint{color:#926410}
+.wk-cbtn:hover{border-color:var(--maroon)}
+.wk-cbtn.on{background:var(--maroon);border-color:var(--maroon);color:#fff}.wk-cbtn.on small{color:#f3d7dc}
+.wk-field{display:flex;flex-direction:column;gap:4px;margin:10px 0 2px;font-family:var(--disp);font-weight:700;font-size:13.5px;color:var(--ink)}
+.wk-field input{font:inherit;font-family:var(--body);font-weight:600;font-size:14px;border:1.5px solid var(--line);border-radius:9px;padding:8px 11px;max-width:420px;color:var(--ink);background:#fff}
+.wk-field small{font-family:var(--body);font-weight:500;font-size:11.5px;color:var(--muted)}
+.wr-ctl{display:flex;align-items:center;gap:8px;flex:none}
+.wr-min{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:var(--muted)}
+.wr-min input{width:44px;border:1px solid var(--line);border-radius:8px;padding:6px 5px;font-family:var(--disp);font-size:14px;font-weight:800;text-align:center;color:var(--ink);background:#fff}
+.wr-int{border:1px solid var(--line);border-radius:8px;padding:6px 6px;font-family:var(--disp);font-size:12.5px;font-weight:800;background:#fff;cursor:pointer}
+.wr-int.i-easy{color:#15724a;background:#eef8f2}.wr-int.i-moderate{color:#926410;background:#fdf6e6}.wr-int.i-hard{color:#b23b33;background:#fdeeec}
+.wkcard-n.ok{color:#15724a;background:#e4f5ec}
+.wk-equip{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-top:12px}
+.wk-eh{font-family:var(--disp);font-weight:800;font-size:15px;margin-bottom:8px}.wk-eh small{font-family:var(--body);font-weight:600;font-size:11.5px;color:var(--muted)}
+.eq-chips{display:flex;flex-wrap:wrap;gap:6px}
+.eq-chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
+.eq-chip.own{background:#fff;padding-right:4px}
+.wk-tot{font-size:13px;color:var(--ink-soft)}
+@media(max-width:640px){.wk-row{flex-wrap:wrap}.wr-n{flex:1 1 calc(100% - 70px)}.wr-ctl{order:3;width:100%;padding-left:28px;flex-wrap:wrap}.wr-x{order:2}}
 /* train at home (homework) */
 .hwbox{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 16px}
 .hw-rule{font-size:13.5px;color:var(--ink-soft);line-height:1.5}.hw-rule b{color:var(--ink)}
@@ -1333,61 +1366,133 @@ async function saveGoalsUI() {
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my goals'; toast('Couldn’t save: ' + e.message, true); }
 }
 
-// ── personal workout builder (the parts of a workout, built from a toolbox) ──
+// ── personal workout builder: the class "Build your plan" structure ──
+// Warm-up 5 · Cardio 10 (everyone) · Strength OR Muscular Endurance 10 (everyone, pick one)
+// · My Focus 10 (pick one; meets your goal) · Cool-down. Each exercise: sets × reps, minutes, how hard.
 let planDraft = null;
-const WK_COMP = { cv: ['🫀', 'Endurance'], strength: ['💪', 'Strength'], power: ['💥', 'Power'], speed: ['⚡', 'Speed'], agility: ['🔺', 'Agility'], balance: ['🦩', 'Balance'], core: ['🧱', 'Core'], flex: ['🧘', 'Flexibility'] };
+const WK_PARTS = [
+  ['warmup',   '① Warm-up', 5, '', ['Gradually increase your heart rate', 'Include dynamic stretches']],
+  ['cardio',   '② Cardio', 10, 'everyone', ['Plan to reach your target heart-rate zone']],
+  ['strength', '③ Strength or Muscular Endurance', 10, 'everyone · pick one', ['Exercises that target the one you chose']],
+  ['focus',    '④ My Focus', 10, 'pick one', ['Exercises that target your chosen component', 'It has to help you reach your goal']],
+  ['cooldown', '⑤ Cool-down', 5, '', ['Bring your heart rate down', 'Static stretches for the muscles you used']]
+];
+const WK_CHOICE = {
+  strength: [['strength', '🏋️', 'Muscular strength', 'fewer, harder reps'], ['endurance', '🔁', 'Muscular endurance', 'more reps, keep going']],
+  focus: [['speed', '⚡', 'Speed'], ['power', '💥', 'Power'], ['agility', '🔺', 'Agility'], ['coordination', '🤹', 'Coordination'], ['balance', '🦩', 'Balance']]
+};
 const TOOLBOX = {
-  warmup: ['Light jog', 'Skipping', 'Dynamic stretches', 'High knees', 'Arm circles', 'Butt kicks'],
-  main: [{ n: 'Running intervals', c: 'cv' }, { n: 'Shuttle runs', c: 'cv' }, { n: 'Skipping', c: 'cv' }, { n: 'Cycling', c: 'cv' },
-    { n: 'Push-ups', c: 'strength' }, { n: 'Squats', c: 'strength' }, { n: 'Lunges', c: 'strength' }, { n: 'Sit-to-stand', c: 'strength' }, { n: 'Step-ups', c: 'strength' }, { n: 'Resistance rows', c: 'strength' },
-    { n: 'Plank', c: 'core' }, { n: 'Plank shoulder-taps', c: 'core' }, { n: 'Dead bug', c: 'core' },
-    { n: 'Broad jumps', c: 'power' }, { n: 'Tuck jumps', c: 'power' }, { n: 'Box step-ups', c: 'power' },
-    { n: 'Sprints', c: 'speed' }, { n: 'Acceleration starts', c: 'speed' }, { n: 'Flying 20s', c: 'speed' },
-    { n: 'Ladder drills', c: 'agility' }, { n: 'Cone weaves', c: 'agility' }, { n: '5-10-5 shuttle', c: 'agility' },
-    { n: 'Single-leg stand', c: 'balance' }, { n: 'Stork holds', c: 'balance' }, { n: 'Slow lunges', c: 'balance' }],
+  warmup: ['Light jog', 'Skipping', 'Dynamic stretches', 'High knees', 'Butt kicks', 'Arm circles', 'Leg swings'],
+  cardio: ['Continuous run', 'Running intervals', 'Shuttle runs', 'Skipping rope', 'Jumping jacks', 'Burpees', 'Cycling', 'Step-ups (fast)'],
+  strength: {
+    strength: ['Push-ups', 'Squats', 'Lunges', 'Resistance-band rows', 'Glute bridge', 'Tricep dips', 'Wall sit', 'Plank'],
+    endurance: ['Push-ups (max reps)', 'Bodyweight squats', 'Sit-to-stand', 'Step-ups', 'Mountain climbers', 'Plank holds', 'Wall sit', 'Superman holds']
+  },
+  focus: {
+    speed: ['Sprints', 'Acceleration starts', 'Flying 20s', 'Fast feet'],
+    power: ['Broad jumps', 'Tuck jumps', 'Box step-ups', 'Medicine-ball throws', 'Skater jumps'],
+    agility: ['Ladder drills', 'Cone weaves', '5-10-5 shuttle', 'T-drill'],
+    coordination: ['Ball wall-catches', 'Juggling', 'Skipping-rope tricks', 'Hopscotch patterns', 'Clap-catch'],
+    balance: ['Single-leg stand', 'Stork holds', 'Slow lunges', 'Single-leg reach', 'Heel-to-toe walk']
+  },
   cooldown: ['Easy walk', 'Static stretches', 'Yoga flow', 'Hamstring stretch', 'Quad stretch', 'Calf stretch']
 };
+// What each exercise needs, so the equipment list builds itself.
+const EQUIP = {
+  'Skipping': 'skipping rope', 'Skipping rope': 'skipping rope', 'Skipping-rope tricks': 'skipping rope', 'Cycling': 'bike', 'Step-ups (fast)': 'step or bench',
+  'Shuttle runs': 'cones', 'Cone weaves': 'cones', '5-10-5 shuttle': 'cones', 'T-drill': 'cones', 'Sprints': 'cones', 'Flying 20s': 'cones', 'Acceleration starts': 'cones',
+  'Ladder drills': 'agility ladder', 'Resistance-band rows': 'resistance band', 'Tricep dips': 'bench or chair', 'Step-ups': 'step or bench', 'Box step-ups': 'box or step',
+  'Medicine-ball throws': 'medicine ball', 'Ball wall-catches': 'ball + a wall', 'Clap-catch': 'ball', 'Juggling': '3 small balls', 'Hopscotch patterns': 'chalk or tape',
+  'Plank': 'mat', 'Plank holds': 'mat', 'Glute bridge': 'mat', 'Superman holds': 'mat', 'Mountain climbers': 'mat', 'Yoga flow': 'mat', 'Static stretches': 'mat'
+};
+const WK_INT = [['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard']];
 const WK_DAYS = [['mon', 'Mon'], ['tue', 'Tue'], ['wed', 'Wed'], ['thu', 'Thu'], ['fri', 'Fri'], ['sat', 'Sat'], ['sun', 'Sun']];
-function normItem(x) { if (x && typeof x === 'object') return { n: x.n || '', c: x.c || '', sets: (x.sets == null ? '' : x.sets), reps: (x.reps == null ? '' : x.reps) }; return { n: String(x || ''), c: '', sets: '', reps: '' }; }
+const WK_MAX_ROWS = 8;
+function wkDefaults(part, choice) {
+  if (part === 'warmup' || part === 'cooldown') return { sets: '', reps: '', min: 2, int: 'easy' };
+  if (part === 'cardio') return { sets: '', reps: '', min: 5, int: 'moderate' };
+  if (part === 'strength') return choice === 'endurance' ? { sets: 2, reps: '20', min: 4, int: 'moderate' } : { sets: 3, reps: '8', min: 4, int: 'hard' };
+  if (choice === 'coordination' || choice === 'balance') return { sets: 3, reps: '45s', min: 3, int: 'moderate' };
+  if (choice === 'agility') return { sets: 3, reps: '30s', min: 3, int: 'hard' };
+  return { sets: 3, reps: '5', min: 3, int: 'hard' };
+}
+function normRow(x, part, choice) {
+  x = (x && typeof x === 'object') ? x : { n: String(x || '') };
+  const d = wkDefaults(part, choice);
+  return { n: String(x.n || '').slice(0, 40), sets: x.sets == null ? d.sets : x.sets, reps: x.reps == null ? d.reps : x.reps, min: (x.min == null || x.min === '') ? d.min : x.min, int: x.int || d.int };
+}
 function normPlan(p) {
   p = p || {};
-  if (!p.warmup && !p.main && !p.cooldown) { // fresh, or migrate an old {focus,days,notes}
-    return { warmup: [], main: (p.focus || []).map(f => ({ n: (fitMeta(f).label || f), c: '', sets: '', reps: '' })), cooldown: [], days: p.days || {}, time: p.time || '', intensity: p.intensity || 'moderate', log: [], reflection: p.notes || '' };
-  }
-  return { warmup: (p.warmup || []).map(normItem), main: (p.main || []).map(normItem), cooldown: (p.cooldown || []).map(normItem), days: p.days || {}, time: p.time || '', intensity: p.intensity || 'moderate', log: (p.log || []).slice(), reflection: p.reflection || '' };
+  const out = { v: 3, warmup: [], cardio: [], strength: [], focus: [], cooldown: [], sChoice: p.sChoice || '', fChoice: p.fChoice || '', hr: p.hr || '', fWhy: p.fWhy || '',
+    equip: (p.equip || []).slice(0, 20), days: p.days || {}, log: (p.log || []).slice(), reflection: p.reflection || p.notes || '' };
+  const ch = k => k === 'strength' ? out.sChoice : (k === 'focus' ? out.fChoice : '');
+  if (p.v === 3) { WK_PARTS.forEach(w => { out[w[0]] = (p[w[0]] || []).map(x => normRow(x, w[0], ch(w[0]))); }); return out; }
+  // migrate the earlier warm-up / main / cool-down plan
+  (p.warmup || []).forEach(x => out.warmup.push(normRow(x, 'warmup')));
+  (p.cooldown || []).forEach(x => out.cooldown.push(normRow(x, 'cooldown')));
+  (p.main || []).forEach(x => {
+    const c = x && x.c, part = (c === 'strength' || c === 'core') ? 'strength' : (['speed', 'power', 'agility', 'balance'].indexOf(c) !== -1 ? 'focus' : 'cardio');
+    if (part === 'focus' && !out.fChoice) out.fChoice = c;
+    if (part === 'strength' && !out.sChoice) out.sChoice = 'strength';
+    out[part].push(normRow(x, part, ch(part)));
+  });
+  return out;
 }
-function wkDefaults(part, c) {
-  if (part === 'warmup' || part === 'cooldown') return { sets: '', reps: '1 min' };
-  if (c === 'cv' || c === 'speed' || c === 'agility') return { sets: '', reps: '3 min' };
-  if (c === 'core' || c === 'balance') return { sets: 3, reps: '30s' };
-  return { sets: 3, reps: '10' };
+function partMins(part) { return (planDraft[part] || []).reduce((a, r) => a + (parseFloat(r.min) || 0), 0); }
+// What a section still needs to meet the brief ('' = it's done).
+function partNeeds(part) {
+  const rows = planDraft[part] || [], mins = partMins(part), tgt = WK_PARTS.find(w => w[0] === part)[2];
+  if ((part === 'strength' && !planDraft.sChoice) || (part === 'focus' && !planDraft.fChoice)) return 'pick one first';
+  if (!rows.length) return 'add an exercise';
+  if (mins < tgt) return 'plan ' + tgt + ' min';
+  if (part === 'cardio' && !planDraft.hr.trim()) return 'add your heart-rate zone';
+  if (part === 'focus' && !planDraft.fWhy.trim()) return 'say how it meets your goal';
+  return '';
 }
+// Which focus component the student's goals point to.
+const GOAL_FOCUS = { sprint: 'speed', broad: 'power', illinois: 'agility', stork: 'balance', jump: 'power', core: 'balance', throw: 'coordination', catch: 'coordination', strike: 'coordination', dribble: 'coordination', kick: 'coordination' };
+function goalFocus() { const m = measured(), g = (m && m.goals) || []; for (const x of g) if (GOAL_FOCUS[x.component]) return GOAL_FOCUS[x.component]; return ''; }
 function wkRow(part, it) {
-  const tag = (it.c && WK_COMP[it.c]) ? '<span class="wr-tag" title="' + esc(WK_COMP[it.c][1]) + '">' + WK_COMP[it.c][0] + '</span>' : '<span class="wr-tag plain">•</span>';
-  return '<div class="wk-row" data-part="' + part + '" data-n="' + esc(it.n) + '" data-c="' + esc(it.c) + '">' +
-    '<span class="wr-grip" data-grip="1" title="drag to move" aria-label="drag to move">⠿</span>' + tag +
+  const ints = WK_INT.map(o => '<option value="' + o[0] + '"' + (it.int === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+  return '<div class="wk-row" data-n="' + esc(it.n) + '">' +
+    '<span class="wr-grip" data-grip="1" title="drag to move" aria-label="drag to move">⠿</span>' +
     '<span class="wr-n">' + esc(it.n) + '</span>' +
-    '<span class="wr-sr"><input class="wr-sets" type="text" inputmode="numeric" maxlength="2" value="' + esc(it.sets) + '" placeholder="–" aria-label="sets"><b>×</b><input class="wr-reps" type="text" maxlength="8" value="' + esc(it.reps) + '" placeholder="reps/time" aria-label="reps or time"></span>' +
+    '<span class="wr-ctl"><span class="wr-sr"><input class="wr-sets" type="text" inputmode="numeric" maxlength="2" value="' + esc(it.sets) + '" placeholder="sets" aria-label="sets"><b>×</b><input class="wr-reps" type="text" maxlength="8" value="' + esc(it.reps) + '" placeholder="reps" aria-label="reps or time"></span>' +
+    '<label class="wr-min"><input class="wr-mins" type="text" inputmode="decimal" maxlength="4" value="' + esc(it.min) + '" aria-label="minutes">min</label>' +
+    '<select class="wr-int i-' + esc(it.int) + '" aria-label="how hard">' + ints + '</select></span>' +
     '<button type="button" class="wr-x" data-rm="1" aria-label="remove">✕</button></div>';
 }
-function wkList(part) {
-  const items = planDraft[part] || [];
-  return '<div class="wk-list" data-part="' + part + '">' + items.map(it => wkRow(part, it)).join('') + '</div>' +
-    (items.length ? '' : '<div class="wk-empty">Nothing here yet — add an exercise below, then drag ⠿ to arrange.</div>');
-}
-const wkOpen = {}; // which parts have their toolbox open (kept across re-renders)
-function wkChip(part, n, c) { return '<button type="button" class="wk-add" data-add="' + part + '" data-n="' + esc(n) + '" data-c="' + c + '">+ ' + esc(n) + '</button>'; }
+const wkOpen = {}; // which sections have their toolbox open (kept across re-renders)
 function wkTools(part) {
-  let chips;
-  if (part === 'main') { // group the big list by component so it scans
-    const groups = {}; TOOLBOX.main.forEach(x => { (groups[x.c] = groups[x.c] || []).push(x); });
-    chips = Object.keys(groups).map(c => '<div class="wk-grp"><span class="wk-gl">' + WK_COMP[c][0] + ' ' + WK_COMP[c][1] + '</span>' + groups[c].map(x => wkChip(part, x.n, c)).join('') + '</div>').join('');
-  } else chips = '<div class="wk-grp">' + TOOLBOX[part].map(n => wkChip(part, n, '')).join('') + '</div>';
+  const choice = part === 'strength' ? planDraft.sChoice : (part === 'focus' ? planDraft.fChoice : '');
+  const list = (part === 'strength' || part === 'focus') ? (choice ? TOOLBOX[part][choice] : null) : TOOLBOX[part];
+  if (!list) return '';
+  if ((planDraft[part] || []).length >= WK_MAX_ROWS) return '<div class="wk-empty">That’s the most exercises for one section.</div>';
+  const chips = list.map(n => '<button type="button" class="wk-add" data-add="' + part + '" data-n="' + esc(n) + '">+ ' + esc(n) + '</button>').join('');
   return '<details class="wk-pick" data-part="' + part + '"' + (wkOpen[part] ? ' open' : '') + '><summary>＋ Add exercise</summary>' +
-    '<div class="wk-tools">' + chips + '</div><div class="wk-own"><input type="text" class="wk-owni" data-part="' + part + '" placeholder="or add your own…" maxlength="40"><button type="button" class="wk-ownb" data-own="' + part + '">+ add</button></div></details>';
+    '<div class="wk-tools"><div class="wk-grp">' + chips + '</div></div><div class="wk-own"><input type="text" class="wk-owni" data-part="' + part + '" placeholder="or add your own…" maxlength="40"><button type="button" class="wk-ownb" data-own="' + part + '">+ add</button></div></details>';
 }
-function wkPart(part, title, sub) {
-  return '<div class="wkpart" data-part="' + part + '"><div class="wk-h">' + title + ' <small>' + esc(sub) + '</small></div>' + wkList(part) + wkTools(part) + '</div>';
+function wkChoice(part) {
+  if (!WK_CHOICE[part]) return '';
+  const cur = part === 'strength' ? planDraft.sChoice : planDraft.fChoice, hint = part === 'focus' ? goalFocus() : '';
+  return '<div class="wk-choice"><span class="wk-cl">Choose one:</span>' + WK_CHOICE[part].map(c => '<button type="button" class="wk-cbtn' + (cur === c[0] ? ' on' : '') + '" data-choose="' + part + '" data-val="' + c[0] + '">' + c[1] + ' ' + esc(c[2]) + (c[3] ? '<small>' + esc(c[3]) + '</small>' : '') + (hint === c[0] ? '<small class="wk-hint">🎯 fits your goals</small>' : '') + '</button>').join('') + '</div>';
+}
+function wkPart(w) {
+  const part = w[0], need = partNeeds(part), mins = partMins(part), rows = planDraft[part] || [];
+  const extra = part === 'cardio'
+    ? '<label class="wk-field">❤️ My target heart-rate zone <input type="text" id="wk-hr" maxlength="30" value="' + esc(planDraft.hr) + '" placeholder="e.g. 145–175 bpm"><small>A guide for your age is about 145–175 beats a minute — check it with your pulse or a watch.</small></label>'
+    : part === 'focus' && planDraft.fChoice ? '<label class="wk-field">🎯 How does this help you reach your goal? <input type="text" id="wk-why" maxlength="160" value="' + esc(planDraft.fWhy) + '" placeholder="e.g. faster first steps should cut my 30 m sprint time"></label>' : '';
+  return '<div class="wkpart' + (need ? '' : ' ok') + '" data-part="' + part + '"><div class="wk-h"><span class="wk-ht">' + w[1] + (w[3] ? ' <span class="wk-req">' + esc(w[3]) + '</span>' : '') + '</span>' +
+    '<span class="wk-time' + (need ? '' : ' ok') + '">' + (need ? Math.round(mins * 10) / 10 + ' / ' + w[2] + ' min · ' + need : '✓ ' + Math.round(mins * 10) / 10 + ' min') + '</span></div>' +
+    '<ul class="wk-brief">' + w[4].map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>' +
+    wkChoice(part) +
+    '<div class="wk-list" data-part="' + part + '">' + rows.map(it => wkRow(part, it)).join('') + '</div>' +
+    (rows.length || need === 'pick one first' ? '' : '<div class="wk-empty">Nothing here yet — add an exercise, then drag ⠿ to arrange.</div>') +
+    extra + wkTools(part) + '</div>';
+}
+function equipList() {
+  const auto = []; WK_PARTS.forEach(w => (planDraft[w[0]] || []).forEach(r => { const e = EQUIP[r.n]; if (e && auto.indexOf(e) === -1) auto.push(e); }));
+  return { auto: auto, extra: planDraft.equip || [] };
 }
 function planView(b) {
   const m = measured();
@@ -1395,28 +1500,29 @@ function planView(b) {
   const goals = (m && m.goals) || [];
   const focusStrip = goals.length
     ? '<div class="goalchips"><span class="gc-h">🎯 Built for your goals</span>' + goals.map(g => '<span class="gchip">' + esc(goalLabel(g.component)) + '</span>').join('') + '<button type="button" class="lnk" id="toeditgoals">edit</button></div>'
-    : '<div class="lockmsg" style="background:#fff4e6;border-color:#e7b64b">🎯 Tip: <button type="button" class="lnk" id="toeditgoals">set your goals</button> first, so your workout targets them.</div>';
-  const dayChips = WK_DAYS.map(d => '<button type="button" class="daychip' + (planDraft.days[d[0]] ? ' on' : '') + '" data-day="' + d[0] + '">' + d[1] + '</button>').join('');
-  const intOpts = ['easy', 'moderate', 'hard'].map(x => '<option value="' + x + '"' + (planDraft.intensity === x ? ' selected' : '') + '>' + x.charAt(0).toUpperCase() + x.slice(1) + '</option>').join('');
+    : '<div class="lockmsg" style="background:#fff4e6;border-color:#e7b64b">🎯 Tip: <button type="button" class="lnk" id="toeditgoals">set your goals</button> first, so your focus section targets them.</div>';
   const inclass = '<div class="inclass"><span class="ic-h">🏫 In class we’re building your toolbox:</span>' + FIT_LESSONS.map(l => '<span class="ic-chip">' + l[0] + ' ' + esc(l[1]) + '</span>').join('') + '<span class="ic-note">try them, then add your favourites below</span></div>';
-  const count = planDraft.warmup.length + planDraft.main.length + planDraft.cooldown.length;
+  const total = WK_PARTS.reduce((a, w) => a + partMins(w[0]), 0), ready = WK_PARTS.filter(w => !partNeeds(w[0])).length;
+  const eq = equipList();
+  const eqHtml = '<div class="wk-equip"><div class="wk-eh">🧰 My equipment list <small>builds itself from your exercises — add anything else you need</small></div><div class="eq-chips">' +
+    (eq.auto.length || eq.extra.length ? '' : '<span class="wk-empty" style="border:0;padding:0">Nothing needed yet.</span>') +
+    eq.auto.map(e => '<span class="eq-chip">' + esc(e) + '</span>').join('') +
+    eq.extra.map((e, i) => '<span class="eq-chip own">' + esc(e) + '<button type="button" class="wr-x" data-eqrm="' + i + '" aria-label="remove">✕</button></span>').join('') + '</div>' +
+    '<div class="wk-own"><input type="text" id="wk-eqi" maxlength="30" placeholder="add equipment, e.g. water bottle"><button type="button" class="wk-ownb" id="wk-eqadd">+ add</button></div></div>';
+  const dayChips = WK_DAYS.map(d => '<button type="button" class="daychip' + (planDraft.days[d[0]] ? ' on' : '') + '" data-day="' + d[0] + '">' + d[1] + '</button>').join('');
   return '<div class="wrap">' +
     backBtn() +
-    '<div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Build my workout</h1><p>A real workout has three parts. Add exercises, set your sets &amp; reps, and <b>drag the ⠿ handle to arrange them</b>. Then plan when you’ll train — including once more at home.</p></div>' +
+    '<div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Build my workout</h1><p>Show you can train the main parts of fitness, with your own choices. Each section has a time to plan for; give every exercise its sets &amp; reps, minutes and how hard. <b>Drag ⠿ to arrange.</b></p></div>' +
     focusStrip + inclass +
-    '<div class="wkcard"><div class="wkcard-h"><span>🏋️ My workout</span><span class="wkcard-n">' + count + ' exercise' + (count === 1 ? '' : 's') + '</span></div>' +
-    wkPart('warmup', '① Warm-up', 'raise the heart rate, loosen up') +
-    wkPart('main', '② Main set', 'target the components you chose') +
-    wkPart('cooldown', '③ Cool-down', 'bring it down, stretch') +
-    '</div>' +
-    '<h3 class="sec"><span class="em">📅</span> When &amp; how often</h3>' +
-    '<div class="wk-fitt"><div class="wk-days">' + dayChips + '</div>' +
-    '<div class="wk-tf"><label>Time each session <input type="text" id="wk-time" maxlength="30" value="' + esc(planDraft.time) + '" placeholder="e.g. 20 min"></label>' +
-    '<label>Intensity <select id="wk-int">' + intOpts + '</select></label></div></div>' +
+    '<div class="wkcard"><div class="wkcard-h"><span>🏋️ My workout</span><span class="wkcard-n' + (ready === WK_PARTS.length ? ' ok' : '') + '">' + ready + ' of ' + WK_PARTS.length + ' sections ready · ' + Math.round(total) + ' min</span></div>' +
+    WK_PARTS.map(wkPart).join('') +
+    '</div>' + eqHtml +
+    '<h3 class="sec"><span class="em">📅</span> When I’ll train</h3>' +
+    '<div class="wk-fitt"><div class="wk-days">' + dayChips + '</div><div class="wk-tot">About <b>' + Math.round(total) + ' minutes</b> each time.</div></div>' +
     '<h3 class="sec"><span class="em">🏠</span> Train at home <span class="tap">· homework</span></h3>' +
     homeworkSection() +
     '<h3 class="sec"><span class="em">✍️</span> Reflection <span class="tap">· after you’ve done it</span></h3>' +
-    '<textarea id="wk-ref" rows="4" maxlength="600" placeholder="How did it go? Did it target your goals? What would you change? Did you stick to it?">' + esc(planDraft.reflection) + '</textarea>' +
+    '<textarea id="wk-ref" rows="4" maxlength="600" placeholder="How did it go? Did you hit your heart-rate zone? Did it help your goal? What would you change?">' + esc(planDraft.reflection) + '</textarea>' +
     '<div class="pbar"><div class="pcount">A plan you’ll actually do beats a perfect one.</div><button type="button" class="ct-btn" id="psaveplan">Save my plan</button></div>' +
   '</div>';
 }
@@ -1435,23 +1541,26 @@ function homeworkSection() {
     (rows ? '<div class="hw-logs">' + rows + '</div>' : '') +
   '</div>';
 }
-// Read the plan back from the page: row order (after any drag), sets/reps, FITT and reflection.
+// Read the plan back from the page: row order (after any drag), each row's fields, and the text fields.
 function syncPlanFromDom() {
   if (!planDraft) return;
-  ['warmup', 'main', 'cooldown'].forEach(function (part) {
-    const list = document.querySelector('.wk-list[data-part="' + part + '"]'); if (!list) return;
-    planDraft[part] = Array.prototype.map.call(list.querySelectorAll('.wk-row'), function (row) {
-      const s = row.querySelector('.wr-sets'), r = row.querySelector('.wr-reps');
-      return { n: row.getAttribute('data-n'), c: row.getAttribute('data-c') || '', sets: s ? s.value.trim().slice(0, 2) : '', reps: r ? r.value.trim().slice(0, 8) : '' };
+  WK_PARTS.forEach(function (w) {
+    const list = document.querySelector('.wk-list[data-part="' + w[0] + '"]'); if (!list) return;
+    planDraft[w[0]] = Array.prototype.map.call(list.querySelectorAll('.wk-row'), function (row) {
+      const v = c => { const el = row.querySelector(c); return el ? el.value.trim() : ''; };
+      return { n: row.getAttribute('data-n'), sets: v('.wr-sets').slice(0, 2), reps: v('.wr-reps').slice(0, 8), min: v('.wr-mins').replace(',', '.').slice(0, 4), int: v('.wr-int') || 'moderate' };
     });
   });
-  const t = $('#wk-time'); if (t) planDraft.time = t.value.trim().slice(0, 30);
-  const i = $('#wk-int'); if (i) planDraft.intensity = i.value;
+  const hr = $('#wk-hr'); if (hr) planDraft.hr = hr.value.trim().slice(0, 30);
+  const wy = $('#wk-why'); if (wy) planDraft.fWhy = wy.value.trim().slice(0, 160);
   const r = $('#wk-ref'); if (r) planDraft.reflection = r.value.trim().slice(0, 600);
 }
 // Pointer-based drag (mouse + touch): grab ⠿, move the row within or between the three parts.
 function enableWkDrag(root) {
   let dragEl = null, moved = false, pid = null;
+  // grabbing the handle must never start a text selection
+  root.addEventListener('mousedown', function (e) { if (e.target.closest('[data-grip]')) e.preventDefault(); });
+  root.addEventListener('selectstart', function (e) { if (dragEl) e.preventDefault(); });
   root.addEventListener('pointerdown', function (e) {
     const grip = e.target.closest('[data-grip]'); if (!grip) return;
     dragEl = grip.closest('.wk-row'); if (!dragEl) return;
@@ -1776,6 +1885,7 @@ async function savePrediction() {
 const wire = (id, fn) => { const el = $('#' + id); if (el) el.addEventListener('click', fn); };
 
 function show(v, arg) {
+  const prevView = view;
   view = v;
   const app = $('#app');
   document.body.classList.toggle('dark', v === 'card');
@@ -1835,13 +1945,20 @@ function show(v, arg) {
     const w = app.querySelector('.wrap');
     if (w) {
       w.addEventListener('click', e => {
-        const add = e.target.closest('[data-add]'); if (add) { syncPlanFromDom(); const d = wkDefaults(add.dataset.add, add.dataset.c || ''); planDraft[add.dataset.add].push({ n: add.dataset.n, c: add.dataset.c || '', sets: d.sets, reps: d.reps }); return show('plan'); }
+        const ch = p => p === 'strength' ? planDraft.sChoice : (p === 'focus' ? planDraft.fChoice : '');
+        const push = (part, n) => { if (planDraft[part].length >= WK_MAX_ROWS) return; const d = wkDefaults(part, ch(part)); planDraft[part].push({ n: n.slice(0, 40), sets: d.sets, reps: d.reps, min: d.min, int: d.int }); };
+        const add = e.target.closest('[data-add]'); if (add) { syncPlanFromDom(); push(add.dataset.add, add.dataset.n); return show('plan'); }
         const rm = e.target.closest('[data-rm]'); if (rm) { const row = rm.closest('.wk-row'), list = row && row.parentNode; if (list) { const idx = Array.prototype.indexOf.call(list.querySelectorAll('.wk-row'), row), part = list.getAttribute('data-part'); syncPlanFromDom(); planDraft[part].splice(idx, 1); } return show('plan'); }
-        const own = e.target.closest('[data-own]'); if (own) { const inp = w.querySelector('.wk-owni[data-part="' + own.dataset.own + '"]'); const v2 = inp && inp.value.trim(); if (v2) { syncPlanFromDom(); const d = wkDefaults(own.dataset.own, ''); planDraft[own.dataset.own].push({ n: v2.slice(0, 40), c: '', sets: d.sets, reps: d.reps }); show('plan'); } return; }
+        const own = e.target.closest('[data-own]'); if (own) { const inp = w.querySelector('.wk-owni[data-part="' + own.dataset.own + '"]'); const v2 = inp && inp.value.trim(); if (v2) { syncPlanFromDom(); push(own.dataset.own, v2); show('plan'); } return; }
+        const cho = e.target.closest('[data-choose]'); if (cho) { syncPlanFromDom(); const k = cho.dataset.choose === 'strength' ? 'sChoice' : 'fChoice'; if (planDraft[k] !== cho.dataset.val) { planDraft[k] = cho.dataset.val; wkOpen[cho.dataset.choose] = true; } return show('plan'); }
         const day = e.target.closest('[data-day]'); if (day) { syncPlanFromDom(); planDraft.days[day.dataset.day] = !planDraft.days[day.dataset.day]; return show('plan'); }
+        if (e.target.closest('#wk-eqadd')) { const i = $('#wk-eqi'), v3 = i && i.value.trim(); if (v3) { syncPlanFromDom(); planDraft.equip = (planDraft.equip || []); if (planDraft.equip.length < 20 && planDraft.equip.indexOf(v3) === -1) planDraft.equip.push(v3.slice(0, 30)); show('plan'); } return; }
+        const eqr = e.target.closest('[data-eqrm]'); if (eqr) { syncPlanFromDom(); planDraft.equip.splice(+eqr.dataset.eqrm, 1); return show('plan'); }
         const lg = e.target.closest('[data-log]'); if (lg) { syncPlanFromDom(); planDraft.log = planDraft.log || []; if (planDraft.log.length < 60) planDraft.log.push({ date: isoDay(new Date()), who: lg.dataset.log }); toast(WHO[lg.dataset.log][2] ? 'Logged — ⭐ buddy bonus!' : 'Logged. Nice work.'); return show('plan'); }
-        const lr = e.target.closest('[data-logrm]'); if (lr) { syncPlanFromDom(); const p = lr.dataset.logrm.split('|'), j = (planDraft.log || []).findIndex(x => x.date === p[0] && x.who === p[1]); if (j >= 0) planDraft.log.splice(j, 1); return show('plan'); }
+        const lr = e.target.closest('[data-logrm]'); if (lr) { syncPlanFromDom(); const q = lr.dataset.logrm.split('|'), j = (planDraft.log || []).findIndex(x => x.date === q[0] && x.who === q[1]); if (j >= 0) planDraft.log.splice(j, 1); return show('plan'); }
       });
+      // minutes / heart-rate / goal text update the section status as you type (on leaving the field)
+      w.addEventListener('change', e => { if (e.target.matches('.wr-mins,.wr-int,#wk-hr,#wk-why')) { const y = window.scrollY; syncPlanFromDom(); show('plan'); window.scrollTo(0, y); } });
       w.querySelectorAll('.wk-pick').forEach(d => d.addEventListener('toggle', () => { wkOpen[d.dataset.part] = d.open; }));
       enableWkDrag(w);
     }
@@ -1874,7 +1991,7 @@ function show(v, arg) {
     wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass); wire('toarchive', () => show('archive'));
     onWrap(e => { if (openUnit(e)) return; const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   }
-  window.scrollTo(0, 0);
+  if (!(v === 'plan' && prevView === 'plan')) window.scrollTo(0, 0);
 }
 
 function render(b) {
