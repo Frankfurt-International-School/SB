@@ -63,7 +63,7 @@
     callApi({ action: 'savePlan', token: T1, plan: { v: 3,
       warmup: [{ n: 'Light jog', min: 3, int: 'easy' }, { n: 'Dynamic stretches', min: 2, int: 'easy' }],
       cardio: [{ n: 'Running intervals', sets: 4, reps: '1 min', min: 6, int: 'hard' }, { n: 'Skipping rope', sets: '', reps: '', min: 4, int: 'moderate' }],
-      strength: [{ n: 'Push-ups (max reps)', sets: 2, reps: '20', min: 4, int: 'moderate' }, { n: 'Bodyweight squats', sets: 2, reps: '25', min: 4, int: 'moderate' }],
+      strength: [{ n: 'Push-ups (max reps)', sets: 3, reps: '40s', int: 'moderate' }, { n: 'Bodyweight squats', sets: 3, reps: '45s', int: 'moderate' }],
       focus: [{ n: 'Sprints', sets: 4, reps: '20 m', min: 4, int: 'hard' }],
       cooldown: [{ n: 'Static stretches', min: 4, int: 'easy' }],
       sChoice: 'endurance', fChoice: 'speed', hr: '150–170 bpm', fWhy: '',

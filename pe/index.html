@@ -426,6 +426,84 @@ body.wk-dragging,body.wk-dragging *{cursor:grabbing !important;user-select:none}
 .eq-chip.own{background:#fff;padding-right:4px}
 .wk-tot{font-size:13px;color:var(--ink-soft)}
 @media(max-width:640px){.wk-row{flex-wrap:wrap}.wr-n{flex:1 1 calc(100% - 70px)}.wr-ctl{order:3;width:100%;padding-left:28px;flex-wrap:wrap}.wr-x{order:2}}
+/* main-page fitness summary */
+.fsum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:700px){.fsum{grid-template-columns:1fr 1fr}}
+.fsum-t{display:flex;flex-direction:column;gap:2px;text-align:left;background:#fff;border:1px solid var(--line);border-left:3px solid var(--fit-t);border-radius:12px;padding:9px 11px;cursor:pointer;font:inherit;color:var(--ink)}
+.fsum-t.has{border-left-color:var(--fit)}
+.fsum-t:hover{box-shadow:0 4px 12px rgba(0,0,0,.07)}
+.fs-l{font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-v{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1.1}.fs-v small{font-size:11px;color:var(--muted);font-weight:600;margin-left:2px}
+.fsum-t .dlt{margin-left:0;font-size:11.5px}.fs-p{font-size:11px;color:var(--muted)}
+.wr-est{font-family:var(--disp);font-weight:800;font-size:12px;color:#2f6df0;background:var(--skill-t);border-radius:999px;padding:4px 9px;white-space:nowrap}
+/* workout-mode launchers */
+.wo-cta{display:flex;align-items:center;gap:13px;width:100%;margin:12px 0 4px;text-align:left;cursor:pointer;font:inherit;color:#fff;border:0;border-radius:16px;padding:13px 16px;background:linear-gradient(120deg,#1d1416,#3a1a22 60%,var(--maroon));box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.woc-i{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#3a1008;font-size:17px}
+.woc-b{flex:1;display:flex;flex-direction:column}.woc-b b{font-family:var(--disp);font-size:18px}.woc-b span{font-size:12.5px;color:#e9d9dc}
+.woc-go{font-family:var(--disp);font-weight:800;color:#3a1008;background:var(--gold);border-radius:999px;padding:6px 15px}
+.wo-launch{float:right;margin-top:2px;font-family:var(--disp);font-weight:800;font-size:13.5px;color:#3a1008;background:var(--gold);border:0;border-radius:999px;padding:8px 15px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+/* workout mode */
+.wo{max-width:640px;margin:0 auto;padding:14px 16px 40px;color:#fff;min-height:100vh}
+.wo-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.wo-x{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:16px;cursor:pointer}
+.wo-tt{flex:1;font-family:var(--disp);font-weight:800;letter-spacing:.2em;font-size:12px;color:var(--gold)}
+.wo-edit{font-family:var(--disp);font-weight:800;font-size:13px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 14px;cursor:pointer}
+.wo-edit.big{display:block;width:100%;margin-top:10px;padding:12px}
+.wo-hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(30px,7vw,46px);margin:4px 0 2px;line-height:1.05}
+.wo-hero p{color:#d9cdd0;margin:0 0 14px;font-size:15px}.wo-hero b{color:#fff}
+.wo-go{font-family:var(--disp);font-weight:800;font-size:19px;color:#3a1008;background:linear-gradient(145deg,#f3d689,#e7b64b);border:0;border-radius:16px;padding:15px 26px;cursor:pointer;box-shadow:0 8px 22px rgba(231,182,75,.3)}
+.wo-go.wide{display:block;width:100%;margin-top:18px}
+.wo-go[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none}
+.wo-eq{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:13px;padding:11px 14px;font-size:14px;color:#e9dfe1;margin:16px 0 4px}.wo-eq b{color:var(--gold)}
+.wo-secb{margin-top:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-left:5px solid var(--sec);border-radius:14px;padding:11px 14px}
+.wo-sh{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--disp);font-weight:800;font-size:17px;margin-bottom:4px}.wo-sh b{font-size:13px;color:var(--sec);filter:brightness(1.3)}
+.wo-note{font-size:13px;color:#f1e3c4;margin-bottom:4px}
+.wo-li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(255,255,255,.08)}
+.wo-li:first-of-type{border-top:0}.wo-ln{font-weight:700;font-size:15px}
+.wo-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+.wo-chips span{font-family:var(--disp);font-weight:800;font-size:15px;background:rgba(255,255,255,.12);border-radius:999px;padding:6px 13px}
+.wo-chips.sm{margin:0;justify-content:flex-end}.wo-chips.sm span{font-size:12px;padding:3px 9px}
+.wo-play{text-align:center;background:radial-gradient(circle at 50% 0%,color-mix(in srgb,var(--sec) 35%,transparent),transparent 60%)}
+.wo-prog{flex:1;height:8px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden}.wo-prog i{display:block;height:100%;background:var(--sec);border-radius:999px;transition:width .3s}
+.wo-cnt{font-family:var(--disp);font-weight:800;font-size:14px;color:#d9cdd0}
+.wo-sec{display:inline-block;margin-top:10px;font-family:var(--disp);font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--sec);border-radius:999px;padding:5px 14px}
+.wo-name{font-family:var(--disp);font-weight:800;font-size:clamp(36px,10vw,64px);line-height:1;margin:14px 0 4px;word-break:break-word}
+.wo-tip{display:inline-block;background:rgba(255,255,255,.1);border-radius:12px;padding:8px 14px;font-size:14px;margin:2px 0 6px}
+.wo-timer{position:relative;width:210px;height:210px;margin:14px auto 8px}
+.wo-timer svg{width:100%;height:100%;transform:rotate(-90deg)}
+.wo-rbg{fill:none;stroke:rgba(255,255,255,.12);stroke-width:9}
+.wo-rfg{fill:none;stroke:var(--sec);stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.wo-tin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.wo-time{font-family:var(--disp);font-weight:800;font-size:54px;line-height:1}
+.wo-tl{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#d9cdd0;margin-top:4px}
+.wo-ctl{display:flex;gap:10px;justify-content:center;margin:6px 0 10px}
+.wo-c{font-family:var(--disp);font-weight:800;font-size:15px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:12px 16px;cursor:pointer;min-width:60px}
+.wo-c.main{background:var(--sec);border-color:var(--sec);min-width:170px}.wo-c.main.on{background:rgba(255,255,255,.18)}
+.wo-c[disabled]{opacity:.4}
+.wo-sets{display:flex;gap:10px;justify-content:center;margin:12px 0 10px}
+.wo-sets i{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}.wo-sets i.on{background:var(--sec);border-color:var(--sec);box-shadow:0 0 12px var(--sec)}
+.wo-setb{font-family:var(--disp);font-weight:800;font-size:18px;color:#fff;background:var(--sec);border:0;border-radius:16px;padding:14px 26px;cursor:pointer}
+.wo-setb[disabled]{opacity:.55;cursor:default}
+.wo-alldone{font-family:var(--disp);font-weight:800;color:#9be7b9;font-size:16px}
+.wo-cheer{font-family:var(--disp);font-weight:700;font-size:16px;color:var(--gold);margin:16px 0 6px}
+.wo-nav{display:flex;gap:10px;margin-top:14px}
+.wo-nb{flex:1;font-family:var(--disp);font-weight:800;font-size:18px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:15px;cursor:pointer}
+.wo-nb.next{flex:2;background:#fff;color:#1d1416;border-color:#fff}.wo-nb[disabled]{opacity:.35}
+.wo-nb.pulse{animation:wopulse 1.2s ease-in-out infinite}
+@keyframes wopulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.5)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
+.wo-upnext{margin-top:12px;font-size:13.5px;color:#cbbec1}.wo-upnext b{color:#fff}
+.wo-done{text-align:center;padding-top:30px}
+.wo-done h1{font-family:var(--disp);font-weight:800;font-size:clamp(34px,9vw,54px);margin:8px 0 4px}
+.wo-done p{color:#d9cdd0;font-size:15px}
+.wo-burst{font-size:34px;letter-spacing:8px;animation:woburst .8s ease-out}
+@keyframes woburst{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.wo-burst,.wo-nb.pulse,.wo-rfg{animation:none;transition:none}}
+.wo-q{font-family:var(--disp);font-weight:800;font-size:17px;margin:20px 0 8px}.wo-q small{display:block;font-family:var(--body);font-weight:600;font-size:12px;color:#e7b64b}
+.wo-pick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.wo-pb{font-family:var(--disp);font-weight:800;font-size:15px;color:#fff;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.22);border-radius:14px;padding:11px 15px;cursor:pointer}
+.wo-pb.on{background:var(--gold);color:#3a1008;border-color:var(--gold)}
+.wo-tipb{font-size:16px !important;color:#fff !important;max-width:40ch;margin:10px auto 6px}
+.wo-empty{text-align:center;padding-top:60px}.wo-empty .big{font-size:48px}.wo-empty h1{font-family:var(--disp);font-size:34px;margin:6px 0}.wo-empty p{color:#d9cdd0}
 /* train at home (homework) */
 .hwbox{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 16px}
 .hw-rule{font-size:13.5px;color:var(--ink-soft);line-height:1.5}.hw-rule b{color:var(--ink)}
@@ -962,11 +1040,13 @@ function profileView(b) {
       '<div class="ct-stats">' + stat(mileStr(mileV), 'Mile') + stat(skG == null ? '—' : skG, 'Skills') + stat(apO == null ? '—' : apO, 'Effort') + '</div>' +
       '<button type="button" class="ct-btn' + (k ? '' : ' pulse') + '" id="tocard">' + (k ? 'View my card ↗' : 'Build my card ↗') + '</button>' +
     '</div>' +
+    (m && planCount(m.plan) ? woCta(m.plan) : '') +
     unitsStrip() +
     '<h3 class="sec sec-glance"><span class="em">👀</span> At a glance <span class="tap">· where I am vs my goal</span><button type="button" class="secbtn" id="togoals2">🎯 ' + (goals.length ? 'Edit goals' : 'Set goals') + '</button></h3><p class="seclede">Your journey to the goals you set — now vs where you want to be by May.</p>' +
     (goals.length
       ? '<div class="goalprog">' + goals.map(g => progCard(g, m)).join('') + '</div>'
       : '<button type="button" class="setgoals" id="togoals3"><span class="sg-ic">🎯</span><span class="sg-tx"><b>Set your goals to track your progress.</b><span class="sg-sub">Pick a few parts to chase and where you want to be by May.</span></span><span class="sg-go">Start ↗</span></button>') +
+    fitSummary(m) +
     '<h3 class="sec sec-fund"><span class="em">🧩</span> Fundamental skills <span class="tap">· self → peer → teacher · tap a skill</span><button type="button" class="secbtn" id="tomyskills">✎ Record my levels</button></h3><p class="seclede">Seven building blocks, each a 6-level ladder. Same test every Combine, so your level climbs over the year.</p>' +
     '<div class="grid3">' + fund + '</div>' +
     '<h3 class="sec sec-ap"><span class="em">🤝</span> Active participation <span class="tap">· all year</span></h3><p class="seclede">Your biggest all-year story — how you show up, tracked through every unit.</p>' +
@@ -1026,7 +1106,7 @@ function backBtn() { return '<button type="button" class="back light" id="toprof
 function fitnessView(b) {
   const m = measured(), u = UNITS[0], pred = predictionSaved(), refl = reflJson('compare-intro');
   const goals = (m && m.goals) || [], plan = m && m.plan, hasFit = !!(m && m.fitness && Object.keys(m.fitness).length), hasSk = !!(m && m.skills && Object.keys(m.skills).length);
-  const wkLog = ((plan && plan.log) || []).filter(e => weekKey(e.date) === weekKey(todayIso())).length;
+  const wkLog = ((plan && plan.log) || []).filter(e => weekKey(e.date) === weekKey(todayIso()) && e.where !== 'class').length;
   const step = (n, id, em, title, sub, done, label) => '<button type="button" class="fstep' + (done ? ' fdone' : '') + '" id="' + id + '"><span class="fs-n">' + (done ? '✓' : n) + '</span><span class="fs-b"><span class="fs-t">' + em + ' ' + title + '</span><span class="fs-s">' + sub + '</span></span><span class="fs-go">' + label + '</span></button>';
   const mileV = m && m.fitness ? latestOf(m.fitness.mile) : null;
   const fitGrid = ['pushups', 'sitstand', 'broad', 'grip', 'sprint', 'illinois', 'stork'].map(fitTileV).join('');
@@ -1042,6 +1122,7 @@ function fitnessView(b) {
       step(5, 'togoals', '🎯', 'Set my goals', goals.length ? goals.map(g => esc(goalLabel(g.component))).join(' · ') : 'Pick 2–3 and where you want to be by May', !!goals.length, goals.length ? 'Edit' : 'Set') +
       step(6, 'toplan', '💪', 'Build my workout', plan ? (wkLog ? '✓ ' + wkLog + ' home session' + (wkLog === 1 ? '' : 's') + ' this week' : 'Plan saved · log your home sessions') : 'Warm-up, main set, cool-down', !!plan, plan ? 'Open' : 'Build') +
     '</div>' +
+    (planCount(plan) ? woCta(plan) : '') +
     (pred && !refl ? lesson1Panel() : '') +
     '<h3 class="sec sec-fit"><span class="em">🏃</span> My fitness <span class="tap">· tap a part</span></h3><p class="seclede">Physical capacities — measured three times a year. Records that move.</p>' +
     '<button type="button" class="fhero' + (mileV != null ? ' has' : '') + '" data-ov="fit-mile"><div class="fx">🫀</div><div class="fm"><div class="n">Cardiovascular endurance</div><div class="s">Heart &amp; lung staying power · the mile run</div></div><div class="fv">' + (mileV != null ? mileStr(mileV) : '—') + '<span>' + (mileV != null ? trendWord(m.fitness.mile, 'down') : 'September Combine') + '</span></div></button>' +
@@ -1118,6 +1199,17 @@ async function saveCompareUI() {
     state.student.reflections = Object.assign({}, reflections(), { [res.key]: res.reflection });
     toast('Reflection saved and archived ✓'); show('fitness');
   } catch (e) { btn.disabled = false; btn.textContent = 'Save & archive'; toast('Couldn’t save: ' + e.message, true); }
+}
+// Compact Combine summary for the main page: every test, latest result, change since the first.
+function fitSummary(m) {
+  const keys = ['mile', 'pushups', 'sitstand', 'broad', 'grip', 'sprint', 'illinois', 'stork'];
+  const tile = k => {
+    const meta = fitMeta(k), series = m && m.fitness ? m.fitness[k] : null, v = latestOf(series), has = v != null;
+    return '<button type="button" class="fsum-t' + (has ? ' has' : '') + '" data-ov="fit-' + k + '"><span class="fs-l">' + (FIT_EMOJI[k] || '•') + ' ' + esc(meta.label) + '</span>' +
+      '<span class="fs-v">' + (has ? (k === 'mile' ? mileStr(v) : fmtNum(v)) : '—') + '<small>' + (k === 'mile' ? '' : esc(meta.unit)) + '</small></span>' + (has ? trendChip(series, meta.dir) : '<span class="fs-p">at the Combine</span>') + '</button>';
+  };
+  return '<h3 class="sec sec-fit"><span class="em">🏃</span> My fitness tests <span class="tap">· latest Combine · tap for detail</span><button type="button" class="secbtn" data-unit="fitness">Fitness &amp; Training →</button></h3>' +
+    '<div class="fsum">' + keys.map(tile).join('') + '</div>';
 }
 function goalLabel(c) { const f = fitMeta(c); if (f && f.label && (state.meta.fitness || []).some(x => x.key === c)) return f.label; if (RUBRICS.ladders[c]) return RUBRICS.ladders[c].name; return c === 'overall' ? 'Overall' : c; }
 function trendWord(series, dir) { const t = improved(series, dir); return t > 0 ? 'improving ▲' : t < 0 ? 'down ▼ · chase it back' : 'latest'; }
@@ -1373,12 +1465,12 @@ let planDraft = null;
 const WK_PARTS = [
   ['warmup',   '① Warm-up', 5, '', ['Gradually increase your heart rate', 'Include dynamic stretches']],
   ['cardio',   '② Cardio', 10, 'everyone', ['Plan to reach your target heart-rate zone']],
-  ['strength', '③ Strength or Muscular Endurance', 10, 'everyone · pick one', ['Exercises that target the one you chose']],
+  ['strength', '③ Strength or Muscular Endurance', 10, 'everyone · pick one', ['Strength: sets × reps (e.g. 3 × 8)', 'Endurance: sets × time (e.g. 3 × 45s)', 'Minutes are worked out for you, with rest between sets']],
   ['focus',    '④ My Focus', 10, 'pick one', ['Exercises that target your chosen component', 'It has to help you reach your goal']],
   ['cooldown', '⑤ Cool-down', 5, '', ['Bring your heart rate down', 'Static stretches for the muscles you used']]
 ];
 const WK_CHOICE = {
-  strength: [['strength', '🏋️', 'Muscular strength', 'fewer, harder reps'], ['endurance', '🔁', 'Muscular endurance', 'more reps, keep going']],
+  strength: [['strength', '🏋️', 'Muscular strength', 'sets × reps · fewer, harder reps'], ['endurance', '🔁', 'Muscular endurance', 'sets × time · keep going']],
   focus: [['speed', '⚡', 'Speed'], ['power', '💥', 'Power'], ['agility', '🔺', 'Agility'], ['coordination', '🤹', 'Coordination'], ['balance', '🦩', 'Balance']]
 };
 const TOOLBOX = {
@@ -1411,7 +1503,7 @@ const WK_MAX_ROWS = 8;
 function wkDefaults(part, choice) {
   if (part === 'warmup' || part === 'cooldown') return { sets: '', reps: '', min: 2, int: 'easy' };
   if (part === 'cardio') return { sets: '', reps: '', min: 5, int: 'moderate' };
-  if (part === 'strength') return choice === 'endurance' ? { sets: 2, reps: '20', min: 4, int: 'moderate' } : { sets: 3, reps: '8', min: 4, int: 'hard' };
+  if (part === 'strength') return choice === 'endurance' ? { sets: 3, reps: '45s', min: '', int: 'moderate' } : { sets: 3, reps: '8', min: '', int: 'hard' };
   if (choice === 'coordination' || choice === 'balance') return { sets: 3, reps: '45s', min: 3, int: 'moderate' };
   if (choice === 'agility') return { sets: 3, reps: '30s', min: 3, int: 'hard' };
   return { sets: 3, reps: '5', min: 3, int: 'hard' };
@@ -1438,7 +1530,19 @@ function normPlan(p) {
   });
   return out;
 }
-function partMins(part) { return (planDraft[part] || []).reduce((a, r) => a + (parseFloat(r.min) || 0), 0); }
+const REST = { strength: 60, endurance: 30 }; // seconds of rest per set, used to estimate minutes
+function parseSecs(t) {
+  t = String(t || '').trim().toLowerCase(); if (!t) return 0;
+  let m = t.match(/^(\d+):(\d{1,2})$/); if (m) return (+m[1]) * 60 + (+m[2]);
+  m = t.match(/(\d+(?:[.,]\d+)?)\s*(m|min|mins|minute|minutes)\b/); if (m) return Math.round(parseFloat(m[1].replace(',', '.')) * 60);
+  m = t.match(/(\d+(?:[.,]\d+)?)/); return m ? Math.round(parseFloat(m[1].replace(',', '.'))) : 0;
+}
+function rowMins(part, r, sChoice) {
+  if (part !== 'strength') return parseFloat(String(r.min).replace(',', '.')) || 0;
+  const sets = parseInt(r.sets, 10) || 0;
+  return sChoice === 'endurance' ? sets * ((parseSecs(r.reps) || 30) + REST.endurance) / 60 : sets * (30 + REST.strength) / 60;
+}
+function partMins(part) { return (planDraft[part] || []).reduce((a, r) => a + rowMins(part, r, planDraft.sChoice), 0); }
 // What a section still needs to meet the brief ('' = it's done).
 function partNeeds(part) {
   const rows = planDraft[part] || [], mins = partMins(part), tgt = WK_PARTS.find(w => w[0] === part)[2];
@@ -1453,12 +1557,14 @@ function partNeeds(part) {
 const GOAL_FOCUS = { sprint: 'speed', broad: 'power', illinois: 'agility', stork: 'balance', jump: 'power', core: 'balance', throw: 'coordination', catch: 'coordination', strike: 'coordination', dribble: 'coordination', kick: 'coordination' };
 function goalFocus() { const m = measured(), g = (m && m.goals) || []; for (const x of g) if (GOAL_FOCUS[x.component]) return GOAL_FOCUS[x.component]; return ''; }
 function wkRow(part, it) {
+  const isS = part === 'strength', endu = isS && planDraft.sChoice === 'endurance';
   const ints = WK_INT.map(o => '<option value="' + o[0] + '"' + (it.int === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('');
   return '<div class="wk-row" data-n="' + esc(it.n) + '">' +
     '<span class="wr-grip" data-grip="1" title="drag to move" aria-label="drag to move">⠿</span>' +
     '<span class="wr-n">' + esc(it.n) + '</span>' +
-    '<span class="wr-ctl"><span class="wr-sr"><input class="wr-sets" type="text" inputmode="numeric" maxlength="2" value="' + esc(it.sets) + '" placeholder="sets" aria-label="sets"><b>×</b><input class="wr-reps" type="text" maxlength="8" value="' + esc(it.reps) + '" placeholder="reps" aria-label="reps or time"></span>' +
-    '<label class="wr-min"><input class="wr-mins" type="text" inputmode="decimal" maxlength="4" value="' + esc(it.min) + '" aria-label="minutes">min</label>' +
+    '<span class="wr-ctl"><span class="wr-sr"><input class="wr-sets" type="text" inputmode="numeric" maxlength="2" value="' + esc(it.sets) + '" placeholder="sets" aria-label="sets"><b>×</b><input class="wr-reps" type="text" maxlength="8" value="' + esc(it.reps) + '" placeholder="' + (endu ? 'time' : 'reps') + '" aria-label="' + (endu ? 'time per set' : 'reps') + '"></span>' +
+    (isS ? '<span class="wr-est" title="estimated with rest between sets">≈ ' + (Math.round(rowMins(part, it, planDraft.sChoice) * 10) / 10) + ' min</span>'
+         : '<label class="wr-min"><input class="wr-mins" type="text" inputmode="decimal" maxlength="4" value="' + esc(it.min) + '" aria-label="minutes">min</label>') +
     '<select class="wr-int i-' + esc(it.int) + '" aria-label="how hard">' + ints + '</select></span>' +
     '<button type="button" class="wr-x" data-rm="1" aria-label="remove">✕</button></div>';
 }
@@ -1512,7 +1618,7 @@ function planView(b) {
   const dayChips = WK_DAYS.map(d => '<button type="button" class="daychip' + (planDraft.days[d[0]] ? ' on' : '') + '" data-day="' + d[0] + '">' + d[1] + '</button>').join('');
   return '<div class="wrap">' +
     backBtn() +
-    '<div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Build my workout</h1><p>Show you can train the main parts of fitness, with your own choices. Each section has a time to plan for; give every exercise its sets &amp; reps, minutes and how hard. <b>Drag ⠿ to arrange.</b></p></div>' +
+    '<button type="button" class="wo-launch" id="wk-go">▶ Workout mode</button><div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Build my workout</h1><p>Show you can train the main parts of fitness, with your own choices. Each section has a time to plan for; give every exercise its sets &amp; reps, minutes and how hard. <b>Drag ⠿ to arrange.</b></p></div>' +
     focusStrip + inclass +
     '<div class="wkcard"><div class="wkcard-h"><span>🏋️ My workout</span><span class="wkcard-n' + (ready === WK_PARTS.length ? ' ok' : '') + '">' + ready + ' of ' + WK_PARTS.length + ' sections ready · ' + Math.round(total) + ' min</span></div>' +
     WK_PARTS.map(wkPart).join('') +
@@ -1532,8 +1638,8 @@ function isoDay(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).pad
 function weekKey(s) { const d = new Date(s + (String(s).length === 10 ? 'T12:00:00' : '')); if (isNaN(d)) return ''; d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoDay(d); }
 function homeworkSection() {
   const log = (planDraft.log || []).slice(), tw = weekKey(isoDay(new Date()));
-  const wk = log.filter(e => weekKey(e.date) === tw), n = wk.length, met = n >= 1, buddy = wk.some(e => e.who === 'friend' || e.who === 'family');
-  const rows = log.sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 8).map(e => { const w = WHO[e.who] || WHO.me; return '<div class="hw-log"><span class="hw-d">' + esc(e.date) + '</span><span class="hw-w">' + w[0] + ' ' + w[1] + '</span>' + (w[2] ? '<span class="hw-star">⭐ bonus</span>' : '') + '<button type="button" class="wr-x" data-logrm="' + esc(e.date + '|' + e.who) + '" aria-label="remove">✕</button></div>'; }).join('');
+  const wk = log.filter(e => weekKey(e.date) === tw && e.where !== 'class'), n = wk.length, met = n >= 1, buddy = wk.some(e => e.who === 'friend' || e.who === 'family');
+  const rows = log.sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 8).map(e => { const w = e.where === 'class' ? ['🏫', 'In PE', 0] : (WHO[e.who] || WHO.me); return '<div class="hw-log"><span class="hw-d">' + esc(e.date) + '</span><span class="hw-w">' + w[0] + ' ' + w[1] + '</span>' + (w[2] ? '<span class="hw-star">⭐ bonus</span>' : '') + '<button type="button" class="wr-x" data-logrm="' + esc(e.date + '|' + e.who) + '" aria-label="remove">✕</button></div>'; }).join('');
   return '<div class="hwbox">' +
     '<div class="hw-rule"><b>Do your workout at least one more time each week</b> on your own, outside PE. <span class="hw-bonus">⭐ Extra points for training with a friend or family member.</span></div>' +
     '<div class="hw-week"><span class="hw-badge' + (met ? ' ok' : '') + '">' + (met ? '✓ ' : '') + n + ' home session' + (n === 1 ? '' : 's') + ' this week</span>' + (buddy ? '<span class="hw-badge star">⭐ Training-buddy bonus</span>' : '') + '<span class="hw-target">target: 1 or more</span></div>' +
@@ -1591,11 +1697,151 @@ function enableWkDrag(root) {
   root.addEventListener('pointerup', endDrag);
   root.addEventListener('pointercancel', endDrag);
 }
+async function savePlanAndGo() {
+  syncPlanFromDom();
+  if (!planCount(planDraft)) { toast('Add some exercises first.', true); return; }
+  const btn = $('#wk-go'); btn.disabled = true; btn.textContent = 'Saving…';
+  try { const res = await call('savePlan', { plan: planDraft }); const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m; planDraft = null; woStart('fitness'); show('workout'); }
+  catch (e) { btn.disabled = false; btn.textContent = '▶ Workout mode'; toast('Couldn’t save: ' + e.message, true); }
+}
 async function savePlanUI() {
   syncPlanFromDom();
   const btn = $('#psaveplan'); btn.disabled = true; btn.textContent = 'Saving…';
   try { const res = await call('savePlan', { plan: planDraft }); const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m; planDraft = null; toast('Plan saved.'); show(lastHub); }
   catch (e) { btn.disabled = false; btn.textContent = 'Save my plan'; toast('Couldn’t save: ' + e.message, true); }
+}
+
+// ═══════════════ workout mode: see the plan, then do it one exercise at a time ═══════════════
+function woCta(raw) { const p = normPlan(raw); return '<button type="button" class="wo-cta" id="towo"><span class="woc-i">▶</span><span class="woc-b"><b>Do my workout</b><span>' + planCount(p) + ' exercises · about ' + woMinutes(p) + ' min</span></span><span class="woc-go">Go</span></button>'; }
+const WO_COL = { warmup: '#e8730c', cardio: '#e04848', strength: '#3b7bff', focus: '#a64fd6', cooldown: '#15a89d' };
+const WO_INT = { easy: ['🙂', 'Easy'], moderate: ['😤', 'Moderate'], hard: ['🔥', 'Hard'] };
+const WO_CHEER = ['You’ve got this!', 'Good form first, then speed.', 'Breathe — steady and strong.', 'Every rep counts.', 'Keep going — you’re building it.', 'Nice work. Stay with it.'];
+const WO_FEEL = [['easy', '😌', 'Too easy'], ['right', '💪', 'Just right'], ['hard', '🥵', 'Too hard']];
+let wo = null, woWake = null;
+function woPlan() { const m = measured(); return m && m.plan ? normPlan(m.plan) : null; }
+function woList(p) { const out = []; WK_PARTS.forEach(w => (p[w[0]] || []).forEach(r => out.push(Object.assign({ part: w[0], sec: w[1].replace(/^\S+\s/, '') }, r)))); return out; }
+function woMinutes(p) { return Math.round(WK_PARTS.reduce((a, w) => a + (p[w[0]] || []).reduce((x, r) => x + rowMins(w[0], r, p.sChoice), 0), 0)); }
+function planCount(p) { if (!p) return 0; if (p.v !== 3) p = normPlan(p); return WK_PARTS.reduce((a, w) => a + ((p[w[0]] || []).length), 0); }
+function woStart(from) { const p = woPlan(); wo = { p: p, list: p ? woList(p) : [], i: 0, stage: 'overview', from: from || 'fitness', left: 0, total: 0, running: false, iv: null, sets: 0, where: '', who: '', feel: '', saved: false }; woReset(); }
+function woStop() { if (wo && wo.iv) { clearInterval(wo.iv); wo.iv = null; } if (wo) wo.running = false; }
+// time = one countdown (warm-up, cardio, focus, cool-down) · reps = strength sets with a rest timer · interval = endurance: a work timer per set
+function woKind(it) { return it.part === 'strength' ? (wo.p.sChoice === 'endurance' ? 'interval' : 'reps') : 'time'; }
+function woReset() {
+  woStop(); const it = wo.list[wo.i]; wo.sets = 0; wo.rest = false;
+  if (!it) { wo.total = wo.left = 0; return; }
+  const k = woKind(it);
+  wo.total = k === 'time' ? Math.max(0, Math.round((parseFloat(String(it.min).replace(',', '.')) || 0) * 60)) : (k === 'interval' ? (parseSecs(it.reps) || 30) : 0);
+  wo.left = wo.total;
+}
+function woRun() { woStop(); wo.running = true; wo.iv = setInterval(woTick, 1000); }
+function woStartRest(secs) { wo.rest = true; wo.total = wo.left = secs; woRun(); }
+function fmtClock(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+const WO_C = 2 * Math.PI * 54;
+function woRingOff() { return wo.total ? WO_C * (1 - Math.max(0, wo.left) / wo.total) : 0; }
+function woBeep() {
+  try { const C = window.AudioContext || window.webkitAudioContext; if (C) { const c = new C(), o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; g.gain.value = 0.15; o.connect(g); g.connect(c.destination); o.start(); setTimeout(() => { o.stop(); c.close(); }, 400); } } catch (e) {}
+  try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+}
+async function woWakeOn() { try { if (navigator.wakeLock && !woWake) woWake = await navigator.wakeLock.request('screen'); } catch (e) { woWake = null; } }
+function woWakeOff() { try { if (woWake) woWake.release(); } catch (e) {} woWake = null; }
+function woTick() {
+  if (!wo || !wo.running) return;
+  wo.left -= 1;
+  const t = $('#wo-time'), r = $('#wo-ring'); if (t) t.textContent = fmtClock(wo.left); if (r) r.style.strokeDashoffset = woRingOff();
+  if (wo.left > 0) return;
+  woStop(); woBeep();
+  const it = wo.list[wo.i], k = woKind(it), n = parseInt(it.sets, 10) || 1;
+  if (k === 'interval' && !wo.rest) { wo.sets = Math.min(n, wo.sets + 1); if (wo.sets < n) woStartRest(REST.endurance); }
+  else if (wo.rest) { wo.rest = false; if (k === 'interval') { wo.total = wo.left = parseSecs(it.reps) || 30; } else { wo.total = wo.left = 0; } }
+  show('workout');
+}
+function woChips(it) {
+  const sets = parseInt(it.sets, 10) || 0, i = WO_INT[it.int] || WO_INT.moderate, out = [];
+  if (it.part !== 'warmup' && it.part !== 'cooldown' && (sets || it.reps)) out.push((sets ? sets + ' × ' : '') + esc(it.reps || 'sets'));
+  if (it.part !== 'strength' && parseFloat(it.min)) out.push('⏱ ' + esc(String(it.min)) + ' min');
+  out.push(i[0] + ' ' + i[1]);
+  return out.map(x => '<span>' + x + '</span>').join('');
+}
+function woOverview() {
+  const p = wo.p, n = wo.list.length;
+  if (!p || !n) return '<div class="wo"><div class="wo-top"><button type="button" class="wo-x" id="wo-exit" aria-label="close">✕</button></div><div class="wo-empty"><div class="big">🏗️</div><h1>No workout yet</h1><p>Build your plan first, then come back here to do it.</p><button type="button" class="wo-go" id="wo-edit">✎ Build my plan</button></div></div>';
+  const secs = WK_PARTS.filter(w => (p[w[0]] || []).length).map(w => {
+    const rows = p[w[0]], mins = Math.round(rows.reduce((a, r) => a + rowMins(w[0], r, p.sChoice), 0));
+    const extra = w[0] === 'cardio' && p.hr ? '<div class="wo-note">❤️ Aim for ' + esc(p.hr) + '</div>' : (w[0] === 'focus' && p.fWhy ? '<div class="wo-note">🎯 ' + esc(p.fWhy) + '</div>' : '');
+    return '<div class="wo-secb" style="--sec:' + WO_COL[w[0]] + '"><div class="wo-sh"><span>' + esc(w[1].replace(/^\S+\s/, '')) + '</span><b>' + mins + ' min</b></div>' + extra +
+      rows.map(r => '<div class="wo-li"><span class="wo-ln">' + esc(r.n) + '</span><span class="wo-chips sm">' + woChips(Object.assign({ part: w[0] }, r)) + '</span></div>').join('') + '</div>';
+  }).join('');
+  const eq = []; WK_PARTS.forEach(w => (p[w[0]] || []).forEach(r => { const e = EQUIP[r.n]; if (e && eq.indexOf(e) === -1) eq.push(e); })); (p.equip || []).forEach(e => { if (eq.indexOf(e) === -1) eq.push(e); });
+  return '<div class="wo">' +
+    '<div class="wo-top"><button type="button" class="wo-x" id="wo-exit" aria-label="close">✕</button><span class="wo-tt">MY WORKOUT</span><button type="button" class="wo-edit" id="wo-edit">✎ Edit my plan</button></div>' +
+    '<div class="wo-hero"><h1>Let’s train, ' + esc(state.student.first) + '</h1><p><b>' + n + '</b> exercises · about <b>' + woMinutes(p) + ' min</b></p>' +
+    '<button type="button" class="wo-go" id="wo-start">▶ Start workout</button></div>' +
+    (eq.length ? '<div class="wo-eq">🧰 <b>Grab:</b> ' + eq.map(esc).join(' · ') + '</div>' : '') +
+    secs +
+    '<button type="button" class="wo-go wide" id="wo-start2">▶ Start workout</button>' +
+  '</div>';
+}
+function woPlayer() {
+  const n = wo.list.length, it = wo.list[wo.i], next = wo.list[wo.i + 1], sets = parseInt(it.sets, 10) || 0, kind = woKind(it), allSets = sets && wo.sets >= sets;
+  const timeUp = kind === 'time' && wo.total && wo.left <= 0;
+  const playLabel = wo.running ? '❚❚ Pause' : (timeUp ? '↺ Again' : (kind === 'interval' && !wo.rest ? (allSets ? '✓ Done' : '▶ Start set ' + (wo.sets + 1)) : (wo.rest ? '▶ Resume rest' : '▶ Start timer')));
+  const ring = wo.total ? '<div class="wo-timer"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" class="wo-rbg"/><circle cx="60" cy="60" r="54" class="wo-rfg" id="wo-ring" style="stroke-dasharray:' + WO_C.toFixed(1) + ';stroke-dashoffset:' + woRingOff().toFixed(1) + '"/></svg>' +
+    '<div class="wo-tin"><div class="wo-time" id="wo-time">' + (timeUp ? '⏰' : fmtClock(wo.left)) + '</div><div class="wo-tl">' + (timeUp ? 'time!' : (wo.rest ? 'rest' : (wo.running ? 'go go go' : 'ready'))) + '</div></div></div>' +
+    '<div class="wo-ctl">' + (wo.rest ? '<button type="button" class="wo-c" id="wo-skiprest">Skip rest</button>' : '<button type="button" class="wo-c" id="wo-reset" aria-label="restart timer">↺</button>') + '<button type="button" class="wo-c main' + (wo.running ? ' on' : '') + '" id="wo-play"' + (kind === 'interval' && allSets && !wo.rest ? ' disabled' : '') + '>' + playLabel + '</button><button type="button" class="wo-c" id="wo-plus">+30s</button></div>' : '';
+  const dots = sets ? '<div class="wo-sets">' + Array.from({ length: sets }, (_, k) => '<i class="' + (k < wo.sets ? 'on' : '') + '"></i>').join('') + '</div>' +
+    (kind !== 'interval' && !wo.rest ? '<button type="button" class="wo-setb" id="wo-set"' + (allSets ? ' disabled' : '') + '>' + (allSets ? '✓ All sets done' : '✓ Set ' + (wo.sets + 1) + ' done') + '</button>' : (allSets ? '<div class="wo-alldone">✓ All sets done</div>' : '')) : '';
+  const tip = it.part === 'cardio' && wo.p.hr ? '<div class="wo-tip">❤️ Aim for ' + esc(wo.p.hr) + ' — check your pulse</div>' : (it.part === 'focus' && wo.p.fWhy ? '<div class="wo-tip">🎯 ' + esc(wo.p.fWhy) + '</div>' : '');
+  return '<div class="wo wo-play" style="--sec:' + WO_COL[it.part] + '">' +
+    '<div class="wo-top"><button type="button" class="wo-x" id="wo-exit" aria-label="back to overview">✕</button><div class="wo-prog"><i style="width:' + Math.round(100 * wo.i / n) + '%"></i></div><span class="wo-cnt">' + (wo.i + 1) + ' / ' + n + '</span></div>' +
+    '<div class="wo-sec">' + esc(it.sec) + '</div><h1 class="wo-name">' + esc(it.n) + '</h1>' +
+    '<div class="wo-chips">' + woChips(it) + '</div>' + tip + ring + dots +
+    '<div class="wo-cheer">' + WO_CHEER[wo.i % WO_CHEER.length] + '</div>' +
+    '<div class="wo-nav"><button type="button" class="wo-nb" id="wo-prev"' + (wo.i ? '' : ' disabled') + '>◀ Back</button><button type="button" class="wo-nb next' + (timeUp || allSets ? ' pulse' : '') + '" id="wo-next">' + (next ? 'Next ▶' : 'Finish 🏁') + '</button></div>' +
+    (next ? '<div class="wo-upnext">Up next: <b>' + esc(next.n) + '</b></div>' : '') +
+  '</div>';
+}
+function woDone() {
+  const p = wo.p, pick = (k, opts) => '<div class="wo-pick">' + opts.map(o => '<button type="button" class="wo-pb' + (wo[k] === o[0] ? ' on' : '') + '" data-wo="' + k + '" data-v="' + o[0] + '">' + o[1] + ' ' + o[2] + '</button>').join('') + '</div>';
+  const ready = wo.where && wo.feel && (wo.where === 'class' || wo.who);
+  if (wo.saved) {
+    const tip = wo.feel === 'easy' ? 'Too easy? Next time add a set, or make one exercise <b>Hard</b>.' : wo.feel === 'hard' ? 'Too hard? Drop a set or take one exercise to <b>Easy</b> for now — then build back up.' : 'Just right — keep it this way and add a little more each week.';
+    return '<div class="wo wo-done"><div class="wo-burst" aria-hidden="true">🎉 💪 ⭐ 🔥 🏆</div><h1>Logged!</h1><p class="wo-tipb">' + tip + '</p>' +
+      '<button type="button" class="wo-go wide" id="wo-back">Back to Fitness &amp; Training</button><button type="button" class="wo-edit big" id="wo-edit">✎ Tweak my plan</button></div>';
+  }
+  return '<div class="wo wo-done"><div class="wo-burst" aria-hidden="true">🎉 💪 ⭐ 🔥 🏆</div><h1>Workout complete!</h1><p>' + wo.list.length + ' exercises · about ' + woMinutes(p) + ' minutes. Nice work, ' + esc(state.student.first) + '.</p>' +
+    '<div class="wo-q">Where did you train?</div>' + pick('where', [['class', '🏫', 'In PE'], ['home', '🏠', 'At home']]) +
+    (wo.where === 'home' ? '<div class="wo-q">Who with? <small>⭐ bonus for a friend or family member</small></div>' + pick('who', [['me', '🙂', 'Just me'], ['friend', '🤝', 'A friend ⭐'], ['family', '👪', 'Family ⭐']]) : '') +
+    '<div class="wo-q">How did it feel?</div>' + pick('feel', WO_FEEL) +
+    '<button type="button" class="wo-go wide" id="wo-save"' + (ready ? '' : ' disabled') + '>Save &amp; finish</button>' +
+    '<button type="button" class="wo-edit big" id="wo-skip">Skip — don’t log it</button></div>';
+}
+async function woSave() {
+  const btn = $('#wo-save'); btn.disabled = true; btn.textContent = 'Saving…';
+  const p = woPlan(); p.log = (p.log || []).slice(-59);
+  p.log.push({ date: isoDay(new Date()), who: wo.where === 'class' ? 'me' : wo.who, where: wo.where, feel: wo.feel });
+  try {
+    const res = await call('savePlan', { plan: p });
+    const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m;
+    wo.saved = true; toast(wo.where === 'home' && wo.who !== 'me' ? 'Logged — ⭐ buddy bonus!' : 'Workout logged ✓'); show('workout');
+  } catch (e) { btn.disabled = false; btn.textContent = 'Save & finish'; toast('Couldn’t save: ' + e.message, true); }
+}
+function woHandle(e) {
+  const id = (e.target.closest('button[id]') || {}).id, pk = e.target.closest('[data-wo]');
+  if (pk) { wo[pk.dataset.wo] = pk.dataset.v; if (pk.dataset.wo === 'where' && pk.dataset.v === 'class') wo.who = ''; return show('workout'); }
+  if (!id) return;
+  const n = wo.list.length;
+  if (id === 'wo-exit') { if (wo.stage === 'go') { woStop(); woWakeOff(); wo.stage = 'overview'; return show('workout'); } const f = wo.from; woStop(); woWakeOff(); wo = null; return show(f === 'profile' ? 'profile' : 'fitness'); }
+  if (id === 'wo-edit') { woStop(); woWakeOff(); wo = null; planDraft = null; lastHub = 'fitness'; return show('plan'); }
+  if (id === 'wo-start' || id === 'wo-start2') { wo.stage = 'go'; wo.i = 0; woReset(); woWakeOn(); return show('workout'); }
+  if (id === 'wo-play') { if (wo.running) woStop(); else { if (wo.left <= 0) wo.left = wo.total; woRun(); } return show('workout'); }
+  if (id === 'wo-skiprest') { woStop(); wo.left = 0; wo.running = true; woTick(); return; }
+  if (id === 'wo-reset') { const keep = wo.sets; woReset(); wo.sets = keep; return show('workout'); }
+  if (id === 'wo-plus') { wo.left += 30; wo.total += 30; return show('workout'); }
+  if (id === 'wo-set') { const nS = parseInt(wo.list[wo.i].sets, 10) || 0; wo.sets = Math.min(nS, wo.sets + 1); if (woKind(wo.list[wo.i]) === 'reps' && wo.sets < nS) woStartRest(REST.strength); return show('workout'); }
+  if (id === 'wo-prev') { if (wo.i > 0) { wo.i--; woReset(); } return show('workout'); }
+  if (id === 'wo-next') { if (wo.i < n - 1) { wo.i++; woReset(); } else { woStop(); woWakeOff(); wo.stage = 'done'; } return show('workout'); }
+  if (id === 'wo-save') return woSave();
+  if (id === 'wo-skip' || id === 'wo-back') { wo = null; return show('fitness'); }
 }
 
 // ═══════════════ teacher views: class dashboard + skill entry ═══════════════
@@ -1888,18 +2134,24 @@ function show(v, arg) {
   const prevView = view;
   view = v;
   const app = $('#app');
-  document.body.classList.toggle('dark', v === 'card');
+  document.body.classList.toggle('dark', v === 'card' || v === 'workout');
+  if (v !== 'workout' && wo) { woStop(); woWakeOff(); }
   if (state.student) setSkin(state.student.style);
   if (v === 'profile' || v === 'fitness') lastHub = v;
   // fresh-element delegation: handlers live on the newly rendered .wrap, so nothing stacks across renders
   const onWrap = fn => { const w = app.firstElementChild; if (w) w.addEventListener('click', fn); };
   const openUnit = e => { const t = e.target.closest('[data-unit]'); if (!t) return false; const k = t.getAttribute('data-unit'); if (k === 'fitness') show('fitness'); else { unitKey = k; unitDraft = null; show('unit'); window.scrollTo(0, 0); } return true; };
-  if (v === 'fitness') {
+  if (v === 'workout') {
+    if (!wo) woStart(prevView === 'profile' ? 'profile' : 'fitness');
+    app.innerHTML = wo.stage === 'go' ? woPlayer() : (wo.stage === 'done' ? woDone() : woOverview());
+    onWrap(woHandle);
+  } else if (v === 'fitness') {
     app.innerHTML = fitnessView(state);
     wire('tohub', () => show('profile'));
     wire('topredict', () => show('predict')); wire('toentry', () => show('entry')); wire('tomyskills2', () => show('myskills'));
     wire('tocompare', () => show('compare')); wire('togoals', () => show('goals')); wire('toplan', () => show('plan'));
     goalSel = null; planDraft = null;
+    wire('towo', () => { woStart('fitness'); show('workout'); });
     onWrap(e => { const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   } else if (v === 'archive') {
     app.innerHTML = archiveView(state);
@@ -1941,7 +2193,7 @@ function show(v, arg) {
     document.querySelectorAll('.gslider').forEach(r => r.addEventListener('input', () => { const k = r.getAttribute('data-key'), meta = goalMetaFor(k), lab = $('#glb-' + k); if (lab && meta) lab.innerHTML = fmtMetric(meta, Number(r.value)) + (meta.dir === 'down' ? ' <small>· lower is better</small>' : ''); }));
   } else if (v === 'plan') {
     app.innerHTML = planView(state);
-    wire('toprofile', () => show(lastHub)); wire('psaveplan', savePlanUI); wire('toeditgoals', () => show('goals'));
+    wire('toprofile', () => show(lastHub)); wire('psaveplan', savePlanUI); wire('toeditgoals', () => show('goals')); wire('wk-go', savePlanAndGo);
     const w = app.querySelector('.wrap');
     if (w) {
       w.addEventListener('click', e => {
@@ -1950,7 +2202,7 @@ function show(v, arg) {
         const add = e.target.closest('[data-add]'); if (add) { syncPlanFromDom(); push(add.dataset.add, add.dataset.n); return show('plan'); }
         const rm = e.target.closest('[data-rm]'); if (rm) { const row = rm.closest('.wk-row'), list = row && row.parentNode; if (list) { const idx = Array.prototype.indexOf.call(list.querySelectorAll('.wk-row'), row), part = list.getAttribute('data-part'); syncPlanFromDom(); planDraft[part].splice(idx, 1); } return show('plan'); }
         const own = e.target.closest('[data-own]'); if (own) { const inp = w.querySelector('.wk-owni[data-part="' + own.dataset.own + '"]'); const v2 = inp && inp.value.trim(); if (v2) { syncPlanFromDom(); push(own.dataset.own, v2); show('plan'); } return; }
-        const cho = e.target.closest('[data-choose]'); if (cho) { syncPlanFromDom(); const k = cho.dataset.choose === 'strength' ? 'sChoice' : 'fChoice'; if (planDraft[k] !== cho.dataset.val) { planDraft[k] = cho.dataset.val; wkOpen[cho.dataset.choose] = true; } return show('plan'); }
+        const cho = e.target.closest('[data-choose]'); if (cho) { syncPlanFromDom(); const k = cho.dataset.choose === 'strength' ? 'sChoice' : 'fChoice'; if (planDraft[k] !== cho.dataset.val) { planDraft[k] = cho.dataset.val; wkOpen[cho.dataset.choose] = true; if (k === 'sChoice') { const d = wkDefaults('strength', cho.dataset.val); planDraft.strength.forEach(r => { const isTime = /s$|sec|min|:/.test(String(r.reps).trim()); if (cho.dataset.val === 'endurance' && !isTime) r.reps = d.reps; if (cho.dataset.val === 'strength' && isTime) r.reps = d.reps; }); } } return show('plan'); }
         const day = e.target.closest('[data-day]'); if (day) { syncPlanFromDom(); planDraft.days[day.dataset.day] = !planDraft.days[day.dataset.day]; return show('plan'); }
         if (e.target.closest('#wk-eqadd')) { const i = $('#wk-eqi'), v3 = i && i.value.trim(); if (v3) { syncPlanFromDom(); planDraft.equip = (planDraft.equip || []); if (planDraft.equip.length < 20 && planDraft.equip.indexOf(v3) === -1) planDraft.equip.push(v3.slice(0, 30)); show('plan'); } return; }
         const eqr = e.target.closest('[data-eqrm]'); if (eqr) { syncPlanFromDom(); planDraft.equip.splice(+eqr.dataset.eqrm, 1); return show('plan'); }
@@ -1958,7 +2210,7 @@ function show(v, arg) {
         const lr = e.target.closest('[data-logrm]'); if (lr) { syncPlanFromDom(); const q = lr.dataset.logrm.split('|'), j = (planDraft.log || []).findIndex(x => x.date === q[0] && x.who === q[1]); if (j >= 0) planDraft.log.splice(j, 1); return show('plan'); }
       });
       // minutes / heart-rate / goal text update the section status as you type (on leaving the field)
-      w.addEventListener('change', e => { if (e.target.matches('.wr-mins,.wr-int,#wk-hr,#wk-why')) { const y = window.scrollY; syncPlanFromDom(); show('plan'); window.scrollTo(0, y); } });
+      w.addEventListener('change', e => { if (e.target.matches('.wr-mins,.wr-int,.wkpart[data-part=strength] .wr-sets,.wkpart[data-part=strength] .wr-reps,#wk-hr,#wk-why')) { const y = window.scrollY; syncPlanFromDom(); show('plan'); window.scrollTo(0, y); } });
       w.querySelectorAll('.wk-pick').forEach(d => d.addEventListener('toggle', () => { wkOpen[d.dataset.part] = d.open; }));
       enableWkDrag(w);
     }
@@ -1989,6 +2241,7 @@ function show(v, arg) {
     goalSel = null; planDraft = null; unitDraft = null;
     wire('togoals2', () => show('goals')); wire('togoals3', () => show('goals'));
     wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass); wire('toarchive', () => show('archive'));
+    wire('towo', () => { woStart('profile'); show('workout'); });
     onWrap(e => { if (openUnit(e)) return; const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   }
   if (!(v === 'plan' && prevView === 'plan')) window.scrollTo(0, 0);
