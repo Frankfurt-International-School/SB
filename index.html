@@ -480,8 +480,9 @@ body.wk-dragging,body.wk-dragging *{cursor:grabbing !important;user-select:none}
 .wo-c{font-family:var(--disp);font-weight:800;font-size:15px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:12px 16px;cursor:pointer;min-width:60px}
 .wo-c.main{background:var(--sec);border-color:var(--sec);min-width:170px}.wo-c.main.on{background:rgba(255,255,255,.18)}
 .wo-c[disabled]{opacity:.4}
-.wo-sets{display:flex;gap:10px;justify-content:center;margin:12px 0 10px}
-.wo-sets i{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}.wo-sets i.on{background:var(--sec);border-color:var(--sec);box-shadow:0 0 12px var(--sec)}
+.wo-sets{display:flex;gap:12px;justify-content:center;margin:12px 0 12px}
+.wo-dot{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:transparent;color:#fff;font-family:var(--disp);font-weight:800;font-size:16px;cursor:pointer}
+.wo-dot.on{background:var(--sec);border-color:var(--sec);box-shadow:0 0 12px var(--sec)}
 .wo-setb{font-family:var(--disp);font-weight:800;font-size:18px;color:#fff;background:var(--sec);border:0;border-radius:16px;padding:14px 26px;cursor:pointer}
 .wo-setb[disabled]{opacity:.55;cursor:default}
 .wo-alldone{font-family:var(--disp);font-weight:800;color:#9be7b9;font-size:16px}
@@ -1786,10 +1787,10 @@ function woPlayer() {
   const timeUp = kind === 'time' && wo.total && wo.left <= 0;
   const playLabel = wo.running ? '❚❚ Pause' : (timeUp ? '↺ Again' : (kind === 'interval' && !wo.rest ? (allSets ? '✓ Done' : '▶ Start set ' + (wo.sets + 1)) : (wo.rest ? '▶ Resume rest' : '▶ Start timer')));
   const ring = wo.total ? '<div class="wo-timer"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" class="wo-rbg"/><circle cx="60" cy="60" r="54" class="wo-rfg" id="wo-ring" style="stroke-dasharray:' + WO_C.toFixed(1) + ';stroke-dashoffset:' + woRingOff().toFixed(1) + '"/></svg>' +
-    '<div class="wo-tin"><div class="wo-time" id="wo-time">' + (timeUp ? '⏰' : fmtClock(wo.left)) + '</div><div class="wo-tl">' + (timeUp ? 'time!' : (wo.rest ? 'rest' : (wo.running ? 'go go go' : 'ready'))) + '</div></div></div>' +
+    '<div class="wo-tin"><div class="wo-time" id="wo-time">' + (timeUp ? '⏰' : fmtClock(wo.left)) + '</div><div class="wo-tl">' + (timeUp ? 'time!' : (wo.rest ? 'rest · then set ' + (wo.sets + 1) : (wo.running ? 'go go go' : (kind === 'interval' ? 'set ' + (wo.sets + 1) : 'ready')))) + '</div></div></div>' +
     '<div class="wo-ctl">' + (wo.rest ? '<button type="button" class="wo-c" id="wo-skiprest">Skip rest</button>' : '<button type="button" class="wo-c" id="wo-reset" aria-label="restart timer">↺</button>') + '<button type="button" class="wo-c main' + (wo.running ? ' on' : '') + '" id="wo-play"' + (kind === 'interval' && allSets && !wo.rest ? ' disabled' : '') + '>' + playLabel + '</button><button type="button" class="wo-c" id="wo-plus">+30s</button></div>' : '';
-  const dots = sets ? '<div class="wo-sets">' + Array.from({ length: sets }, (_, k) => '<i class="' + (k < wo.sets ? 'on' : '') + '"></i>').join('') + '</div>' +
-    (kind !== 'interval' && !wo.rest ? '<button type="button" class="wo-setb" id="wo-set"' + (allSets ? ' disabled' : '') + '>' + (allSets ? '✓ All sets done' : '✓ Set ' + (wo.sets + 1) + ' done') + '</button>' : (allSets ? '<div class="wo-alldone">✓ All sets done</div>' : '')) : '';
+  const dots = sets ? '<div class="wo-sets">' + Array.from({ length: sets }, (_, k) => '<button type="button" class="wo-dot' + (k < wo.sets ? ' on' : '') + '" data-dot="' + k + '" aria-label="set ' + (k + 1) + (k < wo.sets ? ' done' : '') + '">' + (k < wo.sets ? '✓' : k + 1) + '</button>').join('') + '</div>' +
+    (allSets ? '<div class="wo-alldone">✓ All sets done</div>' : (kind !== 'interval' ? '<button type="button" class="wo-setb" id="wo-set">✓ Set ' + (wo.sets + 1) + ' done</button>' : '')) : '';
   const tip = it.part === 'cardio' && wo.p.hr ? '<div class="wo-tip">❤️ Aim for ' + esc(wo.p.hr) + ' — check your pulse</div>' : (it.part === 'focus' && wo.p.fWhy ? '<div class="wo-tip">🎯 ' + esc(wo.p.fWhy) + '</div>' : '');
   return '<div class="wo wo-play" style="--sec:' + WO_COL[it.part] + '">' +
     '<div class="wo-top"><button type="button" class="wo-x" id="wo-exit" aria-label="back to overview">✕</button><div class="wo-prog"><i style="width:' + Math.round(100 * wo.i / n) + '%"></i></div><span class="wo-cnt">' + (wo.i + 1) + ' / ' + n + '</span></div>' +
@@ -1826,6 +1827,8 @@ async function woSave() {
   } catch (e) { btn.disabled = false; btn.textContent = 'Save & finish'; toast('Couldn’t save: ' + e.message, true); }
 }
 function woHandle(e) {
+  const dot = e.target.closest('[data-dot]');
+  if (dot) { const it = wo.list[wo.i], k = +dot.dataset.dot; wo.sets = (k < wo.sets) ? k : k + 1; woStop(); wo.rest = false; wo.total = wo.left = woKind(it) === 'interval' ? (parseSecs(it.reps) || 30) : 0; return show('workout'); }
   const id = (e.target.closest('button[id]') || {}).id, pk = e.target.closest('[data-wo]');
   if (pk) { wo[pk.dataset.wo] = pk.dataset.v; if (pk.dataset.wo === 'where' && pk.dataset.v === 'class') wo.who = ''; return show('workout'); }
   if (!id) return;
@@ -1837,7 +1840,7 @@ function woHandle(e) {
   if (id === 'wo-skiprest') { woStop(); wo.left = 0; wo.running = true; woTick(); return; }
   if (id === 'wo-reset') { const keep = wo.sets; woReset(); wo.sets = keep; return show('workout'); }
   if (id === 'wo-plus') { wo.left += 30; wo.total += 30; return show('workout'); }
-  if (id === 'wo-set') { const nS = parseInt(wo.list[wo.i].sets, 10) || 0; wo.sets = Math.min(nS, wo.sets + 1); if (woKind(wo.list[wo.i]) === 'reps' && wo.sets < nS) woStartRest(REST.strength); return show('workout'); }
+  if (id === 'wo-set') { const nS = parseInt(wo.list[wo.i].sets, 10) || 0; woStop(); wo.rest = false; wo.total = wo.left = 0; wo.sets = Math.min(nS, wo.sets + 1); if (woKind(wo.list[wo.i]) === 'reps' && wo.sets < nS) woStartRest(REST.strength); return show('workout'); }
   if (id === 'wo-prev') { if (wo.i > 0) { wo.i--; woReset(); } return show('workout'); }
   if (id === 'wo-next') { if (wo.i < n - 1) { wo.i++; woReset(); } else { woStop(); woWakeOff(); wo.stage = 'done'; } return show('workout'); }
   if (id === 'wo-save') return woSave();
