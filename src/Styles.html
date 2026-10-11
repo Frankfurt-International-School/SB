@@ -137,7 +137,8 @@ h3.sec .em{font-size:16px;width:31px;height:31px;border-radius:9px;display:inlin
 .cstat div{flex:1;background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:8px;text-align:center}
 .cstat b{font-family:var(--disp);font-size:18px;display:block;color:#fff}.cstat span{font-size:8px;color:rgba(255,255,255,.72);text-transform:uppercase;letter-spacing:.05em}
 .cbadge{display:flex;gap:9px;justify-content:center;margin-top:11px;position:relative;z-index:2}
-.cbadge span{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3d6,var(--acc) 62%,#b9871f);display:grid;place-items:center;font-size:15px;opacity:.45;filter:grayscale(.4)}
+.cbadge{flex-wrap:wrap;gap:6px}
+.cbadge .bdg{width:28px;height:28px;font-size:13px}
 .cfoot{margin-top:11px;text-align:center;font-family:var(--disp);font-weight:600;font-size:11px;color:var(--acc);position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.18);padding-top:8px}
 .cardhint{font-size:12px;color:#c8bcbe;text-align:center;max-width:34ch;line-height:1.45}
 .done{margin-top:34px;text-align:center}
@@ -496,6 +497,38 @@ body.wk-dragging,body.wk-dragging *{cursor:grabbing !important;user-select:none}
 .hw-how{font-size:13.5px;color:var(--ink);background:#fbf3e2;border-radius:10px;padding:8px 12px;margin-bottom:8px}
 .hw-manual summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);text-decoration:underline;text-underline-offset:3px;margin-bottom:6px}
 .hw-manual[open] summary{margin-bottom:8px}
+/* ── kid-friendly layer: greeting + next step, badges, card tiers, celebration ── */
+.hello{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:2px 0 12px;flex-wrap:wrap}
+.hello-l{display:flex;flex-direction:column;gap:8px;min-width:0}
+.hi{font-family:var(--disp);font-weight:800;font-size:clamp(26px,5vw,36px);line-height:1.05;margin:0}
+.nextstep{display:inline-flex;align-items:center;gap:10px;align-self:flex-start;background:#fff;border:2px solid var(--gold);border-radius:999px;padding:6px 6px 6px 14px;cursor:pointer;font:inherit;color:var(--ink);box-shadow:0 4px 14px rgba(231,182,75,.25);transition:transform .08s}
+.ns-l{font-size:11.5px;font-weight:700;color:var(--muted)}
+.ns-t{font-family:var(--disp);font-weight:800;font-size:15px}
+.ns-go{font-family:var(--disp);font-weight:800;font-size:13px;background:var(--maroon);color:#fff;border-radius:999px;padding:6px 14px}
+@media (max-width:520px){.hi{font-size:24px}.hello{gap:8px}.nextstep{align-self:stretch;justify-content:space-between;padding:6px 6px 6px 14px}.nextstep .ns-l{display:none}.ns-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.shelf{gap:4px}.bdg{width:29px;height:29px;font-size:14px}}
+.shelfrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:2px 0 4px;padding:8px 12px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.sh-l{font-family:var(--disp);font-weight:700;font-size:13px;color:var(--ink-soft);white-space:nowrap}.sh-l b{color:var(--maroon)}
+.shelf{display:flex;flex-wrap:wrap;gap:6px}
+.bdg{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;line-height:1;cursor:pointer;border:1.5px dashed #d8cfcd;background:#f3efee;filter:grayscale(1);opacity:.45;padding:0;transition:transform .12s}
+.bdg.got{filter:none;opacity:1;border:2px solid #c9982f;background:radial-gradient(circle at 40% 35%,#fff6dc,#f3d689 60%,#c9982f);box-shadow:0 2px 8px rgba(201,152,47,.45)}
+.bdg:hover{transform:scale(1.12)}
+.card .bdg{border-color:rgba(255,255,255,.25);background:rgba(0,0,0,.2)}.card .bdg.got{border-color:var(--acc);background:radial-gradient(circle at 40% 35%,#fff3d6,var(--acc) 62%,#b9871f)}
+.ovbadge{width:84px;height:84px;margin:4px auto 8px;border-radius:50%;display:grid;place-items:center;font-size:40px;background:#f1eeec;border:2px dashed #d8cfcd;filter:grayscale(1);opacity:.6}
+.ovbadge.got{filter:none;opacity:1;border:3px solid #c9982f;background:radial-gradient(circle at 40% 35%,#fff6dc,#f3d689 60%,#c9982f);box-shadow:0 6px 22px rgba(201,152,47,.5)}
+.fprog{display:flex;align-items:center;gap:12px;margin:0 0 10px}
+.fp-bar{flex:1;max-width:360px;height:12px;border-radius:999px;background:#efe6dd;overflow:hidden}
+.fp-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--fit),var(--gold));transition:width .5s}
+.fprog span{font-family:var(--disp);font-weight:800;font-size:13.5px;color:var(--fit)}
+.fprog.all span{color:#15724a}.fprog.all .fp-bar i{background:linear-gradient(90deg,#1f9d57,var(--gold))}
+.burst{position:fixed;left:50%;top:42%;width:0;height:0;z-index:80;pointer-events:none}
+.burst i{position:absolute;left:-5px;top:-7px;width:10px;height:14px;border-radius:3px;animation:bfly 1.6s cubic-bezier(.15,.7,.3,1) forwards;font-style:normal}
+.burst i.e{width:auto;height:auto;font-size:22px;background:none}
+.burst b{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(.2);font-size:76px;animation:bpop 1.5s ease-out forwards;filter:drop-shadow(0 8px 18px rgba(0,0,0,.25))}
+@keyframes bfly{0%{transform:translate(0,0) rotate(0);opacity:1}70%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 160px)) rotate(var(--r));opacity:0}}
+@keyframes bpop{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}25%{transform:translate(-50%,-50%) scale(1.25);opacity:1}45%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-80%) scale(1);opacity:0}}
+.ct-btn,.wo-go,.fstep,.ucard,.wo-cta,.hw-btn,.wk-add,.wo-nb,.wo-c,.wo-setb,.wo-dot,.wo-pb,.rlv,.goalchip,.nextstep,.pcard,.fsum-t,.tile,.band{transition:transform .08s,box-shadow .15s,background .15s}
+.ct-btn:active,.wo-go:active,.fstep:active,.ucard:not([disabled]):active,.wo-cta:active,.hw-btn:active,.wk-add:active,.wo-nb:not([disabled]):active,.wo-c:active,.wo-setb:active,.wo-dot:active,.wo-pb:active,.rlv:active,.goalchip:active,.nextstep:active,.pcard:active,.fsum-t:active,.tile:active,.band:active,.bdg:active{transform:scale(.96)}
+@media(prefers-reduced-motion:reduce){.burst{display:none}.fp-bar i{transition:none}}
 /* train at home (homework) */
 .hwbox{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 16px}
 .hw-rule{font-size:13.5px;color:var(--ink-soft);line-height:1.5}.hw-rule b{color:var(--ink)}

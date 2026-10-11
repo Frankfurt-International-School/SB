@@ -282,13 +282,16 @@ function profileView(b) {
   const fund = FUND.map(([key, em]) => fundTileV(key, em)).join('');
   const stat = (v, lab) => '<div><b>' + v + '</b><span>' + lab + '</span></div>';
   return '<div class="wrap">' +
-    '<div class="topline"><span class="demo-tag">Hi ' + esc(st.first) + ' · ' + (m && m.fitness && Object.keys(m.fitness).length ? 'your results are in — explore and plan' : 'start in Fitness & Training') + '</span><span class="yearlab">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</span></div>' +
+    (function () { const ns = nextStep(); return '<div class="hello"><div class="hello-l"><h1 class="hi">' + greeting() + ', ' + esc(st.first) + ' 👋</h1>' +
+      '<button type="button" class="nextstep" id="hubnext" data-go="' + ns[0] + '"><span class="ns-l">Your next step</span><span class="ns-t">' + ns[1] + ' ' + esc(ns[2]) + '</span><span class="ns-go">Go</span></button></div>' +
+      '<span class="yearlab">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</span></div>'; })() +
     '<div class="cardteaser">' + avatar(st, 'ct-av') +
-      '<div class="ct-id"><div class="ct-name">' + esc(st.name) + ' <span class="ct-tier">◆ BRONZE</span></div>' + (st.klass ? '<div class="ct-sub">' + esc(st.klass) + '</div>' : '') +
+      '<div class="ct-id"><div class="ct-name">' + esc(st.name) + ' <span class="ct-tier">◆ ' + tierOf(earned().length) + '</span></div>' + (st.klass ? '<div class="ct-sub">' + esc(st.klass) + '</div>' : '') +
       '<div class="ct-arch">' + (skin ? skin.e + ' ' + esc(styles[k]).toUpperCase() : '✨ PICK YOUR PE STYLE') + '</div></div>' +
       '<div class="ct-stats">' + stat(mileStr(mileV), 'Mile') + stat(skG == null ? '—' : skG, 'Skills') + stat(apO == null ? '—' : apO, 'Effort') + '</div>' +
       '<button type="button" class="ct-btn' + (k ? '' : ' pulse') + '" id="tocard">' + (k ? 'View my card ↗' : 'Build my card ↗') + '</button>' +
     '</div>' +
+    '<div class="shelfrow"><span class="sh-l">🏅 My badges <b>' + earned().length + ' / ' + BADGES.length + '</b></span>' + badgeShelf('shelf') + '</div>' +
     (m && planCount(m.plan) ? woCta(m.plan) : '') +
     unitsStrip() +
     '<h3 class="sec sec-glance"><span class="em">👀</span> At a glance <span class="tap">· where I am vs my goal</span><button type="button" class="secbtn" id="togoals2">🎯 ' + (goals.length ? 'Edit goals' : 'Set goals') + '</button></h3><p class="seclede">Your journey to the goals you set — now vs where you want to be by May.</p>' +
@@ -362,7 +365,8 @@ function fitnessView(b) {
   return '<div class="wrap">' +
     '<button type="button" class="back light" id="tohub">← Back to my profile</button>' +
     '<div class="phero"><div class="k">UNIT · ' + esc(u.when.toUpperCase()) + '</div><h1>🏃 Fitness &amp; Training</h1><p>Find out where your fitness is now, try training methods in class, then build a workout that targets your goals — and do it at home too.</p></div>' +
-    '<h3 class="sec sec-fit"><span class="em">🧭</span> Your steps</h3>' +
+    (function () { const done = [!!pred, hasFit, hasSk, !!refl, !!goals.length, !!plan].filter(Boolean).length;
+      return '<h3 class="sec sec-fit"><span class="em">🧭</span> Your steps</h3><div class="fprog' + (done === 6 ? ' all' : '') + '"><div class="fp-bar"><i style="width:' + Math.round(done / 6 * 100) + '%"></i></div><span>' + (done === 6 ? '🏆 All six done — now keep training!' : done + ' of 6 done') + '</span></div>'; })() +
     '<div class="fsteps">' +
       step(1, 'topredict', '🔮', 'Predict yourself', pred ? 'Saved ' + esc(pred.timestamp.slice(0, 10)) : 'Before testing: strengths and work-ons', !!pred, pred ? 'Edit' : 'Start') +
       step(2, 'toentry', '📝', 'Enter my Combine results', hasFit ? 'Fitness numbers saved' : 'Mile, push-ups, jumps, sprint…', hasFit, hasFit ? 'Update' : 'Enter') +
@@ -460,6 +464,71 @@ function fitSummary(m) {
   return '<h3 class="sec sec-fit"><span class="em">🏃</span> My fitness tests <span class="tap">· latest Combine · tap for detail</span><button type="button" class="secbtn" data-unit="fitness">Fitness &amp; Training →</button></h3>' +
     '<div class="fsum">' + keys.map(tile).join('') + '</div>';
 }
+// ═══════════════ badges: earned by doing the real work; 4 → Silver card, 8 → Gold ═══════════════
+function homeLog(m) { return ((m && m.plan && m.plan.log) || []).filter(e => e.where !== 'class'); }
+function planReady(raw) { if (!raw) return false; const p = normPlan(raw); return WK_PARTS.every(w => !partNeeds(w[0], p)); }
+const BADGES = [
+  ['predict', '🔮', 'Fortune teller', 'Make your Lesson 1 prediction.', m => !!predictionSaved()],
+  ['measured', '📏', 'Measured', 'Enter your Combine results.', m => !!(m && m.fitness && Object.keys(m.fitness).length)],
+  ['ladder', '🧩', 'Ladder climber', 'Record your skill-ladder levels.', m => !!(m && m.skills && Object.keys(m.skills).length)],
+  ['scout', '🔍', 'Self-scout', 'Compare your prediction with your results, then reflect.', m => !!reflections()['compare-intro']],
+  ['goals', '🎯', 'Goal setter', 'Set your goals for May.', m => !!(m && m.goals && m.goals.length)],
+  ['plan', '🏋️', 'Plan maker', 'Build a workout with all five parts ready.', m => planReady(m && m.plan)],
+  ['roll', '🔥', 'On a roll', 'Do your workout at home three times.', m => homeLog(m).length >= 3],
+  ['buddy', '⭐', 'Training buddy', 'Do a home workout with a friend or family member.', m => homeLog(m).some(e => e.who === 'friend' || e.who === 'family')],
+  ['pb', '📈', 'Personal best', 'Beat your first Combine result in any test.', m => !!(m && m.fitness && Object.keys(m.fitness).some(k => improved(m.fitness[k], fitMeta(k).dir) > 0))],
+  ['net', '🏸', 'Net ready', 'Do your Badminton practice check.', m => !!reflections()['unit-badminton']]
+];
+function earned() { const m = measured(); return BADGES.filter(b => b[4](m)); }
+function tierOf(n) { return n >= 8 ? 'GOLD' : (n >= 4 ? 'SILVER' : 'BRONZE'); }
+const TIER_FRAME = {
+  BRONZE: 'linear-gradient(145deg,#e0a566,#a15c2b 50%,#7a441f 62%,#d68a4e)',
+  SILVER: 'linear-gradient(145deg,#f4f6f9,#a7b0ba 48%,#6d7680 62%,#e3e7ec)',
+  GOLD: 'linear-gradient(145deg,#fff0b3,#e2b23a 46%,#9a6f12 62%,#ffd86b)'
+};
+function applyTier() { document.documentElement.style.setProperty('--frame', TIER_FRAME[tierOf(earned().length)]); }
+function badgeShelf(cls) {
+  const got = earned().map(b => b[0]);
+  return '<div class="' + cls + '">' + BADGES.map(b => '<button type="button" class="bdg' + (got.indexOf(b[0]) !== -1 ? ' got' : '') + '" data-ov="badge-' + b[0] + '" title="' + esc(b[2]) + '" aria-label="' + esc(b[2]) + (got.indexOf(b[0]) !== -1 ? ' — earned' : ' — not yet') + '">' + b[1] + '</button>').join('') + '</div>';
+}
+let seenBadges = null;
+function badgeCheck() {
+  if (!state || state.role !== 'student') return;
+  const now = earned().map(b => b[0]);
+  if (seenBadges === null) { seenBadges = now; return; }
+  const fresh = now.filter(k => seenBadges.indexOf(k) === -1); seenBadges = now;
+  if (!fresh.length) return;
+  const b = BADGES.find(x => x[0] === fresh[0]), before = tierOf(now.length - fresh.length), after = tierOf(now.length);
+  celebrate(b[1]);
+  setTimeout(() => toast(after !== before ? '🏅 ' + b[2] + ' — your card is now ' + after.charAt(0) + after.slice(1).toLowerCase() + '!' : '🏅 Badge unlocked: ' + b[2] + '!'), 700);
+}
+// A one-off burst for something the student just did (skipped when reduced motion is on).
+function celebrate(em) {
+  try { if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+  const box = document.createElement('div'); box.className = 'burst'; box.setAttribute('aria-hidden', 'true');
+  const cols = ['#e7b64b', '#6f1d2c', '#2f6df0', '#1f9d57', '#e8730c', '#a64fd6'];
+  for (let i = 0; i < 36; i++) {
+    const s2 = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 110 + Math.random() * 230;
+    s2.style.setProperty('--dx', (Math.cos(a) * d).toFixed(0) + 'px'); s2.style.setProperty('--dy', (Math.sin(a) * d - 60).toFixed(0) + 'px');
+    s2.style.setProperty('--r', (Math.random() * 720 - 360).toFixed(0) + 'deg'); s2.style.animationDelay = (Math.random() * 0.12).toFixed(2) + 's';
+    if (i % 4 === 0) { s2.textContent = i % 8 === 0 ? em : '✨'; s2.className = 'e'; } else s2.style.background = cols[i % cols.length];
+    box.appendChild(s2);
+  }
+  const big = document.createElement('b'); big.textContent = em; box.appendChild(big);
+  document.body.appendChild(box); setTimeout(() => box.remove(), 2000);
+}
+// The one thing to do next, so a student never has to guess.
+function nextStep() {
+  const m = measured(), plan = m && m.plan, wk = homeLog(m).filter(e => weekKey(e.date) === weekKey(todayIso())).length;
+  if (!predictionSaved()) return ['topredict', '🔮', 'Predict yourself'];
+  if (!(m && m.fitness && Object.keys(m.fitness).length)) return ['toentry', '📝', 'Enter your Combine results'];
+  if (!reflections()['compare-intro']) return ['tocompare', '🔍', 'Compare & reflect'];
+  if (!(m && m.goals && m.goals.length)) return ['togoals', '🎯', 'Set your goals'];
+  if (!planReady(plan)) return ['toplan', '🏋️', 'Finish building your workout'];
+  if (!wk) return ['towo', '🏠', 'Do your workout at home this week'];
+  return ['towo', '💪', 'Do your workout again'];
+}
+function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening'); }
 function goalLabel(c) { const f = fitMeta(c); if (f && f.label && (state.meta.fitness || []).some(x => x.key === c)) return f.label; if (RUBRICS.ladders[c]) return RUBRICS.ladders[c].name; return c === 'overall' ? 'Overall' : c; }
 function trendWord(series, dir) { const t = improved(series, dir); return t > 0 ? 'improving ▲' : t < 0 ? 'down ▼ · chase it back' : 'latest'; }
 function apTileV(ovKey, em, name, key) {
@@ -587,12 +656,12 @@ function cardView(b) {
     '<div class="grid">' +
       '<div><div class="step">1 · Choose your style <span class="saved" id="saved">' + (chosen ? '✓ saved' : '') + '</span></div><div class="styles" id="styles">' + pick + '</div></div>' +
       '<div class="cardstage"><div class="card" id="card"><div class="cinner">' +
-        '<div class="chd"><span>FIS · PE ATHLETE · ' + esc(b.config.yearLabel) + '</span><span class="ctier">BRONZE</span></div>' +
+        '<div class="chd"><span>FIS · PE ATHLETE · ' + esc(b.config.yearLabel) + '</span><span class="ctier">' + tierOf(earned().length) + '</span></div>' +
         '<div class="cwho">' + avatar(st, 'cav') + '<div><div class="cname">' + esc(st.name) + '</div>' + (st.klass ? '<div class="cclass">' + esc(st.klass) + '</div>' : '') + '</div></div>' +
         '<div class="crib"><span id="archt">' + (chosen ? esc(styles[chosen]).toUpperCase() : 'PICK A STYLE') + '</span><span id="arche">' + (chosen ? SKINS[chosen].e : '✨') + '</span></div>' +
         '<div class="crad" id="rad">' + radar(SKINS[chosen] || DEFAULT_SKIN, ax) + '</div>' +
         '<div class="cstat"><div><b>' + (m && m.fitness ? mileStr(latestOf(m.fitness.mile)) : '—') + '</b><span>Mile</span></div><div><b>' + (skillsGradeNow() == null ? '—' : skillsGradeNow()) + '</b><span>Skills</span></div><div><b>' + (apOverallNow() == null ? '—' : apOverallNow()) + '</b><span>Effort</span></div></div>' +
-        '<div class="cbadge" aria-label="Badges you can earn"><span>🏃</span><span>📈</span><span>🔥</span><span>⭐</span></div>' +
+        badgeShelf('cbadge') +
         '<div class="cfoot">◆ Your card levels up as you grow ◆</div>' +
       '</div></div><div class="cardhint">Your style is your choice. None is "better": it sets your card’s colour and identity.</div></div>' +
     '</div>' +
@@ -802,15 +871,16 @@ function rowMins(part, r, sChoice) {
   const sets = parseInt(r.sets, 10) || 0;
   return sChoice === 'endurance' ? sets * ((parseSecs(r.reps) || 30) + REST.endurance) / 60 : sets * (30 + REST.strength) / 60;
 }
-function partMins(part) { return (planDraft[part] || []).reduce((a, r) => a + rowMins(part, r, planDraft.sChoice), 0); }
+function partMins(part, p) { p = p || planDraft; return (p[part] || []).reduce((a, r) => a + rowMins(part, r, p.sChoice), 0); }
 // What a section still needs to meet the brief ('' = it's done).
-function partNeeds(part) {
-  const rows = planDraft[part] || [], mins = partMins(part), tgt = WK_PARTS.find(w => w[0] === part)[2];
-  if ((part === 'strength' && !planDraft.sChoice) || (part === 'focus' && !planDraft.fChoice)) return 'pick one first';
+function partNeeds(part, p) {
+  p = p || planDraft;
+  const rows = p[part] || [], mins = partMins(part, p), tgt = WK_PARTS.find(w => w[0] === part)[2];
+  if ((part === 'strength' && !p.sChoice) || (part === 'focus' && !p.fChoice)) return 'pick one first';
   if (!rows.length) return 'add an exercise';
   if (mins < tgt) return 'add ' + (Math.round((tgt - mins) * 10) / 10) + ' min more';
-  if (part === 'cardio' && !planDraft.hr.trim()) return 'add your heart-rate zone';
-  if (part === 'focus' && !planDraft.fWhy.trim()) return 'say how it meets your goal';
+  if (part === 'cardio' && !String(p.hr || '').trim()) return 'add your heart-rate zone';
+  if (part === 'focus' && !String(p.fWhy || '').trim()) return 'say how it meets your goal';
   return '';
 }
 // Which focus component the student's goals point to.
@@ -1102,7 +1172,7 @@ function woHandle(e) {
   if (id === 'wo-plus') { wo.left += 30; wo.total += 30; return show('workout'); }
   if (id === 'wo-set') { const nS = parseInt(wo.list[wo.i].sets, 10) || 0; woStop(); wo.rest = false; wo.total = wo.left = 0; wo.sets = Math.min(nS, wo.sets + 1); if (woKind(wo.list[wo.i]) === 'reps' && wo.sets < nS) woStartRest(REST.strength); return show('workout'); }
   if (id === 'wo-prev') { if (wo.i > 0) { wo.i--; woReset(); } return show('workout'); }
-  if (id === 'wo-next') { if (wo.i < n - 1) { wo.i++; woReset(); } else { woStop(); woWakeOff(); wo.stage = 'done'; } return show('workout'); }
+  if (id === 'wo-next') { if (wo.i < n - 1) { wo.i++; woReset(); } else { woStop(); woWakeOff(); wo.stage = 'done'; setTimeout(() => celebrate('🏆'), 150); } return show('workout'); }
   if (id === 'wo-save') return woSave();
   if (id === 'wo-skip' || id === 'wo-back') { wo = null; return show('fitness'); }
 }
@@ -1322,6 +1392,14 @@ function otherView_(b) {
 // ═══════════════ overlay ═══════════════
 function openOv(k) {
   let html = '<button class="x" type="button" data-close="1">✕</button>';
+  if (k.indexOf('badge-') === 0) {
+    const bd = BADGES.find(x => 'badge-' + x[0] === k); if (!bd) return;
+    const has = earned().some(x => x[0] === bd[0]), n = earned().length;
+    html += '<div class="ovbadge' + (has ? ' got' : '') + '">' + bd[1] + '</div><h4 style="justify-content:center">' + esc(bd[2]) + '</h4><div class="om" style="text-align:center">' + (has ? 'Earned ✓' : 'Not yet') + '</div>' +
+      '<div class="ovnow"><div class="l">' + (has ? 'YOU EARNED IT BY' : 'HOW TO EARN IT') + '</div><div class="t">' + esc(bd[3]) + '</div></div>' +
+      '<div class="ovfeeds">' + n + ' of ' + BADGES.length + ' badges · 4 makes your card <b>Silver</b>, 8 makes it <b>Gold</b>.</div>';
+    $('#ovcard').innerHTML = html; $('#ov').classList.add('show'); return;
+  }
   if (k.startsWith('fund-')) {
     const key = k.slice(5), lad = RUBRICS.ladders[key], em = (FUND.find(f => f[0] === key) || ['', '🧩'])[1];
     const m = measured(), lv = m && m.skills ? latestOf(m.skills[key]) : null;
@@ -1409,7 +1487,7 @@ function show(v, arg) {
   const app = $('#app');
   document.body.classList.toggle('dark', v === 'card' || v === 'workout');
   if (v !== 'workout' && wo) { woStop(); woWakeOff(); }
-  if (state.student) setSkin(state.student.style);
+  if (state.student) { setSkin(state.student.style); applyTier(); }
   if (v === 'profile' || v === 'fitness') lastHub = v;
   // fresh-element delegation: handlers live on the newly rendered .wrap, so nothing stacks across renders
   const onWrap = fn => { const w = app.firstElementChild; if (w) w.addEventListener('click', fn); };
@@ -1438,6 +1516,7 @@ function show(v, arg) {
       if (t) { const f = $('#ufocus'); if (f) unitDraft.focus = f.value.slice(0, 500); const i = +t.dataset.crit, j = +t.dataset.lv; unitDraft.levels[i] = unitDraft.levels[i] === j ? null : j; const y = window.scrollY; show('unit'); window.scrollTo(0, y); return; }
       const o = e.target.closest('[data-ov]'); if (o) openOv(o.dataset.ov);
     });
+    badgeCheck();
     return;
   } else if (v === 'predict') {
     const saved = predictionSaved(); draft = saved ? JSON.parse(JSON.stringify(saved.items)) : {};
@@ -1455,6 +1534,7 @@ function show(v, arg) {
     $('#styles').addEventListener('click', e => { const btn = e.target.closest('.sbtn'); if (btn) choose(btn.dataset.k); });
     $('#toprofile').addEventListener('click', () => show('profile'));
     $('#toprofile2').addEventListener('click', () => show('profile'));
+    onWrap(e => { const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   } else if (v === 'entry') {
     app.innerHTML = entryView(state);
     wire('toprofile', () => show(lastHub)); wire('ensave', saveEntry);
@@ -1515,13 +1595,16 @@ function show(v, arg) {
     wire('togoals2', () => show('goals')); wire('togoals3', () => show('goals'));
     wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass); wire('toarchive', () => show('archive'));
     wire('towo', () => { woStart('profile'); show('workout'); });
+    wire('hubnext', () => { const g = $('#hubnext').dataset.go, to = { topredict: 'predict', toentry: 'entry', tocompare: 'compare', togoals: 'goals', toplan: 'plan' }[g];
+      if (g === 'towo') { woStart('profile'); return show('workout'); } lastHub = 'fitness'; show(to); });
     onWrap(e => { if (openUnit(e)) return; const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   }
   if (!(v === 'plan' && prevView === 'plan')) window.scrollTo(0, 0);
+  badgeCheck();
 }
 
 function render(b) {
-  state = b;
+  state = b; seenBadges = null;
   if (b.role === 'student') { show(b.student.style ? 'profile' : 'card'); return; } // first visit → build your card
   if (b.role === 'teacher') { renderTeacher(b); return; }
   document.body.classList.remove('dark'); $('#app').innerHTML = otherView(b); wire('signout', signOut);
