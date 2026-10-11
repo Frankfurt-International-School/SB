@@ -286,6 +286,42 @@ textarea{width:100%;font-family:var(--body);font-size:14px;border:1px solid var(
 .pill.g-hi{background:var(--ap-t);color:var(--ap)}.pill.g-mid{background:var(--fit-t);color:var(--fit)}.pill.g-lo{background:#f9e5e2;color:#c0392b}
 .minib{background:var(--maroon-t);color:var(--maroon);border:none;border-radius:8px;font-family:var(--disp);font-weight:700;font-size:12px;padding:6px 10px;cursor:pointer}
 .minib:hover{background:#ecd5d9}
+/* ── goals redesign + at-a-glance progress ── */
+.goalchips2{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.goalchip{font-family:var(--disp);font-weight:700;font-size:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 13px;cursor:pointer}
+.goalchip.on{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+.goalsets{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.goalset{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 15px}
+.gs-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.gs-n{font-family:var(--disp);font-weight:800;font-size:16px}
+.gs-now{font-size:13px;color:var(--muted);font-weight:600}
+.gslider{width:100%;accent-color:var(--maroon);height:28px;cursor:pointer}
+.gs-tval{font-size:14px;color:#444}
+.gs-tval b{color:var(--maroon);font-family:var(--disp);font-size:16px}
+.gs-tval small{color:var(--muted)}
+.upcoming{background:#f1ede7;border-radius:13px;padding:13px 15px;margin:18px 0 0}
+.up-h{font-family:var(--disp);font-weight:800;font-size:13px;color:var(--maroon);margin-bottom:6px}
+.up-row{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:13px;border-top:1px solid #00000010}
+.up-row:first-of-type{border-top:0}
+.up-e{font-size:16px;width:22px;text-align:center}
+.up-n{font-family:var(--disp);font-weight:700;min-width:100px}
+.up-d{color:var(--muted);font-size:12px}
+.up-foot{font-size:12px;color:#555;margin-top:7px;border-top:1px solid #00000010;padding-top:7px}
+.goalprog{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:11px}
+.pcard{text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 15px;cursor:pointer;font:inherit}
+.pc-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.pc-n{font-family:var(--disp);font-weight:800;font-size:15px}
+.pc-pct{font-family:var(--disp);font-weight:800;font-size:14px;color:var(--maroon)}
+.pc-done{font-family:var(--disp);font-weight:800;font-size:12px;color:#15724a;background:#e4f5ec;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pc-bar{height:9px;background:#efe9e2;border-radius:999px;overflow:hidden}
+.pc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--maroon));border-radius:999px}
+.pc-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+.pc-ends b{color:var(--ink)}
+.setgoals{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:#fff;border:1.5px dashed var(--gold);border-radius:14px;padding:15px 17px;cursor:pointer;font:inherit}
+.sg-ic{font-size:26px}
+.sg-tx{flex:1}.sg-tx b{font-family:var(--disp);font-size:15px}
+.sg-sub{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.sg-go{font-family:var(--disp);font-weight:800;color:var(--maroon);white-space:nowrap}
 /* ── compare verdict ── */
 .vmatch{font-family:var(--disp);font-weight:800;font-size:11px;color:#15724a;background:#e4f5ec;border-radius:999px;padding:2px 8px;white-space:nowrap}
 .vmiss{font-family:var(--disp);font-weight:800;font-size:11px;color:#b23b33;background:#fbe5e3;border-radius:999px;padding:2px 8px;white-space:nowrap}
@@ -725,13 +761,10 @@ function profileView(b) {
     '</div></div>' +
     lesson1Panel() +
     (goals.length ? '<div class="goalchips"><span class="gc-h">🎯 I\'m working on</span>' + goals.map(g => '<span class="gchip">' + esc(goalLabel(g.component)) + '</span>').join('') + '</div>' : '') +
-    '<h3 class="sec sec-glance"><span class="em">👀</span> At a glance <span class="tap">· tap to open</span></h3><p class="seclede">The whole picture in one look — position, not scores.</p>' +
-    '<div class="grid4">' +
-      tile('a-fit', 'gl-fit', '🏃', 'Fitness', m ? 'your results' : 'from September', mileV != null ? 'mile ' + mileStr(mileV) : 'at the Combine', mileV == null ? 0 : (mileV >= 600 ? 1 : mileV >= 510 ? 2 : mileV >= 450 ? 3 : 4)) +
-      tile('a-fund', 'gl-fund', '🧩', 'Fundamental skills', '7 building blocks', glFundAvg == null ? 'Level 1 to 6' : 'L' + (Math.round(glFundAvg * 10) / 10) + ' average', glFundAvg == null ? 0 : (glFundAvg < 3 ? 1 : glFundAvg < 4 ? 2 : glFundAvg < 5 ? 3 : 4)) +
-      tile('a-ap', 'gl-ap', '🤝', 'Participation', 'all year', glApAvg == null ? 'your five keys' : (Math.round(glApAvg * 10) / 10) + ' / 7', glApAvg == null ? 0 : (glApAvg < 3.5 ? 1 : glApAvg < 4.5 ? 2 : glApAvg < 5.5 ? 3 : 4)) +
-      tile('a-skill', 'gl-know', '🧠', 'Understanding', 'use it in new games', 'Tactics Cup · soon', 0) +
-    '</div>' +
+    '<h3 class="sec sec-glance"><span class="em">👀</span> At a glance <span class="tap">· where I am vs my goal</span><button type="button" class="secbtn" id="togoals2">🎯 ' + (goals.length ? 'Edit goals' : 'Set goals') + '</button></h3><p class="seclede">Your journey to the goals you set — now vs where you want to be by May.</p>' +
+    (goals.length
+      ? '<div class="goalprog">' + goals.map(g => progCard(g, m)).join('') + '</div>'
+      : '<button type="button" class="setgoals" id="togoals3"><span class="sg-ic">🎯</span><span class="sg-tx"><b>Set your goals to track your progress.</b><span class="sg-sub">Pick a few parts to chase and where you want to be by May.</span></span><span class="sg-go">Start ↗</span></button>') +
     '<h3 class="sec sec-fit"><span class="em">🏃</span> My fitness <span class="tap">· tap a part</span></h3><p class="seclede">Physical capacities — measured three times a year. Records that move.</p>' +
     '<button type="button" class="fhero' + (mileV != null ? ' has' : '') + '" data-ov="fit-mile"><div class="fx">🫀</div><div class="fm"><div class="n">Cardiovascular endurance</div><div class="s">Heart &amp; lung staying power · the mile run</div></div><div class="fv">' + (mileV != null ? mileStr(mileV) : '—') + '<span>' + (mileV != null ? trendWord(m.fitness.mile, 'down') : 'September Combine') + '</span></div></button>' +
     '<div class="grid3">' + fitGrid + '</div>' +
@@ -914,26 +947,74 @@ async function saveEntry() {
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my results'; toast('Couldn’t save: ' + e.message, true); }
 }
 
+// ── goals: focus components with a May target, judged as progress toward it ──
+let goalSel = null;
+function goalMetaAll() {
+  const out = [];
+  FITMETA().forEach(f => out.push({ key: f.key, label: f.label, em: FIT_EMOJI[f.key] || '🏃', kind: 'fit', unit: f.unit, min: f.min, max: f.max, dir: f.dir, step: (f.key === 'sprint' || f.key === 'illinois') ? 0.1 : 1 }));
+  SKILL_ORDER.forEach(k => out.push({ key: k, label: RUBRICS.ladders[k].name, em: (FUND.find(f => f[0] === k) || ['', '🧩'])[1], kind: 'skill', unit: 'level', min: 1, max: 6, dir: 'up', step: 1 }));
+  return out;
+}
+function goalMetaFor(key) { return goalMetaAll().find(x => x.key === key) || null; }
+function goalSeries(meta, m) { return meta.kind === 'fit' ? ((m && m.fitness) ? m.fitness[meta.key] : null) : ((m && m.skills) ? m.skills[meta.key] : null); }
+function fmtMetric(meta, v) { if (v == null) return '—'; if (meta.key === 'mile') return mileStr(v); if (meta.kind === 'skill') return 'L' + v; return fmtNum(v) + (meta.unit ? ' ' + meta.unit : ''); }
+function goalProgress(meta, m) {
+  const s = goalSeries(meta, m), cur = latestOf(s), base = firstOf(s), g = ((m && m.goals) || []).find(x => x.component === meta.key), tgt = g ? g.target : null;
+  if (cur == null || tgt == null) return null;
+  const b = (base == null) ? cur : base;
+  let frac = (tgt === b) ? 1 : (cur - b) / (tgt - b);
+  return { cur, tgt, frac: Math.max(0, Math.min(1, frac)) };
+}
+function progCard(g, m) {
+  const meta = goalMetaFor(g.component); if (!meta) return '';
+  const p = goalProgress(meta, m), cur = latestOf(goalSeries(meta, m)), pct = p ? Math.round(p.frac * 100) : 0, done = p && p.frac >= 1;
+  return '<button type="button" class="pcard" data-ov="' + (meta.kind === 'fit' ? 'fit-' + meta.key : meta.key) + '"><div class="pc-top"><span class="pc-n">' + meta.em + ' ' + esc(meta.label) + '</span>' + (done ? '<span class="pc-done">✓ reached</span>' : '<span class="pc-pct">' + pct + '%</span>') + '</div>' +
+    '<div class="pc-bar"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="pc-ends"><span>now <b>' + fmtMetric(meta, cur) + '</b></span><span>goal <b>' + fmtMetric(meta, g.target) + '</b></span></div></button>';
+}
+const UPCOMING = [
+  ['🏸', 'Badminton', 'striking & net play — Catch, Strike, agility'],
+  ['🤸', 'Parkour', 'movement control — Jump & land, core, balance'],
+  ['🧠', 'Tactics Cup', 'game sense — reading play, teamwork'],
+  ['🤾', 'Tchoukball', 'throw/catch & team roles — Throw, Catch, teamwork']
+];
+function upcomingStrip() {
+  return '<div class="upcoming"><div class="up-h">📅 Coming up this year — where you can build these</div>' +
+    UPCOMING.map(u => '<div class="up-row"><span class="up-e">' + u[0] + '</span><span class="up-n">' + esc(u[1]) + '</span><span class="up-d">' + esc(u[2]) + '</span></div>').join('') +
+    '<div class="up-foot">And your <b>personal workout plan</b> targets your fitness goals directly.</div></div>';
+}
 function goalsView(b) {
-  const m = measured(), have = {}; ((m && m.goals) || []).forEach(function (g) { have[g.component] = g.goal; });
-  const comp = function (key, label, em) { return '<label class="goalrow"><span class="gr-n">' + em + ' ' + esc(label) + '</span><input type="text" maxlength="160" id="gl-' + key + '" value="' + esc(have[key] || '') + '" placeholder="what do you want to improve?"></label>'; };
-  const fitRows = FITMETA().map(function (f) { return comp(f.key, f.label, FIT_EMOJI[f.key]); }).join('');
-  const skRows = SKILL_ORDER.map(function (k) { return comp(k, RUBRICS.ladders[k].name, (FUND.find(function (f) { return f[0] === k; }) || ['', '🧩'])[1]); }).join('');
+  const m = measured(), metas = goalMetaAll(), have = {}; ((m && m.goals) || []).forEach(g => have[g.component] = g);
+  if (goalSel === null) { goalSel = {}; Object.keys(have).forEach(k => goalSel[k] = true); }
+  const note = (m && m.goalNote) || '';
+  const chips = metas.map(meta => '<button type="button" class="goalchip' + (goalSel[meta.key] ? ' on' : '') + '" data-g="' + meta.key + '">' + meta.em + ' ' + esc(meta.label) + '</button>').join('');
+  const sets = metas.filter(meta => goalSel[meta.key]).map(meta => {
+    const cur = latestOf(goalSeries(meta, m)), g = have[meta.key] || {};
+    const tgt = (g.target != null) ? g.target : (cur != null ? cur : meta.min);
+    return '<div class="goalset"><div class="gs-head"><span class="gs-n">' + meta.em + ' ' + esc(meta.label) + '</span><span class="gs-now">now ' + fmtMetric(meta, cur) + '</span></div>' +
+      '<input type="range" class="gslider" min="' + meta.min + '" max="' + meta.max + '" step="' + meta.step + '" value="' + tgt + '" id="gt-' + meta.key + '" data-key="' + meta.key + '">' +
+      '<div class="gs-tval">target by May: <b id="glb-' + meta.key + '">' + fmtMetric(meta, tgt) + '</b>' + (meta.dir === 'down' ? ' <small>· lower is better</small>' : '') + '</div></div>';
+  }).join('');
   return '<div class="wrap">' +
     '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
-    '<div class="phero"><div class="k">SET MY GOALS</div><h1>What do you most want to improve?</h1><p>Choose the few parts you’ll chase, ' + esc(b.student.first) + ' — you don’t need a goal for everything.</p></div>' +
-    '<h3 class="sec sec-fit"><span class="em">🏃</span> Fitness</h3>' + fitRows +
-    '<h3 class="sec sec-fund"><span class="em">🧩</span> Skills</h3>' + skRows +
-    '<div class="pbar"><div class="pcount">Tip: pick 2–3 that matter most.</div><button type="button" class="ct-btn" id="gsave">Save my goals</button></div>' +
+    '<div class="phero"><div class="k">SET MY GOALS</div><h1>Where are you headed, ' + esc(b.student.first) + '?</h1><p>Pick a few parts to chase this year, drag each to where you want to be by May, then jot how you’ll get there.</p></div>' +
+    '<h3 class="sec"><span class="em">🎯</span> Pick your focus <span class="tap">· tap 2–3</span></h3><div class="goalchips2" id="goalchips2">' + chips + '</div>' +
+    (sets ? '<h3 class="sec"><span class="em">📈</span> Now → May</h3><div class="goalsets">' + sets + '</div>' : '<p class="seclede" style="margin:12px 0 0">Tap a focus above to set where you want to be by May.</p>') +
+    '<h3 class="sec"><span class="em">✍️</span> How will you get there?</h3><textarea id="gnote" rows="4" maxlength="600" placeholder="e.g. run twice a week, work weak-hand dribble every session, grip + push-ups after PE…">' + esc(note) + '</textarea>' +
+    upcomingStrip() +
+    '<div class="pbar"><div class="pcount">A few goals you’ll chase beats a wish for everything.</div><button type="button" class="ct-btn" id="gsave">Save my goals</button></div>' +
   '</div>';
 }
 async function saveGoalsUI() {
   const btn = $('#gsave'); btn.disabled = true; btn.textContent = 'Saving…';
   const goals = [];
-  FITMETA().forEach(function (f) { const v = $('#gl-' + f.key).value.trim(); if (v) goals.push({ component: f.key, goal: v }); });
-  SKILL_ORDER.forEach(function (k) { const v = $('#gl-' + k).value.trim(); if (v) goals.push({ component: k, goal: v }); });
-  try { const res = await call('saveGoals', { goals: goals }); const m = state.student.combine || { fitness: {}, skills: {} }; m.goals = res.goals; state.student.combine = m; toast('Goals saved.'); show('profile'); }
-  catch (e) { btn.disabled = false; btn.textContent = 'Save my goals'; toast('Couldn’t save: ' + e.message, true); }
+  goalMetaAll().forEach(meta => { if (!goalSel[meta.key]) return; const el = $('#gt-' + meta.key); if (el) goals.push({ component: meta.key, target: Number(el.value) }); });
+  const note = $('#gnote').value.trim().slice(0, 600);
+  try {
+    const res = await call('saveGoals', { goals: goals, note: note });
+    const m = state.student.combine || { fitness: {}, skills: {} }; m.goals = res.goals; m.goalNote = res.note; state.student.combine = m;
+    goalSel = null; toast('Goals saved.'); show('profile');
+  } catch (e) { btn.disabled = false; btn.textContent = 'Save my goals'; toast('Couldn’t save: ' + e.message, true); }
 }
 
 let planDraft = null;
@@ -1272,6 +1353,8 @@ function show(v, arg) {
   } else if (v === 'goals') {
     app.innerHTML = goalsView(state);
     wire('toprofile', () => show('profile')); wire('gsave', saveGoalsUI);
+    const gc = $('#goalchips2'); if (gc) gc.addEventListener('click', e => { const c = e.target.closest('.goalchip'); if (c) { const k = c.getAttribute('data-g'); goalSel[k] = !goalSel[k]; show('goals'); } });
+    document.querySelectorAll('.gslider').forEach(r => r.addEventListener('input', () => { const k = r.getAttribute('data-key'), meta = goalMetaFor(k), lab = $('#glb-' + k); if (lab && meta) lab.innerHTML = fmtMetric(meta, Number(r.value)) + (meta.dir === 'down' ? ' <small>· lower is better</small>' : ''); }));
   } else if (v === 'plan') {
     app.innerHTML = planView(state);
     wire('toprofile', () => show('profile')); wire('psaveplan', savePlanUI);
@@ -1301,7 +1384,9 @@ function show(v, arg) {
     app.innerHTML = profileView(state);
     $('#tocard').addEventListener('click', () => show('card'));
     wire('topredict', () => show('predict')); wire('tocompare', () => show('compare'));
+    goalSel = null;
     wire('toentry', () => show('entry')); wire('togoals', () => show('goals')); wire('toplan', () => show('plan'));
+    wire('togoals2', () => show('goals')); wire('togoals3', () => show('goals'));
     wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass);
     app.addEventListener('click', e => { const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   }

@@ -77,7 +77,7 @@ var TABS = {
   Skills:        ['Email', 'Checkpoint'].concat(SKILL_KEYS).concat(['Updated']), // teachers enter the skill-ladder levels
   Participation: apHeaders_(),                                                   // teacher-reported, self + teacher per key
   Bands:         ['Email'].concat(BAND_KEYS).concat(['Updated']),                // the three report bands
-  Goals:         ['Email', 'Component', 'Goal', 'Updated'],                      // the student's component goals
+  Goals:         ['Email', 'Component', 'Target', 'Goal', 'Updated'],            // focus components: a May target per component, plus one '_note' row
   Plan:          ['Email', 'Plan', 'Updated'],                                   // the student's personal workout plan (JSON)
   Locks:         ['Email', 'Checkpoint', 'Locked', 'Updated']                    // teacher finalize-lock per student per checkpoint
 };
@@ -270,7 +270,7 @@ function handle_(body) {
     case 'saveGoal':        return saveGoal_(cfg, id, body.goal);
     case 'savePrediction':  return savePrediction_(cfg, id, body.checkpoint, body.answers);
     case 'saveCombine':     return saveCombine_(cfg, id, body.checkpoint, body.results);
-    case 'saveGoals':       return saveGoals_(cfg, id, body.goals);
+    case 'saveGoals':       return saveGoals_(cfg, id, body.goals, body.note);
     case 'savePlan':        return savePlan_(cfg, id, body.plan);
     case 'saveSkills':      return saveSkills_(cfg, id, body.email, body.checkpoint, body.levels);
     case 'saveMySkills':    return saveMySkills_(cfg, id, body.checkpoint, body.levels);
@@ -357,13 +357,16 @@ function locksFor_(email) { return locksIndex_()[email] || {}; }
 function isLocked_(email, cp) { return locksFor_(email)[cp] === true; }
 
 function goalsFor_(email) {
-  var out = [];
+  var items = [], note = '';
   readTab_('Goals').forEach(function (r) {
     if (lower_(r.Email) !== email) return;
-    var c = lower_(r.Component), g = str_(r.Goal);
-    if (GOAL_COMPONENTS.indexOf(c) !== -1 && g) out.push({ component: c, goal: g });
+    var c = lower_(r.Component);
+    if (c === '_note') { note = str_(r.Goal); return; }
+    if (GOAL_COMPONENTS.indexOf(c) === -1) return;
+    var t = numOrNull_(r.Target), g = str_(r.Goal);
+    if (t !== null || g) items.push({ component: c, target: t, goal: g });
   });
-  return out;
+  return { items: items, note: note };
 }
 function planFor_(email) {
   var row = readTab_('Plan').filter(function (r) { return lower_(r.Email) === email; })[0];
@@ -378,11 +381,11 @@ function planFor_(email) {
 function measuredFor_(email) {
   var fitness = fitnessFor_(email), skills = skillsFor_(email),
       ap = apFor_(email), bands = bandsFor_(email),
-      goals = goalsFor_(email), plan = planFor_(email);
+      g = goalsFor_(email), plan = planFor_(email);
   var any = Object.keys(fitness).length || Object.keys(skills).length ||
-            Object.keys(ap).length || Object.keys(bands).length || goals.length || plan;
+            Object.keys(ap).length || Object.keys(bands).length || g.items.length || g.note || plan;
   if (!any) return null;
-  return { fitness: fitness, skills: skills, ap: ap, bands: bands, goals: goals, plan: plan };
+  return { fitness: fitness, skills: skills, ap: ap, bands: bands, goals: g.items, goalNote: g.note, plan: plan };
 }
 
 // Everything the page needs, for the caller only.
@@ -527,12 +530,13 @@ function saveCombine_(cfg, id, checkpoint, results) {
 
 // The student's component goals (which parts they want to improve). Replaces the
 // whole set each save, so unticking a component removes its goal.
-function replaceGoals_(email, items) {
+function replaceGoals_(email, items, note) {
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     var s = ensureTab_('Goals', TABS.Goals), headers = TABS.Goals;
     var keep = readTab_('Goals').filter(function (r) { return lower_(r.Email) !== email; });
-    items.forEach(function (it) { keep.push({ Email: email, Component: it.component, Goal: it.goal, Updated: new Date() }); });
+    items.forEach(function (it) { keep.push({ Email: email, Component: it.component, Target: (it.target === null || it.target === undefined) ? '' : it.target, Goal: it.goal, Updated: new Date() }); });
+    if (note) keep.push({ Email: email, Component: '_note', Target: '', Goal: note, Updated: new Date() });
     if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
     if (keep.length) {
       var rows = keep.map(function (r) { return headers.map(function (h) { return r[h] === undefined ? '' : r[h]; }); });
@@ -540,17 +544,24 @@ function replaceGoals_(email, items) {
     }
   } finally { lock.releaseLock(); }
 }
-function saveGoals_(cfg, id, goals) {
+// Focus goals: a May target per component (a number — a level for skills, a
+// measure for fitness) plus one overall note ("how will you get there?").
+function saveGoals_(cfg, id, goals, note) {
   requireStudent_(id);
   if (Object.prototype.toString.call(goals) !== '[object Array]') throw new Error('Missing goals');
   var clean = [];
   goals.forEach(function (g) {
     if (!g || typeof g !== 'object') return;
-    var c = lower_(g.component), text = str_(g.goal).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').slice(0, 160);
-    if (GOAL_COMPONENTS.indexOf(c) !== -1 && text && !clean.some(function (x) { return x.component === c; })) clean.push({ component: c, goal: text });
+    var c = lower_(g.component);
+    if (GOAL_COMPONENTS.indexOf(c) === -1 || clean.some(function (x) { return x.component === c; })) return;
+    var t = (g.target === '' || g.target === null || g.target === undefined) ? null : Number(g.target);
+    if (t !== null && !isFinite(t)) t = null;
+    var text = str_(g.goal).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').slice(0, 160);
+    if (t !== null || text) clean.push({ component: c, target: t, goal: text });
   });
-  replaceGoals_(id.email, clean);
-  return { ok: true, goals: clean };
+  var noteText = str_(note).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').slice(0, 600);
+  replaceGoals_(id.email, clean, noteText);
+  return { ok: true, goals: clean, note: noteText };
 }
 
 // The student's personal workout plan (a small JSON structure built in the app).

@@ -58,7 +58,7 @@
     callApi({ action: 'savePrediction', token: T1, checkpoint: 'intro', answers: ans1 });
     callApi({ action: 'saveCombine', token: T1, checkpoint: 'sept', results: { mile: 612, pushups: 14, sitstand: 28, broad: 168, grip: 24, sprint: 5.9, illinois: 18.9, stork: 7 } });
     callApi({ action: 'saveCombine', token: T1, checkpoint: 'jan',  results: { mile: 584, pushups: 18, sitstand: 31, broad: 176, grip: 26, sprint: 5.7, illinois: 18.1, stork: 5 } });
-    callApi({ action: 'saveGoals', token: T1, goals: [{ component: 'mile', goal: 'Break 9:00 by May' }, { component: 'dribble', goal: 'Get the weak-hand slalom clean' }] });
+    callApi({ action: 'saveGoals', token: T1, goals: [{ component: 'mile', target: 540 }, { component: 'dribble', target: 6 }, { component: 'pushups', target: 25 }], note: 'Run Tue/Thu, weak-hand dribble every session, push-ups after PE.' });
     callApi({ action: 'savePlan', token: T1, plan: { focus: ['mile', 'grip'], days: 3, notes: 'Run Tue/Thu 20 min; grip + push-ups after PE.' } });
     const TT = tokenFor('teacher@example.edu'); // the owner is a teacher
     const seedSkills = (email, lv) => callApi({ action: 'saveSkills', token: TT, email, checkpoint: 'sept', levels: lv });

@@ -121,6 +121,7 @@ check('saveGoals keeps valid components, drops junk', (() => {
   return r.ok && r.data.goals.length === 2 && as(S1, 'bootstrap').data.student.combine.goals.length === 2;
 })());
 check('saveGoals replaces the whole set', (() => { as(S1, 'saveGoals', { goals: [{ component: 'stork', goal: 'fewer losses' }] }); const g = as(S1, 'bootstrap').data.student.combine.goals; return g.length === 1 && g[0].component === 'stork'; })());
+check('saveGoals stores a numeric target and a note', (() => { const r = as(S1, 'saveGoals', { goals: [{ component: 'mile', target: 540 }, { component: 'dribble', target: 6 }], note: 'run twice a week' }); const c = as(S1, 'bootstrap').data.student.combine; return r.ok && c.goals.find(x => x.component === 'mile').target === 540 && c.goalNote === 'run twice a week'; })());
 check('savePlan stores and reads back', (() => { const plan = { days: [{ focus: 'cv', items: ['run 20 min'] }] }; const r = as(S1, 'savePlan', { plan: plan }); return r.ok && as(S1, 'bootstrap').data.student.combine.plan.days[0].focus === 'cv'; })());
 check('teacher (not on roster) cannot saveGoals', /class list/.test(as(T, 'saveGoals', { goals: [] }).error));
 
