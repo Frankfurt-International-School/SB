@@ -679,10 +679,102 @@ function cardView(b) {
     '<button type="button" class="back" id="toprofile">← Back to my profile</button>' +
     '<div class="hero"><div class="k">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</div><h1>' + (chosen ? 'Your Athlete Card, ' + esc(st.first) : 'Hi ' + esc(st.first) + ', build your Athlete Card') + '</h1><p>' + (chosen ? 'Your card grows all year — every badge and every Combine changes it.' : 'Choose your PE Style and make it yours. Your card grows all year.') + '</p></div>' +
     (chosen
-      ? '<div class="grid gchosen">' + stage + '<details class="stylepick"><summary>🎨 Change my style <span class="saved" id="saved">✓ saved</span></summary>' + picker + '</details></div>'
+      ? '<div class="grid gchosen">' + stage + '<details class="stylepick"><summary>🎨 Change my style <span class="saved" id="saved">✓ saved</span></summary>' + picker + '<button type="button" class="repack" id="repack">🎁 Rip open a fresh pack</button></details></div>'
       : '<div class="grid"><div><div class="step">Choose your style <span class="saved" id="saved"></span></div>' + picker + '</div>' + stage + '</div>') +
     '<div class="done"><button type="button" class="ct-btn" id="toprofile2">Done · back to my profile ↗</button></div>' +
   '</div>';
+}
+
+// ═══════════════ athlete pack: rip it open, pick your style ═══════════════
+let packPick = null, packStage = 'sealed';
+function packView(b) {
+  const again = !!b.student.style;
+  const cards = ORDER.filter(k => b.styles[k]).map((k, i) => {
+    const s = SKINS[k];
+    return '<button type="button" class="pk-card" data-k="' + k + '" style="--i:' + i + ';--i1:' + s.ink[0] + ';--i2:' + s.ink[1] + ';--i3:' + s.ink[2] + ';--a:' + s.acc + ';--as:' + s.accs + ';--r:' + s.rib + '" aria-label="' + esc(b.styles[k]) + ': ' + esc(s.d) + '" disabled>' +
+      '<span class="pk-in"><span class="pk-back" aria-hidden="true"><b>◆</b><i>PE</i></span>' +
+      '<span class="pk-front"><span class="pk-e">' + s.e + '</span><span class="pk-n">' + esc(b.styles[k]) + '</span><span class="pk-d">' + esc(s.d) + '</span></span></span></button>';
+  }).join('');
+  return '<div class="wrap pack-wrap">' +
+    (again ? '<button type="button" class="back" id="tocard">← Keep my card</button>' : '<button type="button" class="back" id="toprofile">← Back to my profile</button>') +
+    '<div class="hero"><div class="k">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</div><h1 id="pk-h">' + (again ? 'A fresh pack, ' : 'Your Athlete Pack, ') + esc(b.student.first) + '</h1><p id="pk-p">Eight PE Styles inside. One of them is you.</p></div>' +
+    '<div class="pk-stage" id="pkstage">' +
+      '<button type="button" class="pk-pack" id="pkpack" aria-label="Rip the pack open">' +
+        '<span class="pk-strip" id="pkstrip"><span class="pk-cut">✂ rip here</span></span>' +
+        '<span class="pk-body"><span class="pk-glint"></span><span class="pk-logo">◆</span><span class="pk-t1">ATHLETE<br>PACK</span><span class="pk-t2">FIS · PE · ' + esc(b.config.yearLabel) + '</span><span class="pk-t3">8 styles inside</span></span>' +
+      '</button>' +
+      '<div class="pk-hint" id="pkhint">Swipe across the top to rip it open, or just tap it</div>' +
+      '<div class="pk-grid" id="pkgrid" hidden>' + cards + '</div>' +
+    '</div>' +
+    '<div class="pk-bar" id="pkbar" hidden><span class="pk-bt" id="pkbar-t"></span><button type="button" class="pk-no" id="pkno">Keep looking</button><button type="button" class="ct-btn" id="pkyes">Make it my card</button></div>' +
+  '</div>';
+}
+function packReduced() { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
+function packWire() {
+  packPick = null; packStage = 'sealed';
+  const pack = $('#pkpack'), strip = $('#pkstrip');
+  let x0 = null, prog = 0, dragged = false;
+  pack.addEventListener('pointerdown', e => { if (packStage !== 'sealed') return; x0 = e.clientX; prog = 0; dragged = false; try { pack.setPointerCapture(e.pointerId); } catch (er) {} });
+  pack.addEventListener('pointermove', e => {
+    if (x0 == null || packStage !== 'sealed') return;
+    prog = Math.max(0, Math.min(1, (e.clientX - x0) / (pack.offsetWidth * 0.75)));
+    if (prog > 0.05) dragged = true;
+    strip.style.setProperty('--tear', (prog * 100).toFixed(0) + '%');
+    strip.style.transform = 'rotate(' + (-prog * 8).toFixed(1) + 'deg) translateY(' + (-prog * 8).toFixed(1) + 'px)';
+    if (prog > 0.6) { x0 = null; packRip(); }
+  });
+  const end = () => { if (x0 == null) return; x0 = null; if (packStage === 'sealed') { strip.style.transform = ''; strip.style.setProperty('--tear', '0%'); } };
+  pack.addEventListener('pointerup', end); pack.addEventListener('pointercancel', end);
+  pack.addEventListener('click', () => { if (packStage === 'sealed' && !dragged) { pack.classList.add('pk-shake'); setTimeout(packRip, packReduced() ? 0 : 420); } dragged = false; });
+  $('#pkgrid').addEventListener('click', e => { const c = e.target.closest('.pk-card'); if (c && packStage === 'open') packChoose(c.dataset.k === packPick ? null : c.dataset.k); });
+  $('#pkno').addEventListener('click', () => packChoose(null));
+  $('#pkyes').addEventListener('click', packConfirm);
+}
+function packRip() {
+  if (packStage !== 'sealed') return; packStage = 'ripping';
+  const pack = $('#pkpack'), grid = $('#pkgrid'), stage = $('#pkstage'), quick = packReduced();
+  $('#pkhint').hidden = true;
+  pack.classList.remove('pk-shake'); pack.classList.add('ripped');
+  try { if (navigator.vibrate) navigator.vibrate([20, 40, 30]); } catch (e) {}
+  setTimeout(() => {
+    const pr = pack.getBoundingClientRect();
+    pack.hidden = true; grid.hidden = false; stage.classList.add('dealt');
+    const cx2 = pr.left + pr.width / 2, cy2 = pr.top + pr.height / 2;
+    grid.querySelectorAll('.pk-card').forEach(c => {
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--sx', (cx2 - (r.left + r.width / 2)).toFixed(0) + 'px');
+      c.style.setProperty('--sy', (cy2 - (r.top + r.height / 2)).toFixed(0) + 'px');
+    });
+    grid.classList.add(quick ? 'shown' : 'dealing');
+    const total = quick ? 0 : 700 + 8 * 110 + 650;
+    setTimeout(() => {
+      grid.classList.remove('dealing'); grid.classList.add('shown'); packStage = 'open';
+      grid.querySelectorAll('.pk-card').forEach(c => c.disabled = false);
+      $('#pk-h').textContent = 'Which one is you?';
+      $('#pk-p').textContent = 'Tap a card to pick it. None is “better”: choose the one that sounds like you. You can swap later.';
+    }, total);
+  }, quick ? 0 : 600);
+}
+function packChoose(k) {
+  packPick = k;
+  const grid = $('#pkgrid'), bar = $('#pkbar');
+  grid.classList.toggle('picking', !!k);
+  grid.querySelectorAll('.pk-card').forEach(c => { const on = c.dataset.k === k; c.classList.toggle('pk-sel', on); c.setAttribute('aria-pressed', on); });
+  bar.hidden = !k;
+  if (k) $('#pkbar-t').innerHTML = '<span>' + SKINS[k].e + '</span> <b>' + esc(state.styles[k]) + '</b>';
+}
+async function packConfirm() {
+  const k = packPick; if (!k || packStage !== 'open') return;
+  const yes = $('#pkyes'); yes.disabled = true; yes.textContent = 'Saving…'; packStage = 'saving';
+  try {
+    const res = await call('saveStyle', { style: k });
+    state.student.style = res.style;
+    const c = document.querySelector('.pk-card.pk-sel'); if (c && !packReduced()) c.classList.add('pk-fly');
+    setTimeout(() => { show('card'); window.scrollTo(0, 0); celebrate(SKINS[k].e); toast('You’re ' + state.styles[k] + '! This is your card now.'); }, packReduced() ? 0 : 560);
+  } catch (e) {
+    packStage = 'open'; yes.disabled = false; yes.textContent = 'Make it my card';
+    toast('Couldn’t save: ' + e.message, true);
+  }
 }
 
 // ═══════════════ v3 student views: enter results · goals · plan ═══════════════
@@ -1501,7 +1593,9 @@ function show(v, arg) {
   if (prevView === 'plan' && v !== 'plan' && planDraft && document.querySelector('.wk-list')) autosavePlan();
   view = v;
   const app = $('#app');
-  document.body.classList.toggle('dark', v === 'card' || v === 'workout');
+  if (v === 'card' && state.student && !state.student.style) v = 'pack';
+  view = v;
+  document.body.classList.toggle('dark', v === 'card' || v === 'workout' || v === 'pack');
   if (v !== 'workout' && wo) { woStop(); woWakeOff(); }
   if (state.student) { setSkin(state.student.style); applyTier(); }
   if (v === 'profile' || v === 'fitness') lastHub = v;
@@ -1545,8 +1639,13 @@ function show(v, arg) {
   } else if (v === 'compare') {
     app.innerHTML = compareView(state);
     wire('toprofile', () => show(lastHub)); wire('topredict', () => show('predict')); wire('crsave', saveCompareUI);
+  } else if (v === 'pack') {
+    app.innerHTML = packView(state);
+    wire('toprofile', () => show('profile')); wire('tocard', () => show('card'));
+    packWire(); window.scrollTo(0, 0);
   } else if (v === 'card') {
     app.innerHTML = cardView(state);
+    wire('repack', () => show('pack'));
     $('#styles').addEventListener('click', e => { const btn = e.target.closest('.sbtn'); if (btn) choose(btn.dataset.k); });
     $('#toprofile').addEventListener('click', () => show('profile'));
     $('#toprofile2').addEventListener('click', () => show('profile'));

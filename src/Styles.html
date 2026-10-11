@@ -652,3 +652,69 @@ tr.r-flag td.mx-nm{box-shadow:inset 3px 0 0 #c0392b}
 .stylepick .styles{padding-bottom:14px}
 @media(max-width:820px){.gchosen{grid-template-columns:1fr}}
 </style>
+<style>
+/* ── athlete pack ── */
+.repack{margin:0 0 14px;width:100%;background:none;border:1.5px dashed rgba(231,182,75,.5);color:var(--gold);font:700 14px var(--disp);border-radius:12px;padding:11px;cursor:pointer}
+.pk-stage{display:flex;flex-direction:column;align-items:center;min-height:440px;margin-top:6px}
+.pk-pack{all:unset;cursor:grab;position:relative;width:236px;height:336px;margin-top:10px;touch-action:pan-y;-webkit-user-select:none;user-select:none;animation:pkbob 3s ease-in-out infinite}
+.pk-pack[hidden],.pk-hint[hidden]{display:none}
+.pk-pack:focus-visible{outline:3px solid var(--gold);outline-offset:6px;border-radius:14px}
+@keyframes pkbob{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-10px) rotate(1.2deg)}}
+.pk-strip{position:absolute;left:0;right:0;top:0;height:58px;z-index:3;transform-origin:0 100%;transition:transform .25s;
+  background:linear-gradient(100deg,#d9a53a,#fbe7a8 30%,#c18a26 55%,#f6d98a 80%,#b9821f);
+  clip-path:polygon(0 8px,5% 0,10% 8px,15% 0,20% 8px,25% 0,30% 8px,35% 0,40% 8px,45% 0,50% 8px,55% 0,60% 8px,65% 0,70% 8px,75% 0,80% 8px,85% 0,90% 8px,95% 0,100% 8px,100% 100%,0 100%);
+  border-radius:0 0 3px 3px;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.pk-strip::after{content:"";position:absolute;left:0;bottom:-1px;height:3px;width:var(--tear,0%);background:#fff;box-shadow:0 0 12px 3px #fff6c9;transition:width .08s}
+.pk-cut{position:absolute;left:12px;right:12px;bottom:9px;border-bottom:2px dashed rgba(70,30,0,.55);font:800 11px var(--disp);letter-spacing:.08em;color:#5b2a00;padding-bottom:4px;text-transform:uppercase;animation:pkcut 1.6s ease-in-out infinite}
+@keyframes pkcut{0%,100%{transform:translateX(0)}50%{transform:translateX(10px)}}
+.pk-body{position:absolute;left:0;right:0;top:56px;bottom:0;border-radius:4px 4px 16px 16px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;text-align:center;
+  background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.18),transparent 55%),repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 10px,transparent 10px 20px),linear-gradient(160deg,#8d2639,#6f1d2c 45%,#3d0d17);
+  box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 0 0 3px rgba(231,182,75,.75),inset 0 0 0 7px rgba(0,0,0,.25);
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.pk-glint{position:absolute;top:-40%;left:-80%;width:60%;height:180%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:rotate(12deg);animation:sweep 3.6s ease-in-out infinite}
+.pk-logo{font-size:56px;line-height:1;color:var(--gold);filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+.pk-t1{font:900 34px/0.95 var(--disp);letter-spacing:.02em;background:linear-gradient(180deg,#fff7d6,#e7b64b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pk-t2{font:700 11px var(--disp);letter-spacing:.12em;color:rgba(255,255,255,.8)}
+.pk-t3{margin-top:10px;font:800 12px var(--disp);color:#3a1008;background:var(--gold);border-radius:999px;padding:4px 12px}
+.pk-hint{margin-top:22px;color:rgba(255,255,255,.75);font-size:14px;text-align:center}
+.pk-shake{animation:pkshake .42s ease-in-out}
+@keyframes pkshake{0%,100%{transform:rotate(0)}20%{transform:rotate(-5deg)}40%{transform:rotate(5deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(3deg)}}
+.pk-pack.ripped{animation:none;cursor:default}
+.pk-pack.ripped .pk-strip{animation:pkfly .6s cubic-bezier(.3,.6,.4,1) forwards}
+@keyframes pkfly{to{transform:translate(170px,-230px) rotate(38deg);opacity:0}}
+.pk-pack.ripped .pk-body{animation:pkglow .6s ease-out forwards}
+.pk-pack.ripped .pk-body::before{content:"";position:absolute;left:50%;top:0;width:340px;height:340px;transform:translate(-50%,-50%);background:repeating-conic-gradient(rgba(255,240,180,.55) 0 8deg,transparent 8deg 22deg);border-radius:50%;animation:pkrays .6s ease-out forwards;z-index:2}
+@keyframes pkrays{from{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0)}to{opacity:1;transform:translate(-50%,-50%) scale(1.2) rotate(40deg)}}
+@keyframes pkglow{0%{box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 0 0 3px rgba(231,182,75,.75)}100%{box-shadow:0 0 90px 30px rgba(255,214,120,.65),inset 0 0 0 3px #fff;transform:scale(1.04)}}
+.pk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;width:100%;max-width:760px;perspective:1200px}
+.pk-grid[hidden]{display:none}
+@media(max-width:640px){.pk-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
+.pk-card{all:unset;box-sizing:border-box;position:relative;aspect-ratio:5/7;cursor:pointer;transition:transform .25s,opacity .25s,filter .25s;border-radius:16px}
+.pk-card:disabled{cursor:default}
+.pk-card:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+.pk-in{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateY(180deg);border-radius:16px}
+.pk-back,.pk-front{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.pk-back{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,rgba(231,182,75,.18) 0 6px,transparent 6px 14px),linear-gradient(160deg,#7d2233,#4a1019);box-shadow:inset 0 0 0 3px #e7b64b,0 12px 26px rgba(0,0,0,.45)}
+.pk-back b{font-size:44px;color:#e7b64b;line-height:1}.pk-back i{font:900 16px var(--disp);color:#f3d689;font-style:normal;letter-spacing:.2em;margin-top:4px}
+.pk-front{padding:14px 12px;gap:8px;text-align:center;background:linear-gradient(160deg,var(--i1),var(--i2) 45%,var(--i3));box-shadow:inset 0 0 0 3px var(--a),0 14px 30px rgba(0,0,0,.5)}
+.pk-front::after{content:"";position:absolute;top:-50%;left:-90%;width:55%;height:200%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.35),transparent);transform:rotate(10deg);animation:sweep 4.6s ease-in-out infinite;animation-delay:calc(var(--i) * .3s)}
+.pk-e{font-size:44px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}
+.pk-n{font:800 17px/1.1 var(--disp);color:var(--r);background:linear-gradient(90deg,var(--a),var(--as));border-radius:8px;padding:5px 9px}
+.pk-d{font-size:12.5px;line-height:1.35;color:rgba(255,255,255,.9)}
+.pk-grid.dealing .pk-card{animation:pkdeal .7s cubic-bezier(.2,.8,.25,1) both;animation-delay:calc(var(--i) * 110ms)}
+.pk-grid.dealing .pk-in{animation:pkflip .6s cubic-bezier(.3,.7,.3,1) both;animation-delay:calc(700ms + var(--i) * 110ms)}
+.pk-grid.shown .pk-in{transform:none}
+@keyframes pkdeal{from{transform:translate(var(--sx),var(--sy)) scale(.55) rotate(calc(var(--i) * 5deg - 18deg));opacity:0}30%{opacity:1}to{transform:none;opacity:1}}
+@keyframes pkflip{from{transform:rotateY(180deg)}60%{transform:rotateY(-12deg) scale(1.06)}to{transform:none}}
+.pk-grid.shown .pk-card:not(:disabled):hover{transform:translateY(-6px) rotate(-1deg)}
+.pk-grid.picking .pk-card{opacity:.4;filter:saturate(.5)}
+.pk-grid.picking .pk-card.pk-sel{opacity:1;filter:none;transform:translateY(-10px) scale(1.05);box-shadow:0 0 0 3px #fff,0 0 40px 8px rgba(255,214,120,.7)}
+.pk-card.pk-fly{transition:transform .55s cubic-bezier(.5,0,.7,.4),opacity .55s;transform:translateY(-60px) scale(1.5) rotate(4deg)!important;opacity:0!important}
+.pk-bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;width:min(560px,calc(100% - 24px));box-sizing:border-box;background:rgba(25,14,16,.92);backdrop-filter:blur(8px);border:1px solid rgba(231,182,75,.45);border-radius:18px;padding:12px 14px;box-shadow:0 18px 40px rgba(0,0,0,.5);animation:pkbar .25s ease-out}
+.pk-bar[hidden]{display:none}
+@keyframes pkbar{from{transform:translate(-50%,20px);opacity:0}}
+.pk-bt{color:#fff;font:700 16px var(--disp);flex:1 1 100%;text-align:center}.pk-bt span{font-size:20px}
+.pk-no{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;font:600 14px var(--body);border-radius:999px;padding:10px 16px;cursor:pointer}
+.pack-wrap{padding-bottom:140px}
+@media(prefers-reduced-motion:reduce){.pk-pack,.pk-cut,.pk-glint,.pk-front::after{animation:none}.pk-card{transition:none}}
+</style>
