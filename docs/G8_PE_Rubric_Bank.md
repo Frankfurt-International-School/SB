@@ -49,13 +49,13 @@ The three reported bands are **Knowledge · Skills · Concept Transfer**. Each i
 |---|---|---|---|---|---|---|
 | **Throw** | Overarm pattern — steps with the opposite foot | Into a wide zone over a short distance | Into a 1 m target from mid distance | 1 m target from further back | 1 m target at speed (five in 25 s) | 1 m target from distance, at speed |
 | **Catch** | Large ball, two hands, off the wall rebound | Large ball, two hands, clean every time | Tennis ball, two hands, off the rebound | Tennis ball, two hands, consistently | Tennis ball, one hand (dominant) | Tennis ball, one hand, each hand |
-| **Strike** | Off a tee, travels forward past the line | Off the tee into a wide zone | Off the tee into a narrow zone at distance | Self-drop and strike into the narrow zone | Self-drop into a 1 m zone | Self-drop into the 1 m zone, at speed |
+| **Strike** | Off a tee, travels forward past the line | Off the tee through a wide gate | Off the tee through a narrow gate at distance | Tossed ball, strike it forward | Tossed ball through a wide gate | Tossed ball through a narrow gate |
 | **Dribble** | On the spot, pushed not slapped, controlled | Straight line, dominant hand, in control | Through a cone slalom, dominant hand | Slalom with the weak hand | Slalom head-up, calling a number | Tight slalom, switching hands, head up |
 | **Kick** | Into a wide goal, plant foot beside the ball, instep | Into a narrower goal at distance | Into a 1 m target at distance | 1 m target from further back | Moving ball into the 1 m target | Moving ball into the target from distance |
-| **Jump & land** | Two-foot jump, land soft and stick it | Drop off a ~30 cm box, land soft and stick | Drop-vertical-jump: drop, land, spring up, stick | One-foot hop and stick, each leg | One-foot drop off the box and stick, each leg | Repeated tuck jumps, every landing soft |
+| **Jump & land** | Two-foot jump, land soft and stick it | Drop off a ~30 cm box, land soft and stick | Drop-vertical-jump: drop, land, spring up, stick | Three two-foot jumps forward, stick the last | One-foot hop and stick, each leg | Three one-foot hops forward, stick the last, each leg |
 | **Core stability** | Forearm plank, hips level | Longer plank, form intact | Plank shoulder-taps, no hip sway | Trunk Stability Push-Up, thumbs at collarbone | TSPU, thumbs at chin | TSPU, thumbs at forehead |
 
-*The safety gate on Jump & Land applies at every level: knees bend to absorb, track over the toes, stuck with no extra step. Descriptors are v1 — the architecture is fixed, the numbers calibrate. The pattern is deliberate: technique gated at the base, physics-enforced at the top.*
+*The safety gate on Jump & Land applies at every level: knees bend to absorb, track over the toes, stuck with no extra step. **Jump & Land is the one station with no skipping — each rung is climbed in order, and the box and single-leg rungs are teacher-watched, not peer-signed** (the one-foot drop off a box was removed as the single highest-risk movement). Strike's top three rungs use a standardised live toss (underhand, to the side, from 3 m; a wild toss is re-tossed). Descriptors are v1 — the architecture is fixed, the numbers calibrate. The pattern is deliberate: technique gated at the base, physics-enforced at the top.*
 
 ## 1 · AP & Cooperation
 
