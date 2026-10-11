@@ -554,25 +554,75 @@ async function saveGoalsUI() {
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my goals'; toast('Couldn’t save: ' + e.message, true); }
 }
 
+// ── personal workout builder (the parts of a workout, built from a toolbox) ──
 let planDraft = null;
+const WK_COMP = { cv: ['🫀', 'Endurance'], strength: ['💪', 'Strength'], power: ['💥', 'Power'], speed: ['⚡', 'Speed'], agility: ['🔺', 'Agility'], balance: ['🦩', 'Balance'], core: ['🧱', 'Core'], flex: ['🧘', 'Flexibility'] };
+const TOOLBOX = {
+  warmup: ['Light jog', 'Skipping', 'Dynamic stretches', 'High knees', 'Arm circles', 'Butt kicks'],
+  main: [{ n: 'Running intervals', c: 'cv' }, { n: 'Shuttle runs', c: 'cv' }, { n: 'Skipping', c: 'cv' }, { n: 'Cycling', c: 'cv' },
+    { n: 'Push-ups', c: 'strength' }, { n: 'Squats', c: 'strength' }, { n: 'Lunges', c: 'strength' }, { n: 'Sit-to-stand', c: 'strength' }, { n: 'Step-ups', c: 'strength' }, { n: 'Resistance rows', c: 'strength' },
+    { n: 'Plank', c: 'core' }, { n: 'Plank shoulder-taps', c: 'core' }, { n: 'Dead bug', c: 'core' },
+    { n: 'Broad jumps', c: 'power' }, { n: 'Tuck jumps', c: 'power' }, { n: 'Box step-ups', c: 'power' },
+    { n: 'Sprints', c: 'speed' }, { n: 'Acceleration starts', c: 'speed' }, { n: 'Flying 20s', c: 'speed' },
+    { n: 'Ladder drills', c: 'agility' }, { n: 'Cone weaves', c: 'agility' }, { n: '5-10-5 shuttle', c: 'agility' },
+    { n: 'Single-leg stand', c: 'balance' }, { n: 'Stork holds', c: 'balance' }, { n: 'Slow lunges', c: 'balance' }],
+  cooldown: ['Easy walk', 'Static stretches', 'Yoga flow', 'Hamstring stretch', 'Quad stretch', 'Calf stretch']
+};
+const WK_DAYS = [['mon', 'Mon'], ['tue', 'Tue'], ['wed', 'Wed'], ['thu', 'Thu'], ['fri', 'Fri'], ['sat', 'Sat'], ['sun', 'Sun']];
+function normPlan(p) {
+  p = p || {};
+  if (!p.warmup && !p.main && !p.cooldown) { // fresh, or migrate an old {focus,days,notes}
+    return { warmup: [], main: (p.focus || []).map(f => ({ n: (fitMeta(f).label || f), c: '' })), cooldown: [], days: {}, time: '', intensity: 'moderate', reflection: p.notes || '' };
+  }
+  return { warmup: p.warmup || [], main: p.main || [], cooldown: p.cooldown || [], days: p.days || {}, time: p.time || '', intensity: p.intensity || 'moderate', reflection: p.reflection || '' };
+}
+function wkChips(part) {
+  const items = planDraft[part] || [];
+  if (!items.length) return '<div class="wk-empty">Nothing yet — tap from the toolbox below.</div>';
+  return '<div class="wk-items">' + items.map((it, i) => (it.c && WK_COMP[it.c] ? '<span class="wk-tag">' + WK_COMP[it.c][0] + '</span>' : '') + esc(it.n) + '<button type="button" class="wk-x" data-rm="' + part + '" data-i="' + i + '" aria-label="remove">✕</button>').map(s => '<span class="wk-chip">' + s + '</span>').join('') + '</div>';
+}
+function wkTools(part) {
+  const chips = TOOLBOX[part].map(x => { const n = (typeof x === 'string') ? x : x.n, c = (typeof x === 'string') ? '' : x.c; return '<button type="button" class="wk-add" data-add="' + part + '" data-n="' + esc(n) + '" data-c="' + c + '">' + (c && WK_COMP[c] ? WK_COMP[c][0] + ' ' : '') + esc(n) + '</button>'; }).join('');
+  return '<div class="wk-tools">' + chips + '</div><div class="wk-own"><input type="text" class="wk-owni" data-part="' + part + '" placeholder="add your own…" maxlength="40"><button type="button" class="wk-ownb" data-own="' + part + '">+ add</button></div>';
+}
+function wkPart(part, title, sub) {
+  return '<div class="wkpart"><div class="wk-h">' + title + ' <small>' + sub + '</small></div>' + wkChips(part) + wkTools(part) + '</div>';
+}
 function planView(b) {
-  const m = measured(); planDraft = JSON.parse(JSON.stringify((m && m.plan) || { focus: [], days: 3, notes: '' }));
-  const on = {}; (planDraft.focus || []).forEach(function (f) { on[f] = 1; });
-  const chips = FITMETA().map(function (f) { return '<button type="button" class="fchip' + (on[f.key] ? ' on' : '') + '" data-f="' + f.key + '">' + FIT_EMOJI[f.key] + ' ' + esc(f.label) + '</button>'; }).join('');
+  const m = measured();
+  if (planDraft === null) planDraft = normPlan(m && m.plan);
+  const goals = (m && m.goals) || [];
+  const focusStrip = goals.length
+    ? '<div class="goalchips"><span class="gc-h">🎯 Built for your goals</span>' + goals.map(g => '<span class="gchip">' + esc(goalLabel(g.component)) + '</span>').join('') + '<button type="button" class="lnk" id="toeditgoals">edit</button></div>'
+    : '<div class="lockmsg" style="background:#fff4e6;border-color:#e7b64b">🎯 Tip: <button type="button" class="lnk" id="toeditgoals">set your goals</button> first, so your workout targets them.</div>';
+  const dayChips = WK_DAYS.map(d => '<button type="button" class="daychip' + (planDraft.days[d[0]] ? ' on' : '') + '" data-day="' + d[0] + '">' + d[1] + '</button>').join('');
+  const intOpts = ['easy', 'moderate', 'hard'].map(x => '<option value="' + x + '"' + (planDraft.intensity === x ? ' selected' : '') + '>' + x.charAt(0).toUpperCase() + x.slice(1) + '</option>').join('');
   return '<div class="wrap">' +
     '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
-    '<div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Start your plan</h1><p>Pick what to focus on, how many days a week, and jot your first ideas. You’ll build this out through the unit.</p></div>' +
-    '<h3 class="sec"><span class="em">🎯</span> Focus areas</h3><div class="fchips" id="fchips">' + chips + '</div>' +
-    '<h3 class="sec"><span class="em">📅</span> Days per week</h3><input type="number" id="pdays" min="1" max="7" value="' + (planDraft.days || 3) + '" class="daysin">' +
-    '<h3 class="sec"><span class="em">✍️</span> My first ideas</h3><textarea id="pnotes" rows="4" maxlength="600" placeholder="e.g. run 20 min twice a week; push-ups every other day…">' + esc(planDraft.notes || '') + '</textarea>' +
+    '<div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Build my workout</h1><p>A good workout has three parts. Add exercises from the toolbox (or your own), set when you’ll train, then reflect after you’ve done it.</p></div>' +
+    focusStrip +
+    '<h3 class="sec"><span class="em">🧱</span> The parts of a workout</h3>' +
+    wkPart('warmup', '① Warm-up', 'raise the heart rate, loosen up') +
+    wkPart('main', '② Main set', 'target the components you chose') +
+    wkPart('cooldown', '③ Cool-down', 'bring it down, stretch') +
+    '<h3 class="sec"><span class="em">📅</span> When &amp; how much</h3>' +
+    '<div class="wk-fitt"><div class="wk-days">' + dayChips + '</div>' +
+    '<div class="wk-tf"><label>Time each session <input type="text" id="wk-time" maxlength="30" value="' + esc(planDraft.time) + '" placeholder="e.g. 20 min"></label>' +
+    '<label>Intensity <select id="wk-int">' + intOpts + '</select></label></div></div>' +
+    '<h3 class="sec"><span class="em">✍️</span> Reflection <span class="tap">· after you’ve done it</span></h3>' +
+    '<textarea id="wk-ref" rows="4" maxlength="600" placeholder="How did it go? Did it target your goals? What would you change? Did you stick to it?">' + esc(planDraft.reflection) + '</textarea>' +
     '<div class="pbar"><div class="pcount">A plan you’ll actually do beats a perfect one.</div><button type="button" class="ct-btn" id="psaveplan">Save my plan</button></div>' +
   '</div>';
 }
+function syncPlanDom() {
+  const t = $('#wk-time'); if (t) planDraft.time = t.value.trim().slice(0, 30);
+  const i = $('#wk-int'); if (i) planDraft.intensity = i.value;
+  const r = $('#wk-ref'); if (r) planDraft.reflection = r.value.trim().slice(0, 600);
+}
 async function savePlanUI() {
+  syncPlanDom();
   const btn = $('#psaveplan'); btn.disabled = true; btn.textContent = 'Saving…';
-  const focus = []; document.querySelectorAll('.fchip.on').forEach(function (c) { focus.push(c.dataset.f); });
-  const plan = { focus: focus, days: Math.max(1, Math.min(7, parseInt($('#pdays').value, 10) || 3)), notes: $('#pnotes').value.trim().slice(0, 600) };
-  try { const res = await call('savePlan', { plan: plan }); const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m; toast('Plan saved.'); show('profile'); }
+  try { const res = await call('savePlan', { plan: planDraft }); const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m; planDraft = null; toast('Plan saved.'); show('profile'); }
   catch (e) { btn.disabled = false; btn.textContent = 'Save my plan'; toast('Couldn’t save: ' + e.message, true); }
 }
 
@@ -894,8 +944,14 @@ function show(v, arg) {
     document.querySelectorAll('.gslider').forEach(r => r.addEventListener('input', () => { const k = r.getAttribute('data-key'), meta = goalMetaFor(k), lab = $('#glb-' + k); if (lab && meta) lab.innerHTML = fmtMetric(meta, Number(r.value)) + (meta.dir === 'down' ? ' <small>· lower is better</small>' : ''); }));
   } else if (v === 'plan') {
     app.innerHTML = planView(state);
-    wire('toprofile', () => show('profile')); wire('psaveplan', savePlanUI);
-    const fc = $('#fchips'); if (fc) fc.addEventListener('click', e => { const c = e.target.closest('.fchip'); if (c) c.classList.toggle('on'); });
+    wire('toprofile', () => show('profile')); wire('psaveplan', savePlanUI); wire('toeditgoals', () => show('goals'));
+    const w = app.querySelector('.wrap');
+    if (w) w.addEventListener('click', e => {
+      const add = e.target.closest('[data-add]'); if (add) { syncPlanDom(); planDraft[add.dataset.add].push({ n: add.dataset.n, c: add.dataset.c || '' }); return show('plan'); }
+      const rm = e.target.closest('[data-rm]'); if (rm) { syncPlanDom(); planDraft[rm.dataset.rm].splice(+rm.dataset.i, 1); return show('plan'); }
+      const own = e.target.closest('[data-own]'); if (own) { const inp = w.querySelector('.wk-owni[data-part="' + own.dataset.own + '"]'); const v2 = inp && inp.value.trim(); if (v2) { syncPlanDom(); planDraft[own.dataset.own].push({ n: v2.slice(0, 40), c: '' }); show('plan'); } return; }
+      const day = e.target.closest('[data-day]'); if (day) { syncPlanDom(); planDraft.days[day.dataset.day] = !planDraft.days[day.dataset.day]; return show('plan'); }
+    });
   } else if (v === 'myskills') {
     app.innerHTML = myskillsView(state);
     wire('toprofile', () => show('profile')); wire('mysave', saveMySkillsUI);
@@ -921,7 +977,7 @@ function show(v, arg) {
     app.innerHTML = profileView(state);
     $('#tocard').addEventListener('click', () => show('card'));
     wire('topredict', () => show('predict')); wire('tocompare', () => show('compare'));
-    goalSel = null;
+    goalSel = null; planDraft = null;
     wire('toentry', () => show('entry')); wire('togoals', () => show('goals')); wire('toplan', () => show('plan'));
     wire('togoals2', () => show('goals')); wire('togoals3', () => show('goals'));
     wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass);

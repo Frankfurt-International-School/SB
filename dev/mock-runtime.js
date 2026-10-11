@@ -59,7 +59,7 @@
     callApi({ action: 'saveCombine', token: T1, checkpoint: 'sept', results: { mile: 612, pushups: 14, sitstand: 28, broad: 168, grip: 24, sprint: 5.9, illinois: 18.9, stork: 7 } });
     callApi({ action: 'saveCombine', token: T1, checkpoint: 'jan',  results: { mile: 584, pushups: 18, sitstand: 31, broad: 176, grip: 26, sprint: 5.7, illinois: 18.1, stork: 5 } });
     callApi({ action: 'saveGoals', token: T1, goals: [{ component: 'mile', target: 540 }, { component: 'dribble', target: 6 }, { component: 'pushups', target: 25 }], note: 'Run Tue/Thu, weak-hand dribble every session, push-ups after PE.' });
-    callApi({ action: 'savePlan', token: T1, plan: { focus: ['mile', 'grip'], days: 3, notes: 'Run Tue/Thu 20 min; grip + push-ups after PE.' } });
+    callApi({ action: 'savePlan', token: T1, plan: { warmup: [{ n: 'Light jog', c: '' }, { n: 'Dynamic stretches', c: '' }], main: [{ n: 'Running intervals', c: 'cv' }, { n: 'Push-ups', c: 'strength' }, { n: 'Ladder drills', c: 'agility' }], cooldown: [{ n: 'Static stretches', c: '' }], days: { tue: true, thu: true, sat: true }, time: '25 min', intensity: 'moderate', reflection: '' } });
     const TT = tokenFor('teacher@example.edu'); // the owner is a teacher
     const seedSkills = (email, lv) => callApi({ action: 'saveSkills', token: TT, email, checkpoint: 'sept', levels: lv });
     seedSkills('sample.one@example.edu',   { throw: 4, catch: 5, strike: 3, dribble: 4, kick: 4, jump: 4, core: 5 });
