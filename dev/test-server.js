@@ -53,6 +53,8 @@ check('verified token is cached (second call makes no tokeninfo request)', (() =
 check('unknown action → error, not authRequired', (() => { const r = as(S1, 'nothing'); return !r.ok && /Unknown action/.test(r.error) && !r.authRequired; })());
 check('bad JSON body → Bad request', (() => { const r = JSON.parse(doPost({ postData: { contents: '{nope' } }).getContent()); return !r.ok && /Bad request/.test(r.error); })());
 check('doGet returns no data', (() => { const r = JSON.parse(doGet().getContent()); return r.ok === false && !JSON.stringify(r).includes('example.edu'); })());
+check('doGet shows the live build stamp', JSON.parse(doGet().getContent()).build === BUILD);
+check('fitness meta carries a reference guide for every test', FITNESS.every(f => Array.isArray(f.ref) && f.ref.length === 2 && (f.dir === 'down' ? f.ref[0] <= f.ref[1] : f.ref[0] >= f.ref[1])));
 
 console.log('identity');
 const s1 = as(S1, 'bootstrap').data;

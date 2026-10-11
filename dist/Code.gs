@@ -42,15 +42,19 @@ function predictionHeaders_() {
 // The seven fundamental skills (balance & agility live on the fitness side now).
 var SKILL_KEYS = ['throw', 'catch', 'strike', 'dribble', 'kick', 'jump', 'core'];
 // The fitness Combine tests, with the direction a better result moves and a sane range.
+// ref = a ROUGH typical-Grade-8 guide [strong, typical] used only for the student's
+// "did my prediction match?" check — not a grade. Tune these to your own cohort.
+//   dir 'up':   >= ref[0] strong · >= ref[1] typical · below = work-on
+//   dir 'down': <= ref[0] strong · <= ref[1] typical · above = work-on
 var FITNESS = [
-  { key: 'mile',     label: 'Mile run',         unit: 'sec',    dir: 'down', min: 180, max: 1200 },
-  { key: 'pushups',  label: 'Push-ups',         unit: 'reps',   dir: 'up',   min: 0,   max: 150 },
-  { key: 'sitstand', label: 'Sit-to-stand',     unit: 'reps',   dir: 'up',   min: 0,   max: 150 },
-  { key: 'broad',    label: 'Broad jump',       unit: 'cm',     dir: 'up',   min: 40,  max: 360 },
-  { key: 'grip',     label: 'Grip strength',    unit: 'kg',     dir: 'up',   min: 3,   max: 90 },
-  { key: 'sprint',   label: '30 m sprint',      unit: 'sec',    dir: 'down', min: 3,   max: 15 },
-  { key: 'illinois', label: 'Illinois agility', unit: 'sec',    dir: 'down', min: 10,  max: 45 },
-  { key: 'stork',    label: 'Stork balance',    unit: 'losses', dir: 'down', min: 0,   max: 80 }
+  { key: 'mile',     label: 'Mile run',         unit: 'sec',    dir: 'down', min: 180, max: 1200, ref: [540, 720] },
+  { key: 'pushups',  label: 'Push-ups',         unit: 'reps',   dir: 'up',   min: 0,   max: 150,  ref: [25, 12] },
+  { key: 'sitstand', label: 'Sit-to-stand',     unit: 'reps',   dir: 'up',   min: 0,   max: 150,  ref: [45, 32] },
+  { key: 'broad',    label: 'Broad jump',       unit: 'cm',     dir: 'up',   min: 40,  max: 360,  ref: [190, 150] },
+  { key: 'grip',     label: 'Grip strength',    unit: 'kg',     dir: 'up',   min: 3,   max: 90,   ref: [30, 20] },
+  { key: 'sprint',   label: '30 m sprint',      unit: 'sec',    dir: 'down', min: 3,   max: 15,   ref: [5.0, 5.8] },
+  { key: 'illinois', label: 'Illinois agility', unit: 'sec',    dir: 'down', min: 10,  max: 45,   ref: [17.0, 19.5] },
+  { key: 'stork',    label: 'Stork balance',    unit: 'losses', dir: 'down', min: 0,   max: 80,   ref: [3, 8] }
 ];
 var FIT_KEYS = FITNESS.map(function (f) { return f.key; });
 var FIT_BY_KEY = {}; FITNESS.forEach(function (f) { FIT_BY_KEY[f.key] = f; });
@@ -262,8 +266,10 @@ function doPost(e) {
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
 }
 // Opening the API URL in a browser is not the app; say so, with no data.
+// Bump with each server change: opening the /exec link in a browser shows which build is live.
+var BUILD = '2026-10-11 · units, reflections, workout mode';
 function doGet() {
-  return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'This is the data service for My PE Profile. Open the app link your PE teacher shared.' }))
+  return ContentService.createTextOutput(JSON.stringify({ ok: false, build: BUILD, error: 'This is the data service for My PE Profile. Open the app link your PE teacher shared.' }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 function handle_(body) {
