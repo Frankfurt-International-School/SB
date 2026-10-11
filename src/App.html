@@ -239,11 +239,11 @@ function fundTileV(key, em) {
   const rung = has ? ('Level <b>' + lv + '</b> of 6' + trendChip(series, 'up')) : 'Level — of 6 · first Combine';
   return '<button type="button" class="tile a-fund ' + bandCls + '" data-ov="fund-' + key + '"><span class="plus">⊕</span>' +
     '<div class="tnrow"><span class="em">' + em + '</span><span class="tn">' + esc(RUBRICS.ladders[key].name) + '</span></div>' +
-    '<div class="tsub">building block</div>' + ladderBar(lv) + '<div class="rung">' + rung + '</div></button>';
+    '<div class="tsub">' + fundUse(key) + '</div>' + ladderBar(lv) + '<div class="rung">' + rung + '</div></button>';
 }
 function ladderBar(lv) {
   let s = '<div class="lbar">';
-  for (let i = 1; i <= 6; i++) s += '<i class="' + (lv && i <= lv ? 'on' : '') + (i === G8_BAND ? ' band' : '') + '"></i>';
+  for (let i = 1; i <= 6; i++) s += '<i class="' + (lv && i <= lv ? 'on' : '') + (i === G8_BAND ? ' mk' : '') + '"></i>';
   return s + '</div>';
 }
 function bandV(ovKey, em, name, repKey) {
@@ -280,7 +280,6 @@ function profileView(b) {
   const glFundAvg = (function () { const vs = SKILL_ORDER.map(key => (m && m.skills) ? latestOf(m.skills[key]) : null).filter(v => v != null); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; })();
   const glApAvg = (function () { if (!m || !m.ap) return null; const vs = MX_AP.map(a => { const x = m.ap[a[0]]; return x ? (x.tchr != null ? x.tchr : x.self) : null; }).filter(v => v != null); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; })();
   const fund = FUND.map(([key, em]) => fundTileV(key, em)).join('');
-  const fitGrid = ['pushups', 'sitstand', 'broad', 'grip', 'sprint', 'illinois', 'stork'].map(fitTileV).join('');
   const stat = (v, lab) => '<div><b>' + v + '</b><span>' + lab + '</span></div>';
   return '<div class="wrap">' +
     '<div class="topline"><span class="demo-tag">Hi ' + esc(st.first) + ' · ' + (m ? 'your results are in — explore and plan' : 'your profile fills in at the Combine') + '</span><span class="yearlab">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</span></div>' +
@@ -290,21 +289,11 @@ function profileView(b) {
       '<div class="ct-stats">' + stat(mileStr(mileV), 'Mile') + stat(skG == null ? '—' : skG, 'Skills') + stat(apO == null ? '—' : apO, 'Effort') + '</div>' +
       '<button type="button" class="ct-btn' + (k ? '' : ' pulse') + '" id="tocard">' + (k ? 'View my card ↗' : 'Build my card ↗') + '</button>' +
     '</div>' +
-    // Fitness unit · Results and Planning — the lesson flow
-    '<div class="planstrip"><div class="ps-h">🏁 Fitness unit · Results &amp; Planning</div><div class="ps-row">' +
-      '<button type="button" class="ps-btn primary" id="toentry">📝 ' + (m && m.fitness ? 'Update' : 'Enter') + ' my Combine results</button>' +
-      '<button type="button" class="ps-btn" id="togoals">🎯 My goals' + (goals.length ? ' · ' + goals.length : '') + '</button>' +
-      '<button type="button" class="ps-btn" id="toplan">💪 Workout plan' + (hasPlan ? ' ✓' : '') + '</button>' +
-    '</div></div>' +
-    lesson1Panel() +
-    (goals.length ? '<div class="goalchips"><span class="gc-h">🎯 I\'m working on</span>' + goals.map(g => '<span class="gchip">' + esc(goalLabel(g.component)) + '</span>').join('') + '</div>' : '') +
+    unitsStrip() +
     '<h3 class="sec sec-glance"><span class="em">👀</span> At a glance <span class="tap">· where I am vs my goal</span><button type="button" class="secbtn" id="togoals2">🎯 ' + (goals.length ? 'Edit goals' : 'Set goals') + '</button></h3><p class="seclede">Your journey to the goals you set — now vs where you want to be by May.</p>' +
     (goals.length
       ? '<div class="goalprog">' + goals.map(g => progCard(g, m)).join('') + '</div>'
       : '<button type="button" class="setgoals" id="togoals3"><span class="sg-ic">🎯</span><span class="sg-tx"><b>Set your goals to track your progress.</b><span class="sg-sub">Pick a few parts to chase and where you want to be by May.</span></span><span class="sg-go">Start ↗</span></button>') +
-    '<h3 class="sec sec-fit"><span class="em">🏃</span> My fitness <span class="tap">· tap a part</span></h3><p class="seclede">Physical capacities — measured three times a year. Records that move.</p>' +
-    '<button type="button" class="fhero' + (mileV != null ? ' has' : '') + '" data-ov="fit-mile"><div class="fx">🫀</div><div class="fm"><div class="n">Cardiovascular endurance</div><div class="s">Heart &amp; lung staying power · the mile run</div></div><div class="fv">' + (mileV != null ? mileStr(mileV) : '—') + '<span>' + (mileV != null ? trendWord(m.fitness.mile, 'down') : 'September Combine') + '</span></div></button>' +
-    '<div class="grid3">' + fitGrid + '</div>' +
     '<h3 class="sec sec-fund"><span class="em">🧩</span> Fundamental skills <span class="tap">· self → peer → teacher · tap a skill</span><button type="button" class="secbtn" id="tomyskills">✎ Record my levels</button></h3><p class="seclede">Seven building blocks, each a 6-level ladder. Same test every Combine, so your level climbs over the year.</p>' +
     '<div class="grid3">' + fund + '</div>' +
     '<h3 class="sec sec-ap"><span class="em">🤝</span> Active participation <span class="tap">· all year</span></h3><p class="seclede">Your biggest all-year story — how you show up, tracked through every unit.</p>' +
@@ -312,8 +301,148 @@ function profileView(b) {
     '<h3 class="sec sec-rep"><span class="em">🧠</span> My report picture <span class="tap">· tap for how it’s built</span></h3><p class="seclede">The three grades on your Canvas report — a best fit across the descriptors.</p>' +
     '<div class="grid3">' + bandV('rp-know', '🧠', 'Knowledge', 'knowledge') + bandV('rp-skill', '🎯', 'Skills', 'skills') + bandV('rp-ct', '🔄', 'Concept transfer', 'concept') + '</div>' +
     '<div class="foot"><span class="arrow">↻</span><div><b>How this grows:</b> September sets the baseline; the same measures repeat in January and May. Always <b>you vs. your past self</b> — and it maps straight to your report.</div></div>' +
+    '<button type="button" class="archlink" id="toarchive">📚 <b>My archive</b><span>past predictions, reflections &amp; self-checks' + (archiveCount() ? ' · ' + archiveCount() : '') + '</span><span class="sg-go">↗</span></button>' +
     (b.alsoTeacher ? '<p class="small"><button type="button" class="lnk" id="toteacher">Open the teacher view →</button> · this is what a student sees.</p>' : '') +
   '</div>';
+}
+// ═══════════════ units: the year's journey; each unit has its own space ═══════════════
+// Dates follow the G8 year plan; a unit's rubric comes from RUBRICS.units (generated from the rubric bank).
+const UNITS = [
+  { key: 'fitness',   e: '🏃', name: 'Fitness & Training', from: '2026-09-25', to: '2026-11-16', when: 'Sep – 16 Nov', blurb: 'Skills Combine, training toolbox and your own workout' },
+  { key: 'badminton', e: '🏸', name: 'Badminton',          from: '2026-11-17', to: '2026-12-18', when: '17 Nov – 18 Dec', blurb: 'Serve, rally, move — net-game tactics', found: ['strike'],
+    lede: 'Serve, rally and move with purpose — and learn net-game ideas that carry straight over to volleyball and pickleball.',
+    steps: [['🤝', 'Partner practice check', 'You and a partner rate each other on the four areas below, then set your focus.'], ['🏆', 'Teacher assessment at the Festival', 'Your teacher assesses the same four areas while you play.']],
+    bands: { Serve: 'Skills', 'Rally Skills': 'Skills', 'Movement / Positioning': 'Skills', 'Participation & Effort': 'Concept transfer' } },
+  { key: 'parkour',   e: '🤸', name: 'Parkour',     from: '2027-01-27', to: '2027-03-08', when: 'Jan – Mar', blurb: 'Movement control, flow and safe landings', found: ['jump', 'core'] },
+  { key: 'tactics',   e: '🧠', name: 'Tactics Cup', from: '2027-03-09', to: '2027-04-13', when: 'Mar – Apr', blurb: 'Read the game; take a tactic into a new sport' },
+  { key: 'tchouk',    e: '🤾', name: 'Tchoukball',  from: '2027-04-14', to: '2027-05-20', when: 'Apr – May', blurb: 'Throw, catch and team roles in a season', found: ['throw', 'catch'] }
+];
+const LV4 = ['Beginning', 'Intermediate', 'Proficient', 'Advanced'];
+function todayIso() { return isoDay(new Date()); }
+function unitStatus(u) {
+  const t = todayIso();
+  if (t > u.to) return 'done';
+  if (t >= u.from) return 'now';
+  const next = UNITS.find(x => x.from > t);
+  return next && next.key === u.key ? 'next' : 'later';
+}
+function unitOpenable(u) { return u.key === 'fitness' || (RUBRICS.units && RUBRICS.units[u.key] && unitStatus(u) !== 'later'); }
+function unitsStrip() {
+  const card = u => {
+    const st = unitStatus(u), open = unitOpenable(u);
+    return '<button type="button" class="ucard ' + (st === 'done' ? 'past' : st) + '"' + (open ? ' data-unit="' + u.key + '"' : ' disabled') + '><span class="u-e">' + u.e + '</span><span class="u-b">' +
+      '<span class="u-st">' + ({ now: 'NOW', next: 'UP NEXT', later: 'LATER', done: 'DONE' })[st] + ' · ' + esc(u.when) + '</span><span class="u-n">' + esc(u.name) + '</span><span class="u-d">' + esc(u.blurb) + '</span></span>' +
+      (open ? '<span class="u-go">→</span>' : '') + '</button>';
+  };
+  return '<h3 class="sec sec-units"><span class="em">🗓️</span> My units <span class="tap">· tap a unit to open its space</span></h3>' +
+    '<div class="units">' + UNITS.map(card).join('') + '</div>';
+}
+function fundUse(key) {
+  const u = UNITS.find(x => (x.found || []).indexOf(key) !== -1);
+  return u ? 'builds into ' + u.e + ' ' + esc(u.name) : 'building block';
+}
+function reflections() { return (state.student && state.student.reflections) || {}; }
+function reflJson(key) { const r = reflections()[key]; if (!r || !r.text) return null; try { return JSON.parse(r.text); } catch (e) { return { text: r.text }; } }
+function archiveCount() { return (predictionSaved() ? 1 : 0) + Object.keys(reflections()).length; }
+let lastHub = 'profile';
+function backBtn() { return '<button type="button" class="back light" id="toprofile">← ' + (lastHub === 'fitness' ? 'Fitness &amp; Training' : 'Back to my profile') + '</button>'; }
+
+// ── Fitness & Training space: the lesson flow as steps, plus the fitness results ──
+function fitnessView(b) {
+  const m = measured(), u = UNITS[0], pred = predictionSaved(), refl = reflJson('compare-intro');
+  const goals = (m && m.goals) || [], plan = m && m.plan, hasFit = !!(m && m.fitness && Object.keys(m.fitness).length), hasSk = !!(m && m.skills && Object.keys(m.skills).length);
+  const wkLog = ((plan && plan.log) || []).filter(e => weekKey(e.date) === weekKey(todayIso())).length;
+  const step = (n, id, em, title, sub, done, label) => '<button type="button" class="fstep' + (done ? ' fdone' : '') + '" id="' + id + '"><span class="fs-n">' + (done ? '✓' : n) + '</span><span class="fs-b"><span class="fs-t">' + em + ' ' + title + '</span><span class="fs-s">' + sub + '</span></span><span class="fs-go">' + label + '</span></button>';
+  const mileV = m && m.fitness ? latestOf(m.fitness.mile) : null;
+  const fitGrid = ['pushups', 'sitstand', 'broad', 'grip', 'sprint', 'illinois', 'stork'].map(fitTileV).join('');
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="tohub">← Back to my profile</button>' +
+    '<div class="phero"><div class="k">UNIT · ' + esc(u.when.toUpperCase()) + '</div><h1>🏃 Fitness &amp; Training</h1><p>Find out where your fitness is now, try training methods in class, then build a workout that targets your goals — and do it at home too.</p></div>' +
+    '<h3 class="sec sec-fit"><span class="em">🧭</span> Your steps</h3>' +
+    '<div class="fsteps">' +
+      step(1, 'topredict', '🔮', 'Predict yourself', pred ? 'Saved ' + esc(pred.timestamp.slice(0, 10)) : 'Before testing: strengths and work-ons', !!pred, pred ? 'Edit' : 'Start') +
+      step(2, 'toentry', '📝', 'Enter my Combine results', hasFit ? 'Fitness numbers saved' : 'Mile, push-ups, jumps, sprint…', hasFit, hasFit ? 'Update' : 'Enter') +
+      step(3, 'tomyskills2', '🧩', 'Record my skill levels', hasSk ? 'Levels saved — teacher signs off' : 'Skills Combine stations, L1–L6', hasSk, hasSk ? 'Update' : 'Record') +
+      step(4, 'tocompare', '🔍', 'Compare &amp; reflect', refl ? 'Reflected — archived ✓' : 'Prediction vs results: what surprised you?', !!refl, refl ? 'View' : 'Reflect') +
+      step(5, 'togoals', '🎯', 'Set my goals', goals.length ? goals.map(g => esc(goalLabel(g.component))).join(' · ') : 'Pick 2–3 and where you want to be by May', !!goals.length, goals.length ? 'Edit' : 'Set') +
+      step(6, 'toplan', '💪', 'Build my workout', plan ? (wkLog ? '✓ ' + wkLog + ' home session' + (wkLog === 1 ? '' : 's') + ' this week' : 'Plan saved · log your home sessions') : 'Warm-up, main set, cool-down', !!plan, plan ? 'Open' : 'Build') +
+    '</div>' +
+    (pred && !refl ? lesson1Panel() : '') +
+    '<h3 class="sec sec-fit"><span class="em">🏃</span> My fitness <span class="tap">· tap a part</span></h3><p class="seclede">Physical capacities — measured three times a year. Records that move.</p>' +
+    '<button type="button" class="fhero' + (mileV != null ? ' has' : '') + '" data-ov="fit-mile"><div class="fx">🫀</div><div class="fm"><div class="n">Cardiovascular endurance</div><div class="s">Heart &amp; lung staying power · the mile run</div></div><div class="fv">' + (mileV != null ? mileStr(mileV) : '—') + '<span>' + (mileV != null ? trendWord(m.fitness.mile, 'down') : 'September Combine') + '</span></div></button>' +
+    '<div class="grid3">' + fitGrid + '</div>' +
+  '</div>';
+}
+
+// ── Archive: finished reflections and self-checks move here, off the working pages ──
+function archiveView(b) {
+  const pred = predictionSaved(), cmp = reflJson('compare-intro'), bad = reflJson('unit-badminton'), R = reflections();
+  const item = (em, title, date, body, btn) => '<div class="arc"><div class="arc-h"><span>' + em + ' <b>' + title + '</b></span><span class="arc-d">' + esc(date || '') + '</span></div>' + body + (btn || '') + '</div>';
+  let out = '';
+  if (cmp) out += item('🔍', 'Prediction vs Combine — my reflection', (R['compare-intro'].updated || '').slice(0, 10),
+    (cmp.surprise ? '<div class="arc-q">What surprised me</div><p>' + esc(cmp.surprise) + '</p>' : '') + (cmp.chase ? '<div class="arc-q">What I\'ll chase, and how</div><p>' + esc(cmp.chase) + '</p>' : '') + (cmp.text ? '<p>' + esc(cmp.text) + '</p>' : ''),
+    '<button type="button" class="lnk" id="tocompare">See the comparison</button>');
+  if (pred) { const L = lists(pred), ch = (arr, c) => arr.length ? arr.map(i => '<span class="chip ' + c + '">' + i.e + ' ' + esc(i.t) + '</span>').join('') : '<span class="chip none">none</span>';
+    out += item('🔮', 'Lesson 1 prediction', pred.timestamp.slice(0, 10), '<div class="l1row"><b>🟢 Strengths</b><div class="chips">' + ch(L.strengths, 'g') + '</div></div><div class="l1row"><b>🔴 Work-ons</b><div class="chips">' + ch(L.workons, 'r') + '</div></div>'); }
+  if (bad) { const cr = (RUBRICS.units.badminton || {}).criteria || [];
+    out += item('🏸', 'Badminton — partner practice check', (R['unit-badminton'].updated || '').slice(0, 10),
+      '<div class="arc-lv">' + cr.map((c, i) => '<span>' + esc(c.name) + ' <b>' + (bad.levels && bad.levels[i] != null ? LV4[bad.levels[i]] : '—') + '</b></span>').join('') + '</div>' + (bad.focus ? '<div class="arc-q">My focus for the final assessment</div><p>' + esc(bad.focus) + '</p>' : ''),
+      '<button type="button" class="lnk" data-unit="badminton">Open Badminton</button>'); }
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="tohub">← Back to my profile</button>' +
+    '<div class="phero"><div class="k">MY ARCHIVE</div><h1>📚 What I\'ve done so far</h1><p>Once you finish a reflection or a self-check it moves here, so your working pages stay clear. Nothing is lost — it\'s your record of the year.</p></div>' +
+    (out || '<p class="empty">Nothing archived yet. Finish your prediction and the compare-and-reflect step in Fitness &amp; Training and they\'ll land here.</p>') +
+  '</div>';
+}
+
+// ── Unit space (rubric from the bank): foundation from the Combine → how you're assessed → practice check ──
+let unitDraft = null, unitKey = null;
+function unitView(b) {
+  const u = UNITS.find(x => x.key === unitKey), rub = RUBRICS.units[unitKey], m = measured();
+  if (unitDraft === null) { const s = reflJson('unit-' + unitKey) || {}; unitDraft = { levels: (s.levels || []).slice(), focus: s.focus || '' }; }
+  const found = (u.found || []).map(k => {
+    const lad = RUBRICS.ladders[k], lv = m && m.skills ? latestOf(m.skills[k]) : null, em = (FUND.find(f => f[0] === k) || ['', '🧩'])[1];
+    return '<button type="button" class="found" data-ov="fund-' + k + '"><span class="fd-e">' + em + '</span><span class="fd-b"><span class="fd-t">' + esc(lad.name) + ' ladder · from the Combine</span>' + ladderBar(lv) +
+      '<span class="fd-s">' + (lv == null ? 'Tested at the Skills Combine — your level shows here.' : 'You\'re at <b>Level ' + lv + '</b> of 6.') + '</span></span></button>';
+  }).join('');
+  const link = unitKey === 'badminton' ? '<p class="seclede">Your <b>Serve</b> is the Strike ladder put into a real game: climb one and the other follows. <b>Movement</b>, <b>Rally</b> and <b>Participation</b> are what the unit adds — reading play, tactics and how you show up.</p>' : '';
+  const steps = (u.steps || []).map((s, i) => '<div class="ustep"><span class="us-n">' + (i + 1) + '</span><span><b>' + s[0] + ' ' + esc(s[1]) + '</b><span>' + esc(s[2]) + '</span></span></div>').join('');
+  const crit = rub.criteria.map((c, i) => {
+    const sel = unitDraft.levels[i];
+    return '<div class="rcrit"><div class="rc-h"><b>' + esc(c.name) + '</b><span class="rc-std">' + esc(c.std.split(' ')[0]) + ' → ' + esc((u.bands || {})[c.name] || '') + '</span></div><div class="rc-lv">' +
+      c.levels.map((d, j) => '<button type="button" class="rlv l' + j + (sel === j ? ' on' : '') + '" data-crit="' + i + '" data-lv="' + j + '"><span class="rl-n">' + LV4[j] + '</span><span class="rl-d">' + esc(d) + '</span></button>').join('') + '</div></div>';
+  }).join('');
+  const done = unitDraft.levels.filter(v => v != null).length;
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="tohub">← Back to my profile</button>' +
+    '<div class="phero"><div class="k">UNIT · ' + esc(u.when.toUpperCase()) + (unitStatus(u) === 'next' ? ' · UP NEXT' : '') + '</div><h1>' + u.e + ' ' + esc(u.name) + '</h1><p>' + esc(u.lede || u.blurb) + '</p></div>' +
+    (found ? '<h3 class="sec sec-fund"><span class="em">🧩</span> Built on your foundation</h3>' + link + '<div class="founds">' + found + '</div>' : '') +
+    '<h3 class="sec sec-skill"><span class="em">📋</span> How you\'re assessed</h3><div class="usteps">' + steps + '</div>' +
+    '<h3 class="sec sec-skill"><span class="em">🤝</span> My practice check <span class="tap">· tap where you are on each</span></h3><p class="seclede">Rate yourself with your partner. Be honest — this is practice, so it\'s where you find what to work on.</p>' +
+    '<div class="rgrid">' + crit + '</div>' +
+    '<h3 class="sec"><span class="em">🎯</span> My focus for the final assessment</h3><textarea id="ufocus" rows="3" maxlength="500" placeholder="What should you focus on in the Festival to make progress? Give as much detail as you can.">' + esc(unitDraft.focus) + '</textarea>' +
+    '<div class="tresult"><span>🏆 Teacher assessment</span><b>at the Festival</b></div>' +
+    '<div class="pbar"><div class="pcount"><b>' + done + '</b> of ' + rub.criteria.length + ' rated</div><button type="button" class="ct-btn" id="usave">Save my practice check</button></div>' +
+  '</div>';
+}
+async function saveUnitUI() {
+  const f = $('#ufocus'); if (f) unitDraft.focus = f.value.trim().slice(0, 500);
+  const btn = $('#usave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await call('saveReflection', { key: 'unit-' + unitKey, text: JSON.stringify(unitDraft) });
+    state.student.reflections = Object.assign({}, reflections(), { [res.key]: res.reflection });
+    toast('Saved — it’s in your archive too.'); btn.disabled = false; btn.textContent = 'Save my practice check';
+  } catch (e) { btn.disabled = false; btn.textContent = 'Save my practice check'; toast('Couldn’t save: ' + e.message, true); }
+}
+async function saveCompareUI() {
+  const s = $('#cr-surprise'), c = $('#cr-chase'), surprise = s ? s.value.trim().slice(0, 700) : '', chase = c ? c.value.trim().slice(0, 700) : '';
+  if (!surprise && !chase) { toast('Write a sentence or two first.', true); return; }
+  const btn = $('#crsave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await call('saveReflection', { key: 'compare-intro', text: JSON.stringify({ surprise: surprise, chase: chase }) });
+    state.student.reflections = Object.assign({}, reflections(), { [res.key]: res.reflection });
+    toast('Reflection saved and archived ✓'); show('fitness');
+  } catch (e) { btn.disabled = false; btn.textContent = 'Save & archive'; toast('Couldn’t save: ' + e.message, true); }
 }
 function goalLabel(c) { const f = fitMeta(c); if (f && f.label && (state.meta.fitness || []).some(x => x.key === c)) return f.label; if (RUBRICS.ladders[c]) return RUBRICS.ladders[c].name; return c === 'overall' ? 'Overall' : c; }
 function trendWord(series, dir) { const t = improved(series, dir); return t > 0 ? 'improving ▲' : t < 0 ? 'down ▼ · chase it back' : 'latest'; }
@@ -350,7 +479,7 @@ function predictView(b) {
   };
   const group = (g, em, title, lede) => '<h3 class="sec sec-' + g + '"><span class="em">' + em + '</span> ' + title + '</h3><p class="seclede">' + lede + '</p>' + ITEMS.filter(i => i.g === g).map(row).join('');
   return '<div class="wrap predict">' +
-    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    backBtn() +
     '<div class="phero"><div class="k">LESSON 1 · YOUR TURN</div><h1>Predict yourself</h1><p>Before we test anything, what do YOU think, ' + esc(st.first) + '? We’ll check it against your real results later. It’s you vs. your past self, not a competition with anyone else.</p>' +
     '<div class="legend"><span>1 · Is it a strength, neutral, or a work-on?</span><span class="sep">·</span><span>2 · How often do you do it?</span></div></div>' +
     group('fit', '🏃', 'Part 1 · The parts of fitness', 'Your engine, your muscles, your explosiveness, your speed. Four parts the Combine measures.') +
@@ -404,11 +533,19 @@ function compareView(b) {
       '<div class="cv">' + compareCell(i, m) + ' ' + compareVerdict(i, m, pred) + '</div></div>';
   }).join('');
   return '<div class="wrap">' +
-    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    backBtn() +
     '<div class="phero"><div class="k">PREDICTION vs. COMBINE</div><h1>How well did you know yourself?</h1><p>Left: what you predicted in Lesson 1. Right: what the Combine measured' + (m ? ' — ✓ means your hunch matched, ✗ a surprise.' : ' — the Combine hasn’t happened yet, so the right side is waiting.') + '</p></div>' +
     '<div class="chead"><span>Item</span><span>My prediction</span><span>Combine</span></div>' + rows +
     (pred ? '' : '<p class="empty" style="margin-top:14px">You haven’t made a prediction yet. <button type="button" class="lnk" id="topredict">Make it now</button></p>') +
+    (pred && m ? compareReflect() : '') +
   '</div>';
+}
+function compareReflect() {
+  const r = reflJson('compare-intro') || {}, done = !!reflections()['compare-intro'];
+  return '<div class="creflect' + (done ? ' cdone' : '') + '"><h3 class="sec sec-glance"><span class="em">✍️</span> Reflect' + (done ? ' <span class="tap">· archived ✓ — you can still edit</span>' : '') + '</h3>' +
+    '<label class="cr-q">What surprised you? Where did your prediction miss?</label><textarea id="cr-surprise" rows="3" maxlength="700" placeholder="e.g. I thought sprinting was a strength but I was slower than I expected…">' + esc(r.surprise || r.text || '') + '</textarea>' +
+    '<label class="cr-q">Which work-on will you chase this year, and how?</label><textarea id="cr-chase" rows="3" maxlength="700" placeholder="e.g. my weak-hand dribble — 5 minutes every session…">' + esc(r.chase || '') + '</textarea>' +
+    '<div class="cr-act"><button type="button" class="ct-btn" id="crsave">' + (done ? 'Update' : 'Save &amp; archive') + '</button><span>Once saved this moves to <b>My archive</b> and your Fitness page clears up.</span></div></div>';
 }
 
 function cardView(b) {
@@ -454,7 +591,7 @@ function entryView(b) {
   }).join('');
   const cpOpts = CPS.map(function (cp) { return '<option value="' + cp + '"' + (cp === entryCp ? ' selected' : '') + '>' + CP_LABEL[cp] + '</option>'; }).join('');
   return '<div class="wrap">' +
-    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    backBtn() +
     '<div class="phero"><div class="k">FITNESS COMBINE</div><h1>Enter my results</h1><p>Type your numbers from your recording sheet, ' + esc(b.student.first) + '. Leave any blank if you didn’t do it.</p>' +
     '<div class="cpick">Checkpoint <select id="encp">' + cpOpts + '</select></div></div>' +
     (locked ? '<div class="lockmsg">🔒 Your teacher has locked ' + CP_LABEL[entryCp] + ' — these are final. Ask them to unlock if something needs changing.</div>' : '') +
@@ -480,7 +617,7 @@ async function saveEntry() {
     m.fitness = m.fitness || {};
     Object.keys(res.results).forEach(function (k) { m.fitness[k] = m.fitness[k] || {}; m.fitness[k][entryCp] = res.results[k]; });
     state.student.combine = m;
-    toast('Results saved.'); show('profile');
+    toast('Results saved.'); show(lastHub);
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my results'; toast('Couldn’t save: ' + e.message, true); }
 }
 
@@ -533,7 +670,7 @@ function goalsView(b) {
       '<div class="gs-tval">target by May: <b id="glb-' + meta.key + '">' + fmtMetric(meta, tgt) + '</b>' + (meta.dir === 'down' ? ' <small>· lower is better</small>' : '') + '</div></div>';
   }).join('');
   return '<div class="wrap">' +
-    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    backBtn() +
     '<div class="phero"><div class="k">SET MY GOALS</div><h1>Where are you headed, ' + esc(b.student.first) + '?</h1><p>Pick a few parts to chase this year, drag each to where you want to be by May, then jot how you’ll get there.</p></div>' +
     '<h3 class="sec"><span class="em">🎯</span> Pick your focus <span class="tap">· tap 2–3</span></h3><div class="goalchips2" id="goalchips2">' + chips + '</div>' +
     (sets ? '<h3 class="sec"><span class="em">📈</span> Now → May</h3><div class="goalsets">' + sets + '</div>' : '<p class="seclede" style="margin:12px 0 0">Tap a focus above to set where you want to be by May.</p>') +
@@ -550,7 +687,7 @@ async function saveGoalsUI() {
   try {
     const res = await call('saveGoals', { goals: goals, note: note });
     const m = state.student.combine || { fitness: {}, skills: {} }; m.goals = res.goals; m.goalNote = res.note; state.student.combine = m;
-    goalSel = null; toast('Goals saved.'); show('profile');
+    goalSel = null; toast('Goals saved.'); show(lastHub);
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my goals'; toast('Couldn’t save: ' + e.message, true); }
 }
 
@@ -622,7 +759,7 @@ function planView(b) {
   const inclass = '<div class="inclass"><span class="ic-h">🏫 In class we’re building your toolbox:</span>' + FIT_LESSONS.map(l => '<span class="ic-chip">' + l[0] + ' ' + esc(l[1]) + '</span>').join('') + '<span class="ic-note">try them, then add your favourites below</span></div>';
   const count = planDraft.warmup.length + planDraft.main.length + planDraft.cooldown.length;
   return '<div class="wrap">' +
-    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    backBtn() +
     '<div class="phero"><div class="k">PERSONAL WORKOUT PLAN</div><h1>Build my workout</h1><p>A real workout has three parts. Add exercises, set your sets &amp; reps, and <b>drag the ⠿ handle to arrange them</b>. Then plan when you’ll train — including once more at home.</p></div>' +
     focusStrip + inclass +
     '<div class="wkcard"><div class="wkcard-h"><span>🏋️ My workout</span><span class="wkcard-n">' + count + ' exercise' + (count === 1 ? '' : 's') + '</span></div>' +
@@ -706,7 +843,7 @@ function enableWkDrag(root) {
 async function savePlanUI() {
   syncPlanFromDom();
   const btn = $('#psaveplan'); btn.disabled = true; btn.textContent = 'Saving…';
-  try { const res = await call('savePlan', { plan: planDraft }); const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m; planDraft = null; toast('Plan saved.'); show('profile'); }
+  try { const res = await call('savePlan', { plan: planDraft }); const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m; planDraft = null; toast('Plan saved.'); show(lastHub); }
   catch (e) { btn.disabled = false; btn.textContent = 'Save my plan'; toast('Couldn’t save: ' + e.message, true); }
 }
 
@@ -876,7 +1013,7 @@ function myskillsView(b) {
   }).join('');
   const cpOpts = CPS.map(cp => '<option value="' + cp + '"' + (cp === entryCp ? ' selected' : '') + '>' + CP_LABEL[cp] + '</option>').join('');
   return '<div class="wrap">' +
-    '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
+    backBtn() +
     '<div class="phero"><div class="k">FUNDAMENTAL SKILLS</div><h1>Record my skill levels</h1><p>Set the level you reached on each ladder, ' + esc(b.student.first) + '. Your teacher checks and signs off — and can change it.</p>' +
     '<div class="cpick">Checkpoint <select id="mycp">' + cpOpts + '</select></div></div>' +
     (locked ? '<div class="lockmsg">🔒 Your teacher has locked ' + CP_LABEL[entryCp] + ' — these are final. Ask them to unlock if something needs changing.</div>' : '') +
@@ -894,7 +1031,7 @@ async function saveMySkillsUI() {
     m.skills = m.skills || {};
     Object.keys(levels).forEach(k => { m.skills[k] = m.skills[k] || {}; m.skills[k][entryCp] = levels[k]; });
     state.student.combine = m;
-    toast('Levels saved.'); show('profile');
+    toast('Levels saved.'); show(lastHub);
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my levels'; toast('Couldn’t save: ' + e.message, true); }
 }
 
@@ -1001,17 +1138,41 @@ function show(v, arg) {
   const app = $('#app');
   document.body.classList.toggle('dark', v === 'card');
   if (state.student) setSkin(state.student.style);
-  if (v === 'predict') {
+  if (v === 'profile' || v === 'fitness') lastHub = v;
+  // fresh-element delegation: handlers live on the newly rendered .wrap, so nothing stacks across renders
+  const onWrap = fn => { const w = app.firstElementChild; if (w) w.addEventListener('click', fn); };
+  const openUnit = e => { const t = e.target.closest('[data-unit]'); if (!t) return false; const k = t.getAttribute('data-unit'); if (k === 'fitness') show('fitness'); else { unitKey = k; unitDraft = null; show('unit'); window.scrollTo(0, 0); } return true; };
+  if (v === 'fitness') {
+    app.innerHTML = fitnessView(state);
+    wire('tohub', () => show('profile'));
+    wire('topredict', () => show('predict')); wire('toentry', () => show('entry')); wire('tomyskills2', () => show('myskills'));
+    wire('tocompare', () => show('compare')); wire('togoals', () => show('goals')); wire('toplan', () => show('plan'));
+    goalSel = null; planDraft = null;
+    onWrap(e => { const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
+  } else if (v === 'archive') {
+    app.innerHTML = archiveView(state);
+    wire('tohub', () => show('profile')); wire('tocompare', () => { lastHub = 'fitness'; show('compare'); });
+    onWrap(openUnit);
+  } else if (v === 'unit') {
+    app.innerHTML = unitView(state);
+    wire('tohub', () => show('profile')); wire('usave', saveUnitUI);
+    onWrap(e => {
+      const t = e.target.closest('[data-crit]');
+      if (t) { const f = $('#ufocus'); if (f) unitDraft.focus = f.value.slice(0, 500); const i = +t.dataset.crit, j = +t.dataset.lv; unitDraft.levels[i] = unitDraft.levels[i] === j ? null : j; const y = window.scrollY; show('unit'); window.scrollTo(0, y); return; }
+      const o = e.target.closest('[data-ov]'); if (o) openOv(o.dataset.ov);
+    });
+    return;
+  } else if (v === 'predict') {
     const saved = predictionSaved(); draft = saved ? JSON.parse(JSON.stringify(saved.items)) : {};
     app.innerHTML = predictView(state);
     app.addEventListener('click', e => { const t = e.target.closest('.tl,.fq'); if (!t) return; if (t.dataset.rating) pick(t.dataset.k, 'rating', t.dataset.rating); else pick(t.dataset.k, 'freq', t.dataset.freq); });
-    wire('psave', savePrediction); wire('toprofile', () => show('profile'));
+    wire('psave', savePrediction); wire('toprofile', () => show(lastHub));
   } else if (v === 'summary') {
     app.innerHTML = summaryView(state);
-    wire('toprofile', () => show('profile')); wire('topredict', () => show('predict'));
+    wire('toprofile', () => show(lastHub)); wire('topredict', () => show('predict'));
   } else if (v === 'compare') {
     app.innerHTML = compareView(state);
-    wire('toprofile', () => show('profile')); wire('topredict', () => show('predict'));
+    wire('toprofile', () => show(lastHub)); wire('topredict', () => show('predict')); wire('crsave', saveCompareUI);
   } else if (v === 'card') {
     app.innerHTML = cardView(state);
     $('#styles').addEventListener('click', e => { const btn = e.target.closest('.sbtn'); if (btn) choose(btn.dataset.k); });
@@ -1019,16 +1180,16 @@ function show(v, arg) {
     $('#toprofile2').addEventListener('click', () => show('profile'));
   } else if (v === 'entry') {
     app.innerHTML = entryView(state);
-    wire('toprofile', () => show('profile')); wire('ensave', saveEntry);
+    wire('toprofile', () => show(lastHub)); wire('ensave', saveEntry);
     const cp = $('#encp'); if (cp) cp.addEventListener('change', () => { entryCp = cp.value; show('entry'); });
   } else if (v === 'goals') {
     app.innerHTML = goalsView(state);
-    wire('toprofile', () => show('profile')); wire('gsave', saveGoalsUI);
+    wire('toprofile', () => show(lastHub)); wire('gsave', saveGoalsUI);
     const gc = $('#goalchips2'); if (gc) gc.addEventListener('click', e => { const c = e.target.closest('.goalchip'); if (c) { const k = c.getAttribute('data-g'); goalSel[k] = !goalSel[k]; show('goals'); } });
     document.querySelectorAll('.gslider').forEach(r => r.addEventListener('input', () => { const k = r.getAttribute('data-key'), meta = goalMetaFor(k), lab = $('#glb-' + k); if (lab && meta) lab.innerHTML = fmtMetric(meta, Number(r.value)) + (meta.dir === 'down' ? ' <small>· lower is better</small>' : ''); }));
   } else if (v === 'plan') {
     app.innerHTML = planView(state);
-    wire('toprofile', () => show('profile')); wire('psaveplan', savePlanUI); wire('toeditgoals', () => show('goals'));
+    wire('toprofile', () => show(lastHub)); wire('psaveplan', savePlanUI); wire('toeditgoals', () => show('goals'));
     const w = app.querySelector('.wrap');
     if (w) {
       w.addEventListener('click', e => {
@@ -1044,7 +1205,7 @@ function show(v, arg) {
     }
   } else if (v === 'myskills') {
     app.innerHTML = myskillsView(state);
-    wire('toprofile', () => show('profile')); wire('mysave', saveMySkillsUI);
+    wire('toprofile', () => show(lastHub)); wire('mysave', saveMySkillsUI);
     const cp = $('#mycp'); if (cp) cp.addEventListener('change', () => { entryCp = cp.value; show('myskills'); });
   } else if (v === 'class') {
     app.innerHTML = classView();
@@ -1066,12 +1227,10 @@ function show(v, arg) {
   } else {
     app.innerHTML = profileView(state);
     $('#tocard').addEventListener('click', () => show('card'));
-    wire('topredict', () => show('predict')); wire('tocompare', () => show('compare'));
-    goalSel = null; planDraft = null;
-    wire('toentry', () => show('entry')); wire('togoals', () => show('goals')); wire('toplan', () => show('plan'));
+    goalSel = null; planDraft = null; unitDraft = null;
     wire('togoals2', () => show('goals')); wire('togoals3', () => show('goals'));
-    wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass);
-    app.addEventListener('click', e => { const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
+    wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass); wire('toarchive', () => show('archive'));
+    onWrap(e => { if (openUnit(e)) return; const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   }
   window.scrollTo(0, 0);
 }

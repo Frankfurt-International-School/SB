@@ -80,8 +80,12 @@ var TABS = {
   Goals:         ['Email', 'Component', 'Goal', 'Updated', 'Target'],            // focus goals: Target added last so it appends cleanly onto an existing Goals tab; plus one '_note' row
 
   Plan:          ['Email', 'Plan', 'Updated'],                                   // the student's personal workout plan (JSON)
-  Locks:         ['Email', 'Checkpoint', 'Locked', 'Updated']                    // teacher finalize-lock per student per checkpoint
+  Locks:         ['Email', 'Checkpoint', 'Locked', 'Updated'],                   // teacher finalize-lock per student per checkpoint
+  Reflections:   ['Email', 'Key', 'Text', 'Updated']                             // student reflections + unit self-assessments, one row per key
 };
+// Reflection slots a student may write. Unit keys hold a small JSON self-assessment.
+var REFLECT_KEYS = ['compare-intro', 'unit-badminton'];
+var REFLECT_MAX = 2000;
 var PROFILE_KEY = 'Email';
 
 var CONFIG_DEFAULTS = {
@@ -273,6 +277,7 @@ function handle_(body) {
     case 'saveCombine':     return saveCombine_(cfg, id, body.checkpoint, body.results);
     case 'saveGoals':       return saveGoals_(cfg, id, body.goals, body.note);
     case 'savePlan':        return savePlan_(cfg, id, body.plan);
+    case 'saveReflection':  return saveReflection_(cfg, id, body.key, body.text);
     case 'saveSkills':      return saveSkills_(cfg, id, body.email, body.checkpoint, body.levels);
     case 'saveMySkills':    return saveMySkills_(cfg, id, body.checkpoint, body.levels);
     case 'saveBands':       return saveBands_(cfg, id, body.email, body.bands);
@@ -377,6 +382,17 @@ function planFor_(email) {
   try { return JSON.parse(raw); } catch (e) { return null; }
 }
 
+// The caller's reflections: { key: { text, updated } }.
+function reflectionsFor_(email) {
+  var out = {};
+  readTab_('Reflections').forEach(function (r) {
+    if (lower_(r.Email) !== email) return;
+    var k = str_(r.Key); if (REFLECT_KEYS.indexOf(k) === -1) return;
+    out[k] = { text: str_(r.Text), updated: str_(r.Updated) };
+  });
+  return out;
+}
+
 // The caller's measured picture, or null if nothing has been recorded yet (keeps
 // the profile in its "fills in at the Combine" state until there is real data).
 function measuredFor_(email) {
@@ -409,7 +425,8 @@ function bootstrap_(cfg, id) {
       photoUrl: /^https:\/\/[a-z0-9.-]+\.googleusercontent\.com\//.test(id.picture) ? id.picture : '',
       predictions: predictionsFor_(id.email),
       combine: measuredFor_(id.email),
-      locked: locksFor_(id.email)
+      locked: locksFor_(id.email),
+      reflections: reflectionsFor_(id.email)
     };
     out.predict = { items: PREDICT_ITEMS, checkpoints: PREDICT_CHECKPOINTS, ratings: RATINGS, freqs: FREQS };
     out.meta = combineMeta_();
@@ -563,6 +580,17 @@ function saveGoals_(cfg, id, goals, note) {
   var noteText = str_(note).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').slice(0, 600);
   replaceGoals_(id.email, clean, noteText);
   return { ok: true, goals: clean, note: noteText };
+}
+
+// A reflection or unit self-assessment, for the caller's own row only.
+function saveReflection_(cfg, id, key, text) {
+  requireStudent_(id);
+  var k = str_(key);
+  if (REFLECT_KEYS.indexOf(k) === -1) throw new Error('Unknown reflection');
+  var t = (text === null || text === undefined) ? '' : String(text);
+  if (t.length > REFLECT_MAX) throw new Error('Reflection is too long');
+  upsert_('Reflections', { Email: id.email, Key: k }, { Text: t, Updated: new Date() });
+  return { ok: true, key: k, reflection: reflectionsFor_(id.email)[k] || { text: t, updated: '' } };
 }
 
 // The student's personal workout plan (a small JSON structure built in the app).
@@ -742,7 +770,7 @@ function clearProfileData() {
   var ui = SpreadsheetApp.getUi();
   var ans = ui.alert('Clear all student data?', 'This deletes every student\'s saved style, goals, self-predictions, Combine, skills, participation, bands and workout plan. The Students roster is not touched. Continue?', ui.ButtonSet.YES_NO);
   if (ans !== ui.Button.YES) return;
-  ['Profile', 'Predictions', 'Combine', 'Skills', 'Participation', 'Bands', 'Goals', 'Plan', 'Locks'].forEach(function (n) {
+  ['Profile', 'Predictions', 'Combine', 'Skills', 'Participation', 'Bands', 'Goals', 'Plan', 'Locks', 'Reflections'].forEach(function (n) {
     var s = ensureTab_(n, TABS[n]);
     if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
   });

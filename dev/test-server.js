@@ -127,6 +127,16 @@ check('savePlan keeps sets/reps rows and the home-session log', (() => { const p
 check('savePlan refuses an oversized plan', /too long/.test(as(S1, 'savePlan', { plan: { reflection: 'x'.repeat(9000) } }).error || ''));
 check('teacher (not on roster) cannot saveGoals', /class list/.test(as(T, 'saveGoals', { goals: [] }).error));
 
+console.log('reflections + unit self-assessment');
+check('saveReflection stores the compare reflection', (() => { const r = as(S1, 'saveReflection', { key: 'compare-intro', text: 'I underrated my sprint' }); return r.ok && as(S1, 'bootstrap').data.student.reflections['compare-intro'].text === 'I underrated my sprint'; })());
+check('saveReflection overwrites the same slot', (() => { as(S1, 'saveReflection', { key: 'compare-intro', text: 'second go' }); return as(S1, 'bootstrap').data.student.reflections['compare-intro'].text === 'second go' && readTab_('Reflections').filter(r => r.Email === S1 && r.Key === 'compare-intro').length === 1; })());
+check('unit self-assessment JSON round-trips', (() => { const j = JSON.stringify({ levels: [2, 3, 2, 4], focus: 'move my opponent' }); as(S1, 'saveReflection', { key: 'unit-badminton', text: j }); return JSON.parse(as(S1, 'bootstrap').data.student.reflections['unit-badminton'].text).levels[3] === 4; })());
+check('another student does not see my reflections', Object.keys(as(S2, 'bootstrap').data.student.reflections).length === 0);
+check('unknown reflection key refused', /Unknown reflection/.test(as(S1, 'saveReflection', { key: 'teacher-notes', text: 'x' }).error || ''));
+check('oversized reflection refused', /too long/.test(as(S1, 'saveReflection', { key: 'compare-intro', text: 'x'.repeat(2001) }).error || ''));
+check('teacher (not on roster) cannot saveReflection', /class list/.test(as(T, 'saveReflection', { key: 'compare-intro', text: 'x' }).error || ''));
+check('saveReflection ignores an email in the body', (() => { as(S2, 'saveReflection', { key: 'compare-intro', text: 'mine', email: S1 }); return as(S1, 'bootstrap').data.student.reflections['compare-intro'].text === 'second go'; })());
+
 console.log('v3 skills (teacher-entered) + class view');
 check('teacher records a student\'s skill levels', (() => {
   const r = as(T, 'saveSkills', { email: S1, checkpoint: 'sept', levels: { throw: 4, catch: 5, core: 5 } });
@@ -163,7 +173,7 @@ check('unlocked student can edit again', as(S1, 'saveCombine', { checkpoint: 'se
 console.log('retention');
 FakeSheets.uiAnswer = 'YES';
 clearProfileData();
-check('clearProfileData empties all student data, keeps Students', readTab_('Profile').length === 0 && readTab_('Predictions').length === 0 && readTab_('Combine').length === 0 && readTab_('Skills').length === 0 && readTab_('Goals').length === 0 && readTab_('Plan').length === 0 && readTab_('Students').length === 4);
+check('clearProfileData empties all student data, keeps Students', readTab_('Profile').length === 0 && readTab_('Predictions').length === 0 && readTab_('Combine').length === 0 && readTab_('Skills').length === 0 && readTab_('Goals').length === 0 && readTab_('Plan').length === 0 && readTab_('Reflections').length === 0 && readTab_('Students').length === 4);
 
 console.log(failed ? `\n${failed} check(s) FAILED` : '\nall checks passed');
 process.exit(failed ? 1 : 0);
