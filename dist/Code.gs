@@ -78,7 +78,8 @@ var TABS = {
   Participation: apHeaders_(),                                                   // teacher-reported, self + teacher per key
   Bands:         ['Email'].concat(BAND_KEYS).concat(['Updated']),                // the three report bands
   Goals:         ['Email', 'Component', 'Goal', 'Updated'],                      // the student's component goals
-  Plan:          ['Email', 'Plan', 'Updated']                                    // the student's personal workout plan (JSON)
+  Plan:          ['Email', 'Plan', 'Updated'],                                   // the student's personal workout plan (JSON)
+  Locks:         ['Email', 'Checkpoint', 'Locked', 'Updated']                    // teacher finalize-lock per student per checkpoint
 };
 var PROFILE_KEY = 'Email';
 
@@ -97,7 +98,9 @@ var STYLES = {
   improver:   'The Improver',
   explorer:   'The Explorer',
   energizer:  'The Energizer',
-  thinker:    'The Active Thinker'
+  thinker:    'The Strategist',
+  grafter:    'The Grafter',
+  technician: 'The Technician'
 };
 
 var CACHE_KEY_CONFIG = 'g8pe_config_v1';
@@ -270,6 +273,9 @@ function handle_(body) {
     case 'saveGoals':       return saveGoals_(cfg, id, body.goals);
     case 'savePlan':        return savePlan_(cfg, id, body.plan);
     case 'saveSkills':      return saveSkills_(cfg, id, body.email, body.checkpoint, body.levels);
+    case 'saveMySkills':    return saveMySkills_(cfg, id, body.checkpoint, body.levels);
+    case 'saveBands':       return saveBands_(cfg, id, body.email, body.bands);
+    case 'setLock':         return setLock_(cfg, id, body.emails, body.checkpoint, body.locked);
     case 'classOverview':   return classOverview_(cfg, id);
     case 'classStudent':    return classStudent_(cfg, id, body.email);
     default: throw new Error('Unknown action');
@@ -336,6 +342,20 @@ function bandsFor_(email) {
   BAND_KEYS.forEach(function (k) { var n = numOrNull_(row[k]); if (n !== null) out[k] = n; });
   return out;
 }
+// Finalize-locks: a teacher locks a student's checkpoint so the student can no
+// longer edit it (teachers always can). Keyed by email + checkpoint.
+function locksIndex_() {
+  var idx = {};
+  readTab_('Locks').forEach(function (r) {
+    var email = lower_(r.Email); if (!email) return;
+    var cp = lower_(r.Checkpoint); if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) return;
+    if (bool_(r.Locked)) (idx[email] || (idx[email] = {}))[cp] = true;
+  });
+  return idx;
+}
+function locksFor_(email) { return locksIndex_()[email] || {}; }
+function isLocked_(email, cp) { return locksFor_(email)[cp] === true; }
+
 function goalsFor_(email) {
   var out = [];
   readTab_('Goals').forEach(function (r) {
@@ -384,7 +404,8 @@ function bootstrap_(cfg, id) {
       goal: str_(p.Goal),
       photoUrl: /^https:\/\/[a-z0-9.-]+\.googleusercontent\.com\//.test(id.picture) ? id.picture : '',
       predictions: predictionsFor_(id.email),
-      combine: measuredFor_(id.email)
+      combine: measuredFor_(id.email),
+      locked: locksFor_(id.email)
     };
     out.predict = { items: PREDICT_ITEMS, checkpoints: PREDICT_CHECKPOINTS, ratings: RATINGS, freqs: FREQS };
     out.meta = combineMeta_();
@@ -490,6 +511,7 @@ function saveCombine_(cfg, id, checkpoint, results) {
   requireStudent_(id);
   var cp = lower_(checkpoint);
   if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) throw new Error('Unknown checkpoint');
+  if (isLocked_(id.email, cp)) throw new Error('Your teacher has locked this checkpoint — ask them to unlock it to make changes');
   if (!results || typeof results !== 'object') throw new Error('Missing results');
   var fields = { Updated: new Date() }, saved = {};
   FIT_KEYS.forEach(function (k) {
@@ -562,14 +584,112 @@ function saveSkills_(cfg, id, targetEmail, checkpoint, levels) {
   return { ok: true, email: email, checkpoint: cp, levels: saved };
 }
 
+// A student self-records their OWN skill-ladder levels for one checkpoint (the
+// self→teacher model). Refused if the teacher has locked the checkpoint.
+function saveMySkills_(cfg, id, checkpoint, levels) {
+  requireStudent_(id);
+  var cp = lower_(checkpoint);
+  if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) throw new Error('Unknown checkpoint');
+  if (isLocked_(id.email, cp)) throw new Error('Your teacher has locked this checkpoint — ask them to unlock it to make changes');
+  if (!levels || typeof levels !== 'object') throw new Error('Missing levels');
+  var fields = { Updated: new Date() }, saved = {};
+  SKILL_KEYS.forEach(function (k) {
+    if (!(k in levels) || levels[k] === '' || levels[k] === null) return;
+    var n = Number(levels[k]);
+    if (!isFinite(n) || n % 1 !== 0 || n < SKILL_MIN || n > SKILL_MAX) throw new Error('Level for ' + k + ' must be ' + SKILL_MIN + '–' + SKILL_MAX);
+    fields[k] = n; saved[k] = n;
+  });
+  upsert_('Skills', { Email: id.email, Checkpoint: cp }, fields);
+  return { ok: true, checkpoint: cp, levels: saved };
+}
+
+// A teacher records the three report-band grades (Knowledge · Skills · Concept
+// transfer), best-fit 1–7, for a student on the roster.
+function saveBands_(cfg, id, targetEmail, bands) {
+  requireTeacher_(id);
+  var email = lower_(targetEmail);
+  if (!email) throw new Error('Missing student');
+  if (!readTab_('Students').some(function (r) { return lower_(r.Email) === email; })) throw new Error('That student is not on the class list');
+  if (!bands || typeof bands !== 'object') throw new Error('Missing bands');
+  var fields = { Updated: new Date() }, saved = {};
+  BAND_KEYS.forEach(function (k) {
+    if (!(k in bands) || bands[k] === '' || bands[k] === null) return;
+    var n = Number(bands[k]);
+    if (!isFinite(n) || n % 1 !== 0 || n < 1 || n > 7) throw new Error('Report band ' + k + ' must be 1–7');
+    fields[k] = n; saved[k] = n;
+  });
+  upsert_('Bands', { Email: email }, fields);
+  return { ok: true, email: email, bands: saved };
+}
+
+// A teacher locks or unlocks a checkpoint for one or more students (finalize).
+function setLock_(cfg, id, emails, checkpoint, locked) {
+  requireTeacher_(id);
+  var cp = lower_(checkpoint);
+  if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) throw new Error('Unknown checkpoint');
+  var list = (Object.prototype.toString.call(emails) === '[object Array]') ? emails : [emails];
+  var roster = {}; readTab_('Students').forEach(function (r) { roster[lower_(r.Email)] = true; });
+  var done = [];
+  list.forEach(function (e) {
+    var email = lower_(e);
+    if (!email || !roster[email]) return;
+    upsert_('Locks', { Email: email, Checkpoint: cp }, { Locked: locked ? 'yes' : '', Updated: new Date() });
+    done.push(email);
+  });
+  return { ok: true, checkpoint: cp, locked: !!locked, emails: done };
+}
+
 // ---------- Teacher reads (teacher-gated; the one place class data is returned) ----------
+// Each tab is read ONCE and indexed by email, instead of re-reading all four tabs
+// per student (which made the class view O(students × tabs) full-sheet reads).
+function indexSeries_(tabName, keys) {
+  var idx = {};
+  readTab_(tabName).forEach(function (r) {
+    var email = lower_(r.Email); if (!email) return;
+    var cp = lower_(r.Checkpoint);
+    if (COMBINE_CHECKPOINTS.indexOf(cp) === -1) return;
+    var o = idx[email] || (idx[email] = {});
+    keys.forEach(function (k) {
+      var n = numOrNull_(r[k]); if (n === null) return;
+      (o[k] || (o[k] = {}))[cp] = n;
+    });
+  });
+  return idx;
+}
+function indexAp_() {
+  var idx = {};
+  readTab_('Participation').forEach(function (r) {
+    var email = lower_(r.Email); if (!email) return;
+    var o = {};
+    AP_KEYS.forEach(function (k) {
+      var self = numOrNull_(r[k + '_self']), tchr = numOrNull_(r[k + '_tchr']);
+      if (self !== null || tchr !== null) o[k] = { self: self, tchr: tchr };
+    });
+    idx[email] = o;
+  });
+  return idx;
+}
+function indexBands_() {
+  var idx = {};
+  readTab_('Bands').forEach(function (r) {
+    var email = lower_(r.Email); if (!email) return;
+    var o = {};
+    BAND_KEYS.forEach(function (k) { var n = numOrNull_(r[k]); if (n !== null) o[k] = n; });
+    idx[email] = o;
+  });
+  return idx;
+}
 function classOverview_(cfg, id) {
   requireTeacher_(id);
+  var combine = indexSeries_('Combine', FIT_KEYS);
+  var skills  = indexSeries_('Skills', SKILL_KEYS);
+  var ap = indexAp_(), bands = indexBands_(), locks = locksIndex_();
   var out = [];
   readTab_('Students').forEach(function (r) {
     var email = lower_(r.Email); if (!email) return;
     out.push({ id: email, name: str_(r.Name), klass: str_(r.Class),
-      fitness: fitnessFor_(email), skills: skillsFor_(email), ap: apFor_(email), bands: bandsFor_(email) });
+      fitness: combine[email] || {}, skills: skills[email] || {}, ap: ap[email] || {},
+      bands: bands[email] || {}, locked: locks[email] || {} });
   });
   return { role: 'class', students: out, meta: combineMeta_() };
 }
@@ -610,7 +730,7 @@ function clearProfileData() {
   var ui = SpreadsheetApp.getUi();
   var ans = ui.alert('Clear all student data?', 'This deletes every student\'s saved style, goals, self-predictions, Combine, skills, participation, bands and workout plan. The Students roster is not touched. Continue?', ui.ButtonSet.YES_NO);
   if (ans !== ui.Button.YES) return;
-  ['Profile', 'Predictions', 'Combine', 'Skills', 'Participation', 'Bands', 'Goals', 'Plan'].forEach(function (n) {
+  ['Profile', 'Predictions', 'Combine', 'Skills', 'Participation', 'Bands', 'Goals', 'Plan', 'Locks'].forEach(function (n) {
     var s = ensureTab_(n, TABS[n]);
     if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
   });

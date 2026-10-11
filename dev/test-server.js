@@ -140,6 +140,23 @@ check('classStudent: teacher reads one student', (() => { const r = as(T, 'class
 check('classStudent refused for a non-teacher', (() => !as(S2, 'classStudent', { email: S1 }).ok)());
 check('student bootstrap still carries no other student (after v3 data)', !JSON.stringify(as(S1, 'bootstrap')).includes('sample.two'));
 
+console.log('v3 self-record skills + report bands + locks');
+check('student self-records their own skills', (() => { const r = as(S1, 'saveMySkills', { checkpoint: 'sept', levels: { throw: 3, dribble: 4 } }); return r.ok && r.data.levels.throw === 3; })());
+check('self-recorded skill shows on the student\'s own bootstrap', as(S1, 'bootstrap').data.student.combine.skills.dribble.sept === 4);
+check('teacher can override a self-recorded skill', (() => { const r = as(T, 'saveSkills', { email: S1, checkpoint: 'sept', levels: { throw: 5 } }); return r.ok && r.data.levels.throw === 5; })());
+check('teacher records report bands (1-7)', (() => { const r = as(T, 'saveBands', { email: S1, bands: { knowledge: 5, skills: 5, concept: 4 } }); return r.ok && r.data.bands.knowledge === 5; })());
+check('report band outside 1-7 refused', (() => { const r = as(T, 'saveBands', { email: S1, bands: { knowledge: 8 } }); return !r.ok && /1.?7/.test(r.error); })());
+check('a student cannot record report bands', (() => { const r = as(S2, 'saveBands', { email: S1, bands: { knowledge: 5 } }); return !r.ok && /teacher/i.test(r.error); })());
+check('teacher locks a student checkpoint', (() => { const r = as(T, 'setLock', { emails: [S1], checkpoint: 'sept', locked: true }); return r.ok && r.data.emails.indexOf(S1) !== -1; })());
+check('lock shows on the student bootstrap', as(S1, 'bootstrap').data.student.locked.sept === true);
+check('locked student cannot edit fitness', (() => { const r = as(S1, 'saveCombine', { checkpoint: 'sept', results: { pushups: 20 } }); return !r.ok && /lock/i.test(r.error); })());
+check('locked student cannot self-record skills', (() => { const r = as(S1, 'saveMySkills', { checkpoint: 'sept', levels: { kick: 3 } }); return !r.ok && /lock/i.test(r.error); })());
+check('teacher can still edit a locked student', as(T, 'saveSkills', { email: S1, checkpoint: 'sept', levels: { kick: 4 } }).ok === true);
+check('classOverview carries lock state', (() => { const r = as(T, 'classOverview'); return r.data.students.some(s => s.locked && s.locked.sept === true); })());
+check('a student cannot use setLock', !as(S2, 'setLock', { emails: [S1], checkpoint: 'sept', locked: true }).ok);
+check('teacher unlocks the checkpoint', (() => { const r = as(T, 'setLock', { emails: [S1], checkpoint: 'sept', locked: false }); return r.ok && as(S1, 'bootstrap').data.student.locked.sept !== true; })());
+check('unlocked student can edit again', as(S1, 'saveCombine', { checkpoint: 'sept', results: { pushups: 20 } }).ok === true);
+
 console.log('retention');
 FakeSheets.uiAnswer = 'YES';
 clearProfileData();

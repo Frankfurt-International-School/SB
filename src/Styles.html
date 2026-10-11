@@ -274,4 +274,46 @@ textarea{width:100%;font-family:var(--body);font-size:14px;border:1px solid var(
 .pill.g-hi{background:var(--ap-t);color:var(--ap)}.pill.g-mid{background:var(--fit-t);color:var(--fit)}.pill.g-lo{background:#f9e5e2;color:#c0392b}
 .minib{background:var(--maroon-t);color:var(--maroon);border:none;border-radius:8px;font-family:var(--disp);font-weight:700;font-size:12px;padding:6px 10px;cursor:pointer}
 .minib:hover{background:#ecd5d9}
+/* ── student skills self-entry + locks ── */
+.secbtn{margin-left:auto;font-family:var(--disp);font-weight:800;font-size:12px;border:1.5px solid var(--line);background:#fff;color:var(--maroon);border-radius:999px;padding:6px 13px;cursor:pointer}
+.secbtn:hover{border-color:var(--maroon)}
+.lockmsg{background:#fbe9d6;border:1.5px solid #e7b64b;border-radius:12px;padding:11px 15px;font-weight:600;font-size:14px;color:#6b4a12;margin:8px 0 10px;line-height:1.4}
+.enrow select.lvsel{font-family:var(--disp);font-weight:800;font-size:16px;border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:#fff;color:var(--ink);min-width:78px;text-align:center}
+.enrow select.lvsel:disabled{opacity:.55;background:#f1eee9}
+/* ── at-a-glance filled position bars ── */
+.track.live i.on{background:#e7b64b}
+.track.live i.cur{background:#6f1d2c}
+/* ── teacher gradebook matrix ── */
+.wrap.wide{max-width:1180px}
+.mxbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:2px 0 10px}
+.mxf{font-family:var(--disp);font-weight:700;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.mxf select{font-family:var(--body);font-weight:600;font-size:14px;border:1px solid var(--line);border-radius:9px;padding:6px 9px;background:#fff;color:var(--ink)}
+.cptabs{display:inline-flex;background:#efe9e2;border-radius:999px;padding:3px}
+.cpbtn{border:0;background:transparent;font-family:var(--disp);font-weight:800;font-size:13px;color:#8a7f77;padding:6px 15px;border-radius:999px;cursor:pointer}
+.cpbtn.on{background:var(--maroon);color:#fff}
+.mxact{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.mxleg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-bottom:9px;flex-wrap:wrap}
+.mxleg .lk{width:13px;height:13px;border-radius:4px;display:inline-block}
+.mxleg .sep{width:10px}
+.lv-hi{background:#e4f5ec !important;color:#15724a !important;border-color:#b7e3cb !important}
+.lv-mid{background:#fbf0d4 !important;color:#926410 !important;border-color:#eccf86 !important}
+.lv-lo{background:#fbe5e3 !important;color:#b23b33 !important;border-color:#f0bdb8 !important}
+.lv0{background:#f1eee9 !important;color:#b3aaa1 !important;border-color:#e3ddd3 !important}
+.mxwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:#fff}
+table.mx{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+table.mx th{font-family:var(--disp);font-weight:800;font-size:12px;color:var(--muted);text-align:center;padding:8px 5px;border-bottom:2px solid var(--line);white-space:nowrap;cursor:pointer;position:sticky;top:0;background:var(--paper);z-index:2}
+table.mx th.mx-nm,table.mx th.mx-cl{text-align:left}
+table.mx td{padding:5px 5px;border-bottom:1px solid #eee;text-align:center;vertical-align:middle}
+table.mx td.mx-nm{text-align:left;font-weight:700;white-space:nowrap}
+table.mx td.mx-cl{text-align:left;color:var(--muted);font-size:12px}
+table.mx tr:last-child td{border-bottom:0}
+.mx-nm{min-width:132px;position:sticky;left:0;background:#fff;z-index:1}
+table.mx th.mx-nm{z-index:3}
+tr.r-flag td.mx-nm{box-shadow:inset 3px 0 0 #c0392b}
+.cellsel{appearance:none;-webkit-appearance:none;width:46px;text-align:center;font-family:var(--disp);font-weight:800;font-size:13px;border:1.5px solid;border-radius:8px;padding:5px 2px;cursor:pointer}
+.apdot{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-family:var(--disp);font-weight:800;font-size:12px;border:1.5px solid}
+.lockb{border:0;background:transparent;font-size:17px;cursor:pointer;line-height:1;padding:3px 5px;border-radius:7px}
+.lockb.on{background:#fbe9d6}
+.flag{font-size:12px}
+.flag.off{opacity:.4}
 </style>
