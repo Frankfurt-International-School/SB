@@ -1839,7 +1839,7 @@ function normPlan(p) {
   });
   return out;
 }
-const REST = { strength: 60, endurance: 30 }; // seconds of rest per set, used to estimate minutes
+const REST = { strength: 30, endurance: 30 }; // seconds of rest per set, used to estimate minutes
 function parseSecs(t) {
   t = String(t || '').trim().toLowerCase(); if (!t) return 0;
   let m = t.match(/^(\d+):(\d{1,2})$/); if (m) return (+m[1]) * 60 + (+m[2]);
@@ -2098,7 +2098,7 @@ function woPlayer() {
   const playLabel = wo.running ? '❚❚ Pause' : (timeUp ? '↺ Again' : (kind === 'interval' && !wo.rest ? (allSets ? '✓ Done' : '▶ Start set ' + (wo.sets + 1)) : (wo.rest ? '▶ Resume rest' : '▶ Start timer')));
   const ring = wo.total ? '<div class="wo-timer"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" class="wo-rbg"/><circle cx="60" cy="60" r="54" class="wo-rfg" id="wo-ring" style="stroke-dasharray:' + WO_C.toFixed(1) + ';stroke-dashoffset:' + woRingOff().toFixed(1) + '"/></svg>' +
     '<div class="wo-tin"><div class="wo-time" id="wo-time">' + (timeUp ? '⏰' : fmtClock(wo.left)) + '</div><div class="wo-tl">' + (timeUp ? 'time!' : (wo.rest ? 'rest · then set ' + (wo.sets + 1) : (wo.running ? 'go go go' : (kind === 'interval' ? 'set ' + (wo.sets + 1) : 'ready')))) + '</div></div></div>' +
-    '<div class="wo-ctl">' + (wo.rest ? '<button type="button" class="wo-c" id="wo-skiprest">Skip rest</button>' : '<button type="button" class="wo-c" id="wo-reset" aria-label="restart timer">↺</button>') + '<button type="button" class="wo-c main' + (wo.running ? ' on' : '') + '" id="wo-play"' + (kind === 'interval' && allSets && !wo.rest ? ' disabled' : '') + '>' + playLabel + '</button><button type="button" class="wo-c" id="wo-plus">+30s</button></div>' : '';
+    '<div class="wo-ctl">' + (wo.rest ? '<button type="button" class="wo-c" id="wo-skiprest">Skip rest</button>' : '<button type="button" class="wo-c" id="wo-reset" aria-label="restart timer">↺</button>') + '<button type="button" class="wo-c main' + (wo.running ? ' on' : '') + '" id="wo-play"' + (kind === 'interval' && allSets && !wo.rest ? ' disabled' : '') + '>' + playLabel + '</button><button type="button" class="wo-c" id="wo-plus"' + (wo.rest ? ' aria-label="add 30 seconds of rest"' : '') + '>' + (wo.rest ? '+30s rest' : '+30s') + '</button></div>' : '';
   const dots = sets ? '<div class="wo-sets">' + Array.from({ length: sets }, (_, k) => '<button type="button" class="wo-dot' + (k < wo.sets ? ' on' : '') + '" data-dot="' + k + '" aria-label="set ' + (k + 1) + (k < wo.sets ? ' done' : '') + '">' + (k < wo.sets ? '✓' : k + 1) + '</button>').join('') + '</div>' +
     (allSets ? '<div class="wo-alldone">✓ All sets done</div>' : (kind !== 'interval' ? '<button type="button" class="wo-setb" id="wo-set">✓ Set ' + (wo.sets + 1) + ' done</button>' : '')) : '';
   const tip = it.part === 'cardio' && wo.p.hr ? '<div class="wo-tip">❤️ Aim for ' + esc(wo.p.hr) + ' — check your pulse</div>' : (it.part === 'focus' && wo.p.fWhy ? '<div class="wo-tip">🎯 ' + esc(wo.p.fWhy) + '</div>' : '');
