@@ -248,7 +248,7 @@ function ladderBar(lv) {
 }
 function bandV(ovKey, em, name, repKey) {
   const m = measured(), v = m && m.bands && m.bands[repKey] != null ? m.bands[repKey] : null;
-  const LBL = { 1: 'Beginning', 2: 'Developing', 3: 'Approaching', 4: 'Meeting', 5: 'Strong', 6: 'Advanced', 7: 'Exceptional' };
+  const LBL = { 1: 'Beginning', 2: 'Beginning', 3: 'Intermediate', 4: 'Intermediate', 5: 'Proficient', 6: 'Proficient', 7: 'Advanced' };
   const cls = v == null ? '' : (v >= 5 ? 'ok' : v >= 4 ? 'meet' : 'below');
   const bar = '<div class="btrack">' + [1, 2, 3, 4, 5, 6, 7].map(i => '<i class="' + (v && i <= v ? 'on' : '') + '"></i>').join('') + '</div>';
   return '<button type="button" class="band ' + cls + '" data-ov="' + ovKey + '"><span class="plus">⊕</span><div class="bn">' + em + ' ' + esc(name) + '</div>' + bar +
@@ -317,7 +317,9 @@ const UNITS = [
   { key: 'tactics',   e: '🧠', name: 'Tactics Cup', from: '2027-03-09', to: '2027-04-13', when: 'Mar – Apr', blurb: 'Read the game; take a tactic into a new sport' },
   { key: 'tchouk',    e: '🤾', name: 'Tchoukball',  from: '2027-04-14', to: '2027-05-20', when: 'Apr – May', blurb: 'Throw, catch and team roles in a season', found: ['throw', 'catch'] }
 ];
-const LV4 = ['Beginning', 'Intermediate', 'Proficient', 'Advanced'];
+// The school's 1–7 scale (rubric bank): four bands, each holding its numbers.
+const BANDS7 = [['Beginning', [1, 2]], ['Intermediate', [3, 4]], ['Proficient', [5, 6]], ['Advanced', [7]]];
+function band7(v) { const b = BANDS7.find(x => x[1].indexOf(v) !== -1); return b ? b[0] : ''; }
 function todayIso() { return isoDay(new Date()); }
 function unitStatus(u) {
   const t = todayIso();
@@ -386,7 +388,7 @@ function archiveView(b) {
     out += item('🔮', 'Lesson 1 prediction', pred.timestamp.slice(0, 10), '<div class="l1row"><b>🟢 Strengths</b><div class="chips">' + ch(L.strengths, 'g') + '</div></div><div class="l1row"><b>🔴 Work-ons</b><div class="chips">' + ch(L.workons, 'r') + '</div></div>'); }
   if (bad) { const cr = (RUBRICS.units.badminton || {}).criteria || [];
     out += item('🏸', 'Badminton — partner practice check', (R['unit-badminton'].updated || '').slice(0, 10),
-      '<div class="arc-lv">' + cr.map((c, i) => '<span>' + esc(c.name) + ' <b>' + (bad.levels && bad.levels[i] != null ? LV4[bad.levels[i]] : '—') + '</b></span>').join('') + '</div>' + (bad.focus ? '<div class="arc-q">My focus for the final assessment</div><p>' + esc(bad.focus) + '</p>' : ''),
+      '<div class="arc-lv">' + cr.map((c, i) => '<span>' + esc(c.name) + ' <b>' + (bad.levels && bad.levels[i] != null ? bad.levels[i] + ' · ' + band7(bad.levels[i]) : '—') + '</b></span>').join('') + '</div>' + (bad.focus ? '<div class="arc-q">My focus for the final assessment</div><p>' + esc(bad.focus) + '</p>' : ''),
       '<button type="button" class="lnk" data-unit="badminton">Open Badminton</button>'); }
   return '<div class="wrap">' +
     '<button type="button" class="back light" id="tohub">← Back to my profile</button>' +
@@ -399,7 +401,7 @@ function archiveView(b) {
 let unitDraft = null, unitKey = null;
 function unitView(b) {
   const u = UNITS.find(x => x.key === unitKey), rub = RUBRICS.units[unitKey], m = measured();
-  if (unitDraft === null) { const s = reflJson('unit-' + unitKey) || {}; unitDraft = { levels: (s.levels || []).slice(), focus: s.focus || '' }; }
+  if (unitDraft === null) { const s = reflJson('unit-' + unitKey) || {}; unitDraft = { v: 7, levels: s.v === 7 ? (s.levels || []).slice() : [], focus: s.focus || '' }; }
   const found = (u.found || []).map(k => {
     const lad = RUBRICS.ladders[k], lv = m && m.skills ? latestOf(m.skills[k]) : null, em = (FUND.find(f => f[0] === k) || ['', '🧩'])[1];
     return '<button type="button" class="found" data-ov="fund-' + k + '"><span class="fd-e">' + em + '</span><span class="fd-b"><span class="fd-t">' + esc(lad.name) + ' ladder · from the Combine</span>' + ladderBar(lv) +
@@ -409,8 +411,10 @@ function unitView(b) {
   const steps = (u.steps || []).map((s, i) => '<div class="ustep"><span class="us-n">' + (i + 1) + '</span><span><b>' + s[0] + ' ' + esc(s[1]) + '</b><span>' + esc(s[2]) + '</span></span></div>').join('');
   const crit = rub.criteria.map((c, i) => {
     const sel = unitDraft.levels[i];
-    return '<div class="rcrit"><div class="rc-h"><b>' + esc(c.name) + '</b><span class="rc-std">' + esc(c.std.split(' ')[0]) + ' → ' + esc((u.bands || {})[c.name] || '') + '</span></div><div class="rc-lv">' +
-      c.levels.map((d, j) => '<button type="button" class="rlv l' + j + (sel === j ? ' on' : '') + '" data-crit="' + i + '" data-lv="' + j + '"><span class="rl-n">' + LV4[j] + '</span><span class="rl-d">' + esc(d) + '</span></button>').join('') + '</div></div>';
+    return '<div class="rcrit"><div class="rc-h"><b>' + esc(c.name) + '</b><span class="rc-std">' + esc(c.std.split(' ')[0]) + ' → ' + esc((u.bands || {})[c.name] || '') + (sel != null ? ' · <b>' + sel + '</b>' : '') + '</span></div><div class="rc-lv">' +
+      c.levels.map((d, j) => { const bn = BANDS7[j], on = bn[1].indexOf(sel) !== -1;
+        return '<div class="rlv' + (on ? ' on' : '') + '"><span class="rl-n">' + bn[0] + '</span><span class="rl-d">' + esc(d) + '</span><span class="rnums">' +
+          bn[1].map(n => '<button type="button" class="rnum' + (sel === n ? ' on' : '') + '" data-crit="' + i + '" data-lv="' + n + '" aria-label="' + esc(c.name) + ' ' + n + '">' + n + '</button>').join('') + '</span></div>'; }).join('') + '</div></div>';
   }).join('');
   const done = unitDraft.levels.filter(v => v != null).length;
   return '<div class="wrap">' +
@@ -418,7 +422,7 @@ function unitView(b) {
     '<div class="phero"><div class="k">UNIT · ' + esc(u.when.toUpperCase()) + (unitStatus(u) === 'next' ? ' · UP NEXT' : '') + '</div><h1>' + u.e + ' ' + esc(u.name) + '</h1><p>' + esc(u.lede || u.blurb) + '</p></div>' +
     (found ? '<h3 class="sec sec-fund"><span class="em">🧩</span> Built on your foundation</h3>' + link + '<div class="founds">' + found + '</div>' : '') +
     '<h3 class="sec sec-skill"><span class="em">📋</span> How you\'re assessed</h3><div class="usteps">' + steps + '</div>' +
-    '<h3 class="sec sec-skill"><span class="em">🤝</span> My practice check <span class="tap">· tap where you are on each</span></h3><p class="seclede">Rate yourself with your partner. Be honest — this is practice, so it\'s where you find what to work on.</p>' +
+    '<h3 class="sec sec-skill"><span class="em">🤝</span> My practice check <span class="tap">· tap where you are on each</span></h3><p class="seclede">Rate yourself with your partner on our 1–7 scale — read the descriptor, then pick the number. Be honest: this is practice, so it\'s where you find what to work on.</p>' +
     '<div class="rgrid">' + crit + '</div>' +
     '<h3 class="sec"><span class="em">🎯</span> My focus for the final assessment</h3><textarea id="ufocus" rows="3" maxlength="500" placeholder="What should you focus on in the Festival to make progress? Give as much detail as you can.">' + esc(unitDraft.focus) + '</textarea>' +
     '<div class="tresult"><span>🏆 Teacher assessment</span><b>at the Festival</b></div>' +
