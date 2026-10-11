@@ -377,16 +377,38 @@ function summaryView(b) {
 
 // v3 stub: prediction next to Combine measurements. Combine data is null until the
 // Combine tab exists; the layout is final so v3 only has to fill the right column.
+const CMP_FITMAP = { cv: 'mile', me: 'pushups', power: 'broad', speed: 'sprint', balance: 'stork', agility: 'illinois' };
+function compareCell(i, m) {
+  if (!m) return '<span class="pending">not tested yet</span>';
+  const fk = CMP_FITMAP[i.k];               // fitness-measured (incl. balance→stork, agility→illinois)
+  if (fk) {
+    const v = latestOf((m.fitness || {})[fk]);
+    if (v == null) return '<span class="pending">not tested yet</span>';
+    if (fk === 'mile') return '<b>' + mileStr(v) + '</b>';
+    const meta = FITMETA().find(f => f.key === fk) || {};
+    return '<b>' + fmtNum(v) + '</b>' + (meta.unit ? ' <small>' + esc(meta.unit) + '</small>' : '');
+  }
+  const lv = latestOf((m.skills || {})[i.k]);
+  return lv == null ? '<span class="pending">not tested yet</span>' : '<b>Level ' + lv + '</b>';
+}
+function compareVerdict(i, m, pred) {
+  if (!m || CMP_FITMAP[i.k] || i.g !== 'fund' || !pred || !pred.items[i.k]) return '';
+  const lv = latestOf((m.skills || {})[i.k]); if (lv == null) return '';
+  const band = lv >= 5 ? 'hi' : (lv >= 4 ? 'mid' : 'lo'), r = pred.items[i.k].rating;
+  if ((r === 'strength' && band === 'hi') || (r === 'work-on' && band === 'lo')) return '<span class="vmatch">✓ called it</span>';
+  if ((r === 'strength' && band === 'lo') || (r === 'work-on' && band === 'hi')) return '<span class="vmiss">✗ surprise</span>';
+  return '';
+}
 function compareView(b) {
-  const pred = predictionSaved(), combine = b.student.combine || {};
+  const pred = predictionSaved(), m = measured();
   const rows = ITEMS.map(i => {
-    const p = pred && pred.items[i.k], c = combine[i.k];
+    const p = pred && pred.items[i.k];
     return '<div class="crowi a-' + i.g + '"><span class="em">' + i.e + '</span><div class="ct"><b>' + esc(i.t) + '</b><span>' + (p ? RATING[p.rating].e + ' ' + RATING[p.rating].t + ' · ' + esc(FREQ[p.freq]).toLowerCase() : 'no prediction') + '</span></div>' +
-      '<div class="cv">' + (c ? esc(String(c)) : '<span class="pending">not yet measured</span>') + '</div></div>';
+      '<div class="cv">' + compareCell(i, m) + ' ' + compareVerdict(i, m, pred) + '</div></div>';
   }).join('');
   return '<div class="wrap">' +
     '<button type="button" class="back light" id="toprofile">← Back to my profile</button>' +
-    '<div class="phero"><div class="k">PREDICTION vs. COMBINE</div><h1>How well did you know yourself?</h1><p>Left: what you predicted in Lesson 1. Right: what the Combine measured. Right now the Combine hasn’t happened, so the right side is waiting.</p></div>' +
+    '<div class="phero"><div class="k">PREDICTION vs. COMBINE</div><h1>How well did you know yourself?</h1><p>Left: what you predicted in Lesson 1. Right: what the Combine measured' + (m ? ' — ✓ means your hunch matched, ✗ a surprise.' : ' — the Combine hasn’t happened yet, so the right side is waiting.') + '</p></div>' +
     '<div class="chead"><span>Item</span><span>My prediction</span><span>Combine</span></div>' + rows +
     (pred ? '' : '<p class="empty" style="margin-top:14px">You haven’t made a prediction yet. <button type="button" class="lnk" id="topredict">Make it now</button></p>') +
   '</div>';

@@ -54,6 +54,8 @@
     // ── synthetic v3 data: sample.one is a fully-populated student; the class has a spread ──
     const T1 = tokenFor('sample.one@example.edu');
     callApi({ action: 'saveStyle', token: T1, style: 'improver' });
+    const ans1 = {}; PREDICT_ITEMS.forEach((k, i) => { ans1[k] = { rating: RATINGS[i % 3], freq: FREQS[(i + 1) % 3] }; });
+    callApi({ action: 'savePrediction', token: T1, checkpoint: 'intro', answers: ans1 });
     callApi({ action: 'saveCombine', token: T1, checkpoint: 'sept', results: { mile: 612, pushups: 14, sitstand: 28, broad: 168, grip: 24, sprint: 5.9, illinois: 18.9, stork: 7 } });
     callApi({ action: 'saveCombine', token: T1, checkpoint: 'jan',  results: { mile: 584, pushups: 18, sitstand: 31, broad: 176, grip: 26, sprint: 5.7, illinois: 18.1, stork: 5 } });
     callApi({ action: 'saveGoals', token: T1, goals: [{ component: 'mile', goal: 'Break 9:00 by May' }, { component: 'dribble', goal: 'Get the weak-hand slalom clean' }] });
