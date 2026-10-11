@@ -77,7 +77,8 @@ var TABS = {
   Skills:        ['Email', 'Checkpoint'].concat(SKILL_KEYS).concat(['Updated']), // teachers enter the skill-ladder levels
   Participation: apHeaders_(),                                                   // teacher-reported, self + teacher per key
   Bands:         ['Email'].concat(BAND_KEYS).concat(['Updated']),                // the three report bands
-  Goals:         ['Email', 'Component', 'Target', 'Goal', 'Updated'],            // focus components: a May target per component, plus one '_note' row
+  Goals:         ['Email', 'Component', 'Goal', 'Updated', 'Target'],            // focus goals: Target added last so it appends cleanly onto an existing Goals tab; plus one '_note' row
+
   Plan:          ['Email', 'Plan', 'Updated'],                                   // the student's personal workout plan (JSON)
   Locks:         ['Email', 'Checkpoint', 'Locked', 'Updated']                    // teacher finalize-lock per student per checkpoint
 };
