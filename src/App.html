@@ -392,6 +392,13 @@ function entryView(b) {
   const m = measured(), fit = m && m.fitness ? m.fitness : {};
   const rows = FITMETA().map(function (f) {
     const cur = fit[f.key] && (entryCp in fit[f.key]) ? fit[f.key][entryCp] : '';
+    if (f.key === 'mile') {
+      const mm = cur === '' ? '' : Math.floor(cur / 60);
+      const ss = cur === '' ? '' : String(Math.round(cur % 60)).padStart(2, '0');
+      return '<label class="enrow"><span class="en-n">' + FIT_EMOJI.mile + ' ' + esc(f.label) + '</span>' +
+        '<span class="en-in en-mile"><input type="number" inputmode="numeric" min="0" id="en-mile-min" value="' + mm + '" placeholder="9"><b>:</b>' +
+        '<input type="number" inputmode="numeric" min="0" max="59" id="en-mile-sec" value="' + ss + '" placeholder="42"><small>min : sec · lower better</small></span></label>';
+    }
     return '<label class="enrow"><span class="en-n">' + FIT_EMOJI[f.key] + ' ' + esc(f.label) + '</span>' +
       '<span class="en-in"><input type="number" step="any" inputmode="decimal" id="en-' + f.key + '" value="' + (cur === '' ? '' : cur) + '" placeholder="—"><small>' + esc(f.unit) + (f.dir === 'down' ? ' · lower better' : '') + '</small></span></label>';
   }).join('');
@@ -407,7 +414,15 @@ function entryView(b) {
 async function saveEntry() {
   const btn = $('#ensave'); btn.disabled = true; btn.textContent = 'Saving…';
   const results = {};
-  FITMETA().forEach(function (f) { const el = $('#en-' + f.key); const v = el ? el.value.trim() : ''; if (v !== '') results[f.key] = Number(v); });
+  FITMETA().forEach(function (f) {
+    if (f.key === 'mile') {
+      const mi = $('#en-mile-min'), si = $('#en-mile-sec');
+      const mmv = mi ? mi.value.trim() : '', ssv = si ? si.value.trim() : '';
+      if (mmv !== '' || ssv !== '') results.mile = (Number(mmv) || 0) * 60 + (Number(ssv) || 0);
+      return;
+    }
+    const el = $('#en-' + f.key); const v = el ? el.value.trim() : ''; if (v !== '') results[f.key] = Number(v);
+  });
   try {
     const res = await call('saveCombine', { checkpoint: entryCp, results: results });
     const m = state.student.combine || { fitness: {}, skills: {}, ap: {}, bands: {}, goals: [], plan: null };
