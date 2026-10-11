@@ -123,6 +123,8 @@ check('saveGoals keeps valid components, drops junk', (() => {
 check('saveGoals replaces the whole set', (() => { as(S1, 'saveGoals', { goals: [{ component: 'stork', goal: 'fewer losses' }] }); const g = as(S1, 'bootstrap').data.student.combine.goals; return g.length === 1 && g[0].component === 'stork'; })());
 check('saveGoals stores a numeric target and a note', (() => { const r = as(S1, 'saveGoals', { goals: [{ component: 'mile', target: 540 }, { component: 'dribble', target: 6 }], note: 'run twice a week' }); const c = as(S1, 'bootstrap').data.student.combine; return r.ok && c.goals.find(x => x.component === 'mile').target === 540 && c.goalNote === 'run twice a week'; })());
 check('savePlan stores and reads back', (() => { const plan = { days: [{ focus: 'cv', items: ['run 20 min'] }] }; const r = as(S1, 'savePlan', { plan: plan }); return r.ok && as(S1, 'bootstrap').data.student.combine.plan.days[0].focus === 'cv'; })());
+check('savePlan keeps sets/reps rows and the home-session log', (() => { const plan = { warmup: [], main: [{ n: 'Push-ups', c: 'strength', sets: 3, reps: '10' }], cooldown: [], days: { tue: true }, log: [{ date: '2026-10-14', who: 'friend' }] }; const r = as(S1, 'savePlan', { plan: plan }); const p = as(S1, 'bootstrap').data.student.combine.plan; return r.ok && p.main[0].sets === 3 && p.main[0].reps === '10' && p.log[0].who === 'friend'; })());
+check('savePlan refuses an oversized plan', /too long/.test(as(S1, 'savePlan', { plan: { reflection: 'x'.repeat(9000) } }).error || ''));
 check('teacher (not on roster) cannot saveGoals', /class list/.test(as(T, 'saveGoals', { goals: [] }).error));
 
 console.log('v3 skills (teacher-entered) + class view');
