@@ -11,7 +11,7 @@
 (function () {
   'use strict';
   const q = new URLSearchParams(location.search);
-  const STORE = 'g8pe_fake_book_v2';
+  const STORE = 'g8pe_fake_book_v3';
   const latency = parseInt(q.get('latency') || '200', 10);
   const failWrites = q.get('fail') === '1';
   window.__preview = { fastRetry: true };
@@ -66,9 +66,11 @@
       strength: [{ n: 'Push-ups (max reps)', sets: 3, reps: '40s', int: 'moderate' }, { n: 'Bodyweight squats', sets: 3, reps: '45s', int: 'moderate' }],
       focus: [{ n: 'Sprints', sets: 4, reps: '20 m', min: 4, int: 'hard' }],
       cooldown: [{ n: 'Static stretches', min: 4, int: 'easy' }],
-      sChoice: 'endurance', fChoice: 'speed', hr: '150–170 bpm', fWhy: '',
+      sChoice: 'endurance', fChoice: 'speed', hr: '150–170 bpm', fWhy: 'Short hard sprints build my top speed for the 30 m.',
+      why: { warmup: 'Raises my heart rate and loosens hips and hamstrings', cardio: 'Intervals push me into my zone to improve the mile', strength: 'Timed sets build muscular endurance in arms and legs' },
+      ref: { strength: 'My strength is sit-to-stand (31). I want to improve my mile (9:44).', worked: 'I reached 160 bpm in the intervals. Push-ups went 18 to 21.', change: '', matters: '' },
       equip: ['water bottle'], days: { tue: true, thu: true, sat: true },
-      log: [{ date: ago(1), who: 'friend' }, { date: ago(9), who: 'me' }], reflection: '' } });
+      log: [{ date: ago(1), who: 'friend', num: '21 push-ups' }, { date: ago(9), who: 'me', num: '4 × 1 min at 160 bpm' }], reflection: '' } });
     const TT = tokenFor('teacher@example.edu'); // the owner is a teacher
     const seedSkills = (email, lv) => callApi({ action: 'saveSkills', token: TT, email, checkpoint: 'sept', levels: lv });
     seedSkills('sample.one@example.edu',   { throw: 4, catch: 5, strike: 3, dribble: 4, kick: 4, jump: 4, core: 5 });
@@ -79,6 +81,16 @@
     const setRow = (tabName, vals) => { const s = FakeSheets.book.getSheetByName(tabName); s.getRange(s.getLastRow() + 1, 1, 1, vals.length).setValues([vals]); };
     setRow('Participation', ['sample.one@example.edu', 5, 4, 5, 5, 4, 4, 6, 5, 4, 4, '2026-09-20']);
     setRow('Bands', ['sample.one@example.edu', 5, 5, 4, '2026-09-20']);
+    // AP log: regular self-checks (synthetic) + the teacher's S1-mid grade imported from Canvas
+    [[50, 6, 6, 5, 6, 5], [38, 6, 5, 5, 6, 5], [27, 5, 5, 4, 6, 4], [15, 6, 5, 5, 6, 5], [6, 6, 6, 5, 7, 5], [1, 6, 6, 6, 7, 5]].forEach(r =>
+      setRow('APLog', ['sample.one@example.edu', ago(r[0]), 'self', '', r[1], r[2], r[3], r[4], r[5], new Date()]));
+    importApRows_([['Student name', 'PE.G6-10.C1 result', 'ATL.SM.manageself result', 'Growthmindset result', 'PE.G6-10.S4 result', 'ATL.SC.self result'],
+      ['Sample One', 4, 5, 5, 5, 4], ['Sample Two', 5, 5, 4, 5, 5]], 's1-mid');
+    importApRows_([['Student', 'SIS Login ID', 'Assignment -  Am I an Active Participant in PE? (139255)'], ['    Points Possible', '', 7], ['Sample Four', 'sample.four@example.edu', 6]], 's1-mid'); // overall only, like the Grades export
+    // AP check-out: the teacher's lesson ratings on the day's focus (Source 'lesson', never Canvas)
+    const KI = { ready: 4, effort: 5, growth: 6, team: 7, manage: 8 };
+    [[34, 'effort', 5], [20, 'team', 6], [13, 'effort', 6], [4, 'growth', 4]].forEach(r => { const row = ['sample.one@example.edu', ago(r[0]), 'lesson', '', '', '', '', '', '', new Date()]; row[KI[r[1]]] = r[2]; setRow('APLog', row); });
+    [[13, 'effort', 3], [4, 'team', 5]].forEach(r => { const row = ['sample.two@example.edu', ago(r[0]), 'lesson', '', '', '', '', '', '', new Date()]; row[KI[r[1]]] = r[2]; setRow('APLog', row); });
     callApi({ action: 'saveSkills', token: TT, email: 'sample.one@example.edu', checkpoint: 'jan', levels: { throw: 5, catch: 5, dribble: 5, core: 5 } }); // a January bump → trend arrows
     callApi({ action: 'saveCombine', token: tokenFor('sample.three@example.edu'), checkpoint: 'sept', results: { mile: 545, pushups: 22, broad: 195, sprint: 5.3 } });
   }

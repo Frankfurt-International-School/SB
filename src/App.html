@@ -31,9 +31,10 @@ async function rawCall(action, payload) {
 }
 // Apps Script caps simultaneous runs; a whole class tapping at once produces
 // transient errors. Retry those with backoff; permanent ones surface at once.
-const PERMANENT = /Unknown style|Unknown action|Incomplete|class list|not connected|Bad request/i;
+const PERMANENT = /Unknown style|Unknown action|Incomplete|class list|not connected|Bad request|out of range|not a number|locked|missing|whole numbers|rate at least|too long|unknown checkpoint|teacher|Unknown focus|Unknown word|Unknown rater|Rating must|No students/i;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function call(action, payload) {
+  if (demo) return demoCall(action, payload || {});
   let delay = (window.__preview && window.__preview.fastRetry) ? 30 : 1200;
   for (let attempt = 0; ; attempt++) {
     try { return await rawCall(action, payload); }
@@ -96,38 +97,105 @@ function setSkin(k) {
   r.setProperty('--acc', s.acc); r.setProperty('--accs', s.accs); r.setProperty('--rib', s.rib);
 }
 
-// ═══════════════ radar (placeholder shape until Combine data exists — v3) ═══════════════
-const AX = ['STAMINA', 'STRENGTH', 'SPEED', 'SKILLS', 'TEAM', 'EFFORT'], PLACE = [.62, .55, .6, .55, .7, .72];
-const cx = 150, cy = 101, R = 68;
-function pt(i, v) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + R * v * Math.cos(a), cy + R * v * Math.sin(a)]; }
-function radar(skin, vals) {
-  let g = '';
-  for (let r = 1; r <= 4; r++) { const p = []; for (let i = 0; i < 6; i++) p.push(pt(i, r / 4).join(',')); g += '<polygon points="' + p.join(' ') + '" fill="none" stroke="rgba(255,255,255,.14)"/>'; }
-  for (let i = 0; i < 6; i++) { const [x, y] = pt(i, 1.3); const an = Math.abs(x - cx) < 5 ? 'middle' : (x > cx ? 'start' : 'end'); g += '<text x="' + x.toFixed(1) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="' + an + '" class="rlabel">' + AX[i] + '</text>'; }
-  const shape = (vals && vals.length === 6) ? vals.map(v => Math.max(0.12, Math.min(1, v))) : null;
-  const poly = shape || PLACE;
-  g += '<polygon points="' + poly.map((v, i) => pt(i, v).map(n => n.toFixed(1)).join(',')).join(' ') + '" fill="' + hexA(skin.acc, .3) + '" stroke="' + skin.accs + '" stroke-width="2.2"/>';
-  if (shape) { for (let i = 0; i < 6; i++) { const [x, y] = pt(i, poly[i]); g += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.6" fill="' + skin.accs + '"/>'; } }
-  else g += '<text x="150" y="198" text-anchor="middle" class="rnote">your shape fills in at the Combine</text>';
-  return '<svg viewBox="0 0 300 202" width="100%" height="216" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six-sided fitness and skills chart">' + g + '</svg>';
+// ═══════════════ Athlete Card radar: six outcome axes, each placed in one of the four bands ═══════════════
+// Every axis says where its evidence comes from (standards + units), so students can see what will fill it.
+const CARD_AXES = [
+  { k: 'fitness',  label: 'FITNESS',    e: '🏃', std: '',        what: 'Your Combine tests: mile, push-ups, sit-to-stand, broad jump, grip, sprint, Illinois agility, stork balance.',
+    feeds: [['combine', 'Combine tests']] },
+  { k: 'movement', label: 'MOVEMENT',   e: '🤸', std: 'S1',      what: 'Moving with skill and control: your skill ladders, then the skills you show in each unit.',
+    feeds: [['combine', 'Skill ladders'], ['badminton', 'Badminton skills'], ['parkour', 'Parkour flow'], ['tchouk', 'Tchoukball throw & catch']] },
+  { k: 'game',     label: 'GAME SENSE', e: '🧠', std: 'S3 · C2', what: 'Reading the game, using tactics, and taking ideas from one sport into another.',
+    feeds: [['badminton', 'Badminton tactics'], ['tactics', 'Tactics Cup'], ['tchouk', 'Tchoukball strategy']] },
+  { k: 'know',     label: 'KNOW-HOW',   e: '📘', std: 'K4 · K5', what: 'Knowing how fitness works and how to keep yourself and others safe.',
+    feeds: [['fitness', 'Fitness concepts'], ['parkour', 'Safe landings']] },
+  { k: 'team',     label: 'TEAM',       e: '🙌', std: 'S4',      what: 'Communicating, encouraging and helping your team work.',
+    feeds: [['ap', 'Active participation'], ['tactics', 'Tactics Cup teams'], ['tchouk', 'Tchoukball roles']] },
+  { k: 'drive',    label: 'DRIVE',      e: '🔥', std: 'C1 · S2', what: 'Giving your best and working out how to improve yourself.',
+    feeds: [['ap', 'Active participation'], ['fitness', 'Your own workout']] }
+];
+const FEED_UNITS = { ap: { name: 'AP & Cooperation', from: '2026-08-24', to: '2026-09-24', when: 'Aug – Sep' }, combine: { name: 'Combine', from: '2026-09-25', to: '2027-05-31', when: 'Sep · Jan · May' } };
+function feedUnit(key) { return FEED_UNITS[key] || UNITS.find(u => u.key === key) || { name: key, when: '' }; }
+// 1–7 grade → band index 0–3; skill ladder level 1–6 → grade first.
+const ixOf7 = v => bandIx(v);
+const ixOfLevel = l => l == null ? null : bandIx(lvlGrade(l));
+// A fitness result against the Grade 8 guide: needs work 0 · between 1 · good 2 · well beyond good 3.
+function fitIx(key, v) {
+  const meta = fitMeta(key); if (!meta || !meta.ref || v == null) return null;
+  const a = meta.ref[0], b = meta.ref[1], gap = Math.abs(a - b) * 0.5;
+  if (meta.dir === 'down') return v <= a - gap ? 3 : v <= a ? 2 : v <= b ? 1 : 0;
+  return v >= a + gap ? 3 : v >= a ? 2 : v >= b ? 1 : 0;
 }
-// Map the student's measured data onto the six card axes (0–1 each). Null until there is anything.
+const avgIx = xs => { const v = xs.filter(x => x != null); return v.length ? v.reduce((p, q) => p + q, 0) / v.length : null; };
+// Teacher-graded AP only (never the student's own rating): that key's grade, else the overall Canvas grade.
+function apTeacher(m, key, first) {
+  const t = (m && m.apLog && m.apLog.teacher) || [], seq = first ? t : t.slice().reverse();
+  for (const r of seq) { if (r.v[key] != null) return r.v[key]; if (r.v.overall != null) return r.v.overall; }
+  const a = (m && m.ap || {})[key]; return a && a.tchr != null ? a.tchr : null;
+}
+// Band index per axis (or null = no evidence yet). first=true → the earliest evidence (for the "September me" outline).
+function axisIx(m, k, first) {
+  const o = (m && m.outcomes) || {}, pick = first ? firstOf : latestOf, f = (m && m.fitness) || {}, sk = (m && m.skills) || {};
+  switch (k) {
+    case 'fitness':  return avgIx(FITMETA().map(t => fitIx(t.key, pick(f[t.key]))));
+    case 'movement': { const lv = avgIx(SKILL_ORDER.map(x => pick(sk[x]))); return avgIx([lv == null ? null : ixOfLevel(Math.round(lv)), first ? null : ixOf7(o.S1)]); }
+    case 'game':     return first ? null : avgIx([ixOf7(o.S3), ixOf7(o.C2)]);
+    case 'know':     return first ? null : avgIx([ixOf7(o.K4), ixOf7(o.K5)]) ?? ixOf7((m && m.bands || {}).knowledge);
+    case 'team':     return !first && o.S4 != null ? ixOf7(o.S4) : ixOf7(apTeacher(m, 'team', first));
+    case 'drive': {  // C1 from Canvas outcomes when present, else the AP effort grade; plus S2 (improving myself)
+      const c1 = !first && o.C1 != null ? ixOf7(o.C1) : ixOf7(apTeacher(m, 'effort', first));
+      return avgIx([c1, first ? null : ixOf7(o.S2)]); }
+  }
+  return null;
+}
+// One AP value per key for the stats line: teacher's grade on that key → teacher's overall Canvas grade → my own check-in.
+function apKeyNow(m, key) { const t = apTeacher(m, key, false); if (t != null) return t; const a = (m && m.ap || {})[key]; return a && a.self != null ? a.self : null; }
+// Radius on the card: band centres at ¼ · ½ · ¾ · full.
+const ixR = ix => ix == null ? null : (ix + 1) / 4;
 function cardAxes(m) {
   if (!m) return null;
-  const f = m.fitness || {}, sk = m.skills || {}, ap = m.ap || {}, c01 = v => Math.max(0, Math.min(1, v));
-  const mile = latestOf(f.mile), push = latestOf(f.pushups), grip = latestOf(f.grip), sprint = latestOf(f.sprint);
-  const skVals = SKILL_ORDER.map(k => latestOf(sk[k])).filter(v => v != null);
-  const apv = key => { const a = ap[key]; if (!a) return null; return a.tchr != null ? a.tchr : a.self; };
-  if (!(mile != null || push != null || grip != null || sprint != null || skVals.length || apv('team') != null || apv('effort') != null)) return null;
-  const strength = [push != null ? c01(push / 35) : null, grip != null ? c01(grip / 45) : null].filter(v => v != null);
-  return [
-    mile != null ? c01(1 - (mile - 360) / 360) : 0.12,                 // STAMINA (mile: 6:00→1, 12:00→0)
-    strength.length ? strength.reduce((a, b) => a + b, 0) / strength.length : 0.12, // STRENGTH
-    sprint != null ? c01(1 - (sprint - 4.5) / 3) : 0.12,               // SPEED (4.5s→1, 7.5s→0)
-    skVals.length ? (skVals.reduce((a, b) => a + b, 0) / skVals.length) / 6 : 0.12, // SKILLS
-    apv('team') != null ? apv('team') / 7 : 0.12,                      // TEAM
-    apv('effort') != null ? apv('effort') / 7 : 0.12                   // EFFORT
-  ];
+  const now = CARD_AXES.map(a => ixR(axisIx(m, a.k, false)));
+  if (!now.some(v => v != null)) return null;
+  const then = CARD_AXES.map(a => ixR(axisIx(m, a.k, true)));
+  const grew = then.some((v, i) => v != null && now[i] != null && Math.abs(v - now[i]) > 0.01);
+  return { now, then: grew ? then : null };
+}
+const AX = CARD_AXES.map(a => a.label), PLACE = [.62, .55, .6, .55, .7, .72];
+const cx = 150, cy = 101, R = 68;
+function pt(i, v) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + R * v * Math.cos(a), cy + R * v * Math.sin(a)]; }
+function radar(skin, data) {
+  let g = '';
+  for (let r = 1; r <= 4; r++) { const p = []; for (let i = 0; i < 6; i++) p.push(pt(i, r / 4).join(',')); g += '<polygon points="' + p.join(' ') + '" fill="none" stroke="rgba(255,255,255,' + (r === 3 ? '.32' : '.14') + ')"' + (r === 3 ? ' stroke-dasharray="3 3"' : '') + '/>'; }
+  for (let i = 0; i < 6; i++) { const [x, y] = pt(i, 1.3); const an = Math.abs(x - cx) < 5 ? 'middle' : (x > cx ? 'start' : 'end'); g += '<text x="' + x.toFixed(1) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="' + an + '" class="rlabel' + (data && data.now[i] == null ? ' rlabel-off' : '') + '">' + AX[i] + '</text>'; }
+  if (!data) {
+    g += '<polygon points="' + PLACE.map((v, i) => pt(i, v).map(n => n.toFixed(1)).join(',')).join(' ') + '" fill="' + hexA(skin.acc, .3) + '" stroke="' + skin.accs + '" stroke-width="2.2"/>';
+    g += '<text x="150" y="198" text-anchor="middle" class="rnote">your shape fills in at the Combine</text>';
+  } else {
+    const poly = vals => vals.map((v, i) => v == null ? null : pt(i, v)).filter(Boolean);
+    if (data.then) { const p = poly(data.then); if (p.length > 2) g += '<polygon points="' + p.map(q => q.map(n => n.toFixed(1)).join(',')).join(' ') + '" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-dasharray="4 3"/>'; }
+    const p = poly(data.now);
+    if (p.length > 2) g += '<polygon points="' + p.map(q => q.map(n => n.toFixed(1)).join(',')).join(' ') + '" fill="' + hexA(skin.acc, .3) + '" stroke="' + skin.accs + '" stroke-width="2.2"/>';
+    else if (p.length === 2) g += '<line x1="' + p[0][0] + '" y1="' + p[0][1] + '" x2="' + p[1][0] + '" y2="' + p[1][1] + '" stroke="' + skin.accs + '" stroke-width="2.2"/>';
+    data.now.forEach((v, i) => {
+      if (v == null) { const [x, y] = pt(i, 0.5); g += '<line x1="' + cx + '" y1="' + cy + '" x2="' + pt(i, 1)[0].toFixed(1) + '" y2="' + pt(i, 1)[1].toFixed(1) + '" stroke="rgba(255,255,255,.22)" stroke-dasharray="2 3"/><circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="6" fill="none" stroke="rgba(255,255,255,.5)" stroke-dasharray="2 2"/><text x="' + x.toFixed(1) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="middle" class="rq">?</text>'; }
+      else { const [x, y] = pt(i, v); g += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.8" fill="' + skin.accs + '"/>'; }
+    });
+  }
+  return (data && data.then ? '<div class="rleg">┄ where you started</div>' : '') + '<svg viewBox="-24 0 348 202" width="100%" height="216" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Athlete card: six areas, each placed in a band">' + g + '</svg>';
+}
+// "What builds my card": each axis, its band now, and the units still to come.
+function cardBuilds(m) {
+  const t = todayIso();
+  const rows = CARD_AXES.map(a => {
+    const ix = axisIx(m, a.k, false), b = ix == null ? null : AP_BANDS[Math.round(ix)];
+    const chips = a.feeds.map(([u, lab]) => { const fu = feedUnit(u), st = !fu.to ? 'later' : (t > fu.to ? 'done' : (t >= fu.from ? 'now' : 'later'));
+      return '<span class="cb-chip cbc-' + st + '" title="' + esc(fu.name + (fu.when ? ' · ' + fu.when : '')) + '">' + (st === 'done' ? '✓ ' : st === 'now' ? '● ' : '○ ') + esc(lab) + (st === 'later' && fu.when ? ' <small>' + esc(fu.when.split('–')[0].trim()) + '</small>' : '') + '</span>'; }).join('');
+    const next = a.feeds.map(f => feedUnit(f[0])).find(fu => fu.from && fu.from > t);
+    return '<div class="cb-row"><div class="cb-h"><span class="cb-n">' + a.e + ' ' + esc(a.label.charAt(0) + a.label.slice(1).toLowerCase()) + (a.std ? ' <small>' + a.std + '</small>' : '') + '</span>' +
+      '<span class="cb-b">' + (b ? b.e + ' ' + b.name : '<i>coming' + (next ? ' in ' + esc(next.name) + ' · ' + esc(next.when.split('–')[0].trim()) : ' soon') + '</i>') + '</span></div>' +
+      '<p class="cb-w">' + esc(a.what) + '</p><div class="cb-chips">' + chips + '</div></div>';
+  }).join('');
+  return '<div class="cbuilds"><h3>🧩 What builds my card</h3><p class="cb-lede">Each corner fills in as your units are assessed. Rings show the bands: 🌱 Not yet · 🧗 Approaching · ✅ Got it (dashed) · 🌟 Leading.</p>' + rows +
+    '<p class="cb-key"><span class="cb-chip cbc-done">✓ assessed</span><span class="cb-chip cbc-now">● happening now</span><span class="cb-chip cbc-later">○ coming up</span></p></div>';
 }
 
 // ═══════════════ profile content (v1: everything is "coming"; data arrives in v2–v4) ═══════════════
@@ -204,11 +272,16 @@ function skillsGradeNow() {
   if (!gs.length) return null;
   return Math.round(gs.reduce((a, b) => a + b, 0) / gs.length);
 }
+// The teacher's single overall AP grade (Canvas Grades export), latest round: [value, label] or null.
+function apTeacherOverall() {
+  const m = measured(), t = (m && m.apLog && m.apLog.teacher) || [];
+  for (let i = t.length - 1; i >= 0; i--) if (t[i].v.overall != null) return [t[i].v.overall, t[i].label];
+  return null;
+}
 function apOverallNow() {
-  const m = measured(); if (!m || !m.ap) return null;
-  const vals = Object.keys(m.ap).map(k => m.ap[k].tchr != null ? m.ap[k].tchr : m.ap[k].self).filter(v => v != null);
-  if (!vals.length) return null;
-  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+  const m = measured(); if (!m) return null;
+  const vals = AP_KEYS_C.map(k => apKeyNow(m, k)).filter(v => v != null);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
 }
 const FIT_EMOJI = { mile: '🫀', pushups: '💪', sitstand: '🦵', broad: '💥', grip: '✊', sprint: '⚡', illinois: '🔺', stork: '🦩' };
 const FITINFO = {
@@ -246,7 +319,7 @@ function ladderBar(lv) {
   for (let i = 1; i <= 6; i++) s += '<i class="' + (lv && i <= lv ? 'on' : '') + (i === G8_BAND ? ' mk' : '') + '"></i>';
   return s + '</div>';
 }
-const LBL = { 1: 'Beginning', 2: 'Beginning', 3: 'Intermediate', 4: 'Intermediate', 5: 'Proficient', 6: 'Proficient', 7: 'Advanced' };
+const LBL = { 1: 'Not yet', 2: 'Not yet', 3: 'Approaching', 4: 'Approaching', 5: 'Got it', 6: 'Got it', 7: 'Leading' };
 function bandV(ovKey, em, name, repKey) {
   const m = measured(), v = m && m.bands && m.bands[repKey] != null ? m.bands[repKey] : null;
   const cls = v == null ? '' : (v >= 5 ? 'ok' : v >= 4 ? 'meet' : 'below');
@@ -278,7 +351,7 @@ function profileView(b) {
   const skG = skillsGradeNow(), apO = apOverallNow();
   const goals = (m && m.goals) || [], hasPlan = !!(m && m.plan);
   const glFundAvg = (function () { const vs = SKILL_ORDER.map(key => (m && m.skills) ? latestOf(m.skills[key]) : null).filter(v => v != null); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; })();
-  const glApAvg = (function () { if (!m || !m.ap) return null; const vs = MX_AP.map(a => { const x = m.ap[a[0]]; return x ? (x.tchr != null ? x.tchr : x.self) : null; }).filter(v => v != null); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; })();
+  const glApAvg = apOverallNow();
   const fund = FUND.map(([key, em]) => fundTileV(key, em)).join('');
   const stat = (v, lab) => '<div><b>' + v + '</b><span>' + lab + '</span></div>';
   return '<div class="wrap">' +
@@ -288,7 +361,7 @@ function profileView(b) {
     '<div class="cardteaser">' + avatar(st, 'ct-av') +
       '<div class="ct-id"><div class="ct-name">' + esc(st.name) + ' <span class="ct-tier">◆ ' + tierOf(earned().length) + '</span></div>' + (st.klass ? '<div class="ct-sub">' + esc(st.klass) + '</div>' : '') +
       '<div class="ct-arch">' + (skin ? skin.e + ' ' + esc(styles[k]).toUpperCase() : '✨ PICK YOUR PE STYLE') + '</div></div>' +
-      '<div class="ct-stats">' + stat(mileStr(mileV), 'Mile') + stat(skG == null ? '—' : skG, 'Skills') + stat(apO == null ? '—' : apO, 'Effort') + '</div>' +
+      '<div class="ct-stats">' + stat(mileStr(mileV), 'Mile') + stat(skG == null ? '—' : bandOf(skG).e, 'Skills') + stat(apO == null ? '—' : bandOf(apO).e, 'Effort') + '</div>' +
       '<button type="button" class="ct-btn' + (k ? '' : ' pulse') + '" id="tocard">' + (k ? 'View my card ↗' : 'Build my card ↗') + '</button>' +
     '</div>' +
     '<div class="shelfrow"><span class="sh-l">🏅 My badges <b>' + earned().length + ' / ' + BADGES.length + '</b></span>' + badgeShelf('shelf') + '</div>' +
@@ -301,8 +374,8 @@ function profileView(b) {
     fitSummary(m) +
     '<h3 class="sec sec-fund"><span class="em">🧩</span> Fundamental skills <span class="tap">· self → peer → teacher · tap a skill</span><button type="button" class="secbtn" id="tomyskills">✎ Record my levels</button></h3><p class="seclede">Seven building blocks, each a 6-level ladder. Same test every Combine, so your level climbs over the year.</p>' +
     '<div class="grid3">' + fund + '</div>' +
-    '<h3 class="sec sec-ap"><span class="em">🤝</span> Active participation <span class="tap">· all year</span></h3><p class="seclede">Your biggest all-year story — how you show up, tracked through every unit.</p>' +
-    '<div class="grid3">' + apTileV('ap-ready', '✅', 'Be ready', 'ready') + apTileV('ap-effort', '🔥', 'Best effort', 'effort') + apTileV('ap-growth', '🌱', 'Growth mindset', 'growth') + apTileV('ap-team', '🙌', 'Great teammate', 'team') + apTileV('ap-manage', '🧘', 'Manage myself', 'manage') + '</div>' +
+    '<h3 class="sec sec-ap"><span class="em">🤝</span> Active participation <span class="tap">· all year</span>' + (AP_SELF_IN_APP ? '<button type="button" class="secbtn" id="toapself">✎ Rate myself</button>' : '') + '</h3><p class="seclede">Your biggest all-year story — how you show up, tracked through every unit.</p>' +
+    '<div class="aptrend" id="aptrend">' + apCompare() + apTrend() + '</div>' +
     '<h3 class="sec sec-rep"><span class="em">🧠</span> My report picture <span class="tap">· tap for how it’s built</span></h3><p class="seclede">The three grades on your Canvas report — a best fit across the descriptors.</p>' +
     '<div class="grid3">' + bandV('rp-know', '🧠', 'Knowledge', 'knowledge') + bandV('rp-skill', '🎯', 'Skills', 'skills') + bandV('rp-ct', '🔄', 'Concept transfer', 'concept') + '</div>' +
     '<div class="foot"><span class="arrow">↻</span><div><b>How this grows:</b> September sets the baseline; the same measures repeat in January and May. Always <b>you vs. your past self</b> — and it maps straight to your report.</div></div>' +
@@ -323,7 +396,7 @@ const UNITS = [
   { key: 'tchouk',    e: '🤾', name: 'Tchoukball',  from: '2027-04-14', to: '2027-05-20', when: 'Apr – May', blurb: 'Throw, catch and team roles in a season', found: ['throw', 'catch'] }
 ];
 // The school's 1–7 scale (rubric bank): four bands, each holding its numbers.
-const BANDS7 = [['Beginning', [1, 2]], ['Intermediate', [3, 4]], ['Proficient', [5, 6]], ['Advanced', [7]]];
+const BANDS7 = [['Not yet', [1, 2]], ['Approaching', [3, 4]], ['Got it', [5, 6]], ['Leading', [7]]];
 function band7(v) { const b = BANDS7.find(x => x[1].indexOf(v) !== -1); return b ? b[0] : ''; }
 function todayIso() { return isoDay(new Date()); }
 function unitStatus(u) {
@@ -550,7 +623,164 @@ function apTileV(ovKey, em, name, key) {
   const v = rec ? (rec.tchr != null ? rec.tchr : rec.self) : null;
   const bar = '<div class="btrack ap">' + [1, 2, 3, 4, 5, 6, 7].map(i => '<i class="' + (v && i <= v ? 'on' : '') + '"></i>').join('') + '</div>';
   const cls = v == null ? '' : (v >= 5 ? 'ok' : v >= 4 ? 'meet' : 'below');
-  return '<button type="button" class="tile a-ap ' + cls + '" data-ov="' + ovKey + '"><span class="plus">⊕</span><div class="tnrow"><span class="em">' + em + '</span><span class="tn">' + esc(name) + '</span></div>' + bar + '<div class="rung">' + (v == null ? 'all year' : (rec.self != null ? 'me ' + rec.self : '') + (rec.tchr != null ? ' · teacher ' + rec.tchr : '')) + '</div></button>';
+  return '<button type="button" class="tile a-ap ' + cls + '" data-ov="' + ovKey + '"><span class="plus">⊕</span><div class="tnrow"><span class="em">' + em + '</span><span class="tn">' + esc(name) + '</span></div>' + bar + '<div class="rung">' + (v == null ? 'all year' : [rec.self != null ? 'me ' + rec.self : '', rec.tchr != null ? 'teacher ' + rec.tchr : ''].filter(Boolean).join(' · ')) + '</div></button>';
+}
+
+// ---- AP: my self-checks vs my teacher's graded rounds ----
+const AP_ROWS = [['ready', '✅', 'Be ready', 'Kit on, on time, set to learn'], ['effort', '🔥', 'Best effort', 'Give it my all, even in things I don’t love'],
+  ['growth', '🌱', 'Growth mindset', 'Keep trying, learn from setbacks'], ['team', '🙌', 'Great teammate', 'Include, encourage, communicate'],
+  ['manage', '🧘', 'Manage myself', 'Listen, stay calm, take responsibility']];
+const AP_ROUND_POS = { 's1-mid': '10-28', 's1-end': '01-21', 's2-mid': '04-16', 's2-end': '06-18' };
+// Students see the four rubric bands, never the 1–7 number (that lives in Canvas).
+// A self check-in stores the band's floor (1 · 3 · 5 · 7) so it lines up with the teacher's 1–7.
+const AP_BANDS = [
+  { name: 'Not yet',     e: '🌱', tag: 'Still growing',   v: 1, cls: 'b0' },
+  { name: 'Approaching', e: '🧗', tag: 'Nearly there',    v: 3, cls: 'b1' },
+  { name: 'Got it',      e: '✅', tag: 'Doing it well',   v: 5, cls: 'b2' },
+  { name: 'Leading',     e: '🌟', tag: 'Lifting others', v: 7, cls: 'b3' }
+];
+// Students rate themselves at the end-of-lesson check-out (teacher's iPad), not on their own device.
+// Flip to true to bring back "✎ Rate myself" (e.g. for Health).
+const AP_SELF_IN_APP = false;
+const bandIx = v => v == null ? null : (v >= 6.5 ? 3 : v >= 4.5 ? 2 : v >= 2.5 ? 1 : 0);
+const bandOf = v => { const i = bandIx(v); return i == null ? null : AP_BANDS[i]; };
+const rubTxt = t => esc(String(t || '').replace(/\*/g, ''));
+// What a band looks like, in the student's own words ("I…") where the rubric bank has them.
+const apMine = (R, k, i) => (R[k].student && R[k].student[i]) || R[k].levels[i];
+let apKey = 'all', apDraft = null;
+const AP_SHORT = { ready: 'Ready', effort: 'Effort', growth: 'Growth', team: 'Team', manage: 'Self' };
+function apLog() { const m = measured(), l = (m && m.apLog) || { self: [], teacher: [] }; if (!l.lesson) l.lesson = []; return l; }
+function apVal(v, key) {
+  if (key !== 'all') return v[key] != null ? v[key] : null;
+  if (v.overall != null) return v.overall;
+  const xs = AP_KEYS_C.map(k => v[k]).filter(x => x != null);
+  return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+}
+const AP_KEYS_C = AP_ROWS.map(r => r[0]);
+function apYearStart() { const n = new Date(), y = n.getMonth() >= 7 ? n.getFullYear() : n.getFullYear() - 1; return new Date(y, 7, 20); }
+function apTrend() {
+  const log = apLog(), key = apKey;
+  const chips = '<div class="apchips">' + [['all', '⭐', 'All five']].concat(AP_ROWS).map(r =>
+    '<button type="button" class="apchip' + (key === r[0] ? ' on' : '') + '" data-apkey="' + r[0] + '">' + r[1] + ' ' + esc(r[0] === 'all' ? r[2] : AP_SHORT[r[0]]) + '</button>').join('') + '</div>';
+  if (!log.self.length && !log.teacher.length && !log.lesson.length) return '<div class="apempty">' + (AP_SELF_IN_APP ? 'Rate yourself to start your line.' : 'Your end-of-lesson check-outs start your line.') + ' Your teacher’s grade appears here at mid-semester and the end of each semester.</div>';
+  const parse = s => { const p = String(s).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+  const y0y = apYearStart().getFullYear();
+  const roundDate = t => { if (t.date) return parse(t.date); const md = AP_ROUND_POS[t.round].split('-').map(Number); return new Date(md[0] >= 8 ? y0y : y0y + 1, md[0] - 1, md[1]); };
+  // Zoom to the data: first point − 10 days → max(last point, today) + 3 weeks, at least ~10 weeks wide.
+  const pts = log.self.map(e => parse(e.date)).concat(log.teacher.map(roundDate), log.lesson.map(e => parse(e.date)));
+  const day = 864e5, today = new Date();
+  let x0 = new Date(Math.min.apply(null, pts) - 10 * day), x1 = new Date(Math.max(Math.max.apply(null, pts), today.getTime()) + 21 * day);
+  if (x1 - x0 < 70 * day) x1 = new Date(x0.getTime() + 70 * day);
+  const span = x1 - x0;
+  const small = window.innerWidth < 560, W = small ? 340 : 620, H = small ? 200 : 210, L = 26, R = 10, T = 16, B = 28;
+  const LB = small ? 30 : 92, lane = (H - T - B) / 4;
+  const xOf = d => LB + Math.max(0, Math.min(1, (d - x0) / span)) * (W - LB - R), yOf = v => T + (3 - bandIx(v) + 0.5) * lane;
+  let g = '';
+  AP_BANDS.forEach((b, i) => { const y = T + (3 - i) * lane; g += '<rect x="' + LB + '" y="' + y + '" width="' + (W - LB - R) + '" height="' + lane + '" class="aplane ' + b.cls + '"/>' +
+    '<text x="' + (LB - 6) + '" y="' + (y + lane / 2 + 4) + '" class="apax" text-anchor="end">' + (small ? b.e : b.e + ' ' + b.name) + '</text>'; });
+  const months = []; for (let d = new Date(x0.getFullYear(), x0.getMonth() + 1, 1); d < x1; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) months.push(d);
+  const every = Math.max(1, Math.ceil(months.length / (small ? 4 : 7)));
+  months.forEach((d, i) => { if (i % every) return; g += '<line x1="' + xOf(d) + '" x2="' + xOf(d) + '" y1="' + T + '" y2="' + (H - B) + '" class="apgrid"/><text x="' + xOf(d) + '" y="' + (H - 9) + '" class="apax" text-anchor="middle">' + d.toLocaleDateString('en-GB', { month: 'short' }) + '</text>'; });
+  if (today >= x0 && today <= x1) g += '<text x="' + xOf(today) + '" y="' + (T - 4) + '" class="apax aptoday" text-anchor="middle">today</text>';
+  const sp = log.self.map(e => [parse(e.date), apVal(e.v, key)]).filter(p => p[1] != null);
+  if (sp.length > 1) g += '<polyline class="apself" points="' + sp.map(p => xOf(p[0]).toFixed(1) + ',' + yOf(p[1]).toFixed(1)).join(' ') + '"/>';
+  sp.forEach(p => { g += '<circle class="apdot" cx="' + xOf(p[0]).toFixed(1) + '" cy="' + yOf(p[1]).toFixed(1) + '" r="3.6"><title>Me · ' + p[0].toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ' · ' + bandOf(p[1]).name + '</title></circle>'; });
+  // lesson check-out ratings: a small square, so they never read as the Canvas grade (the diamond)
+  log.lesson.forEach(e => { const v = apVal(e.v, key); if (v == null) return; const x = xOf(parse(e.date)), y = yOf(v) + 7;
+    g += '<rect class="aplesson" x="' + (x - 3).toFixed(1) + '" y="' + (y - 3).toFixed(1) + '" width="6" height="6" rx="1"><title>Teacher in a lesson · ' + parse(e.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ' · ' + bandOf(v).name + '</title></rect>'; });
+  log.teacher.forEach(t => { const v = apVal(t.v, key); if (v == null) return; const x = xOf(roundDate(t)), y = yOf(v);
+    g += '<path class="aptchr" d="M' + x + ' ' + (y - 8) + 'L' + (x + 8) + ' ' + y + 'L' + x + ' ' + (y + 8) + 'L' + (x - 8) + ' ' + y + 'Z"><title>Teacher · ' + esc(t.label) + ' · ' + bandOf(v).name + '</title></path>' +
+      '<text x="' + x + '" y="' + (y > H - B - 22 ? y - 13 : y + 22) + '" class="aptl" text-anchor="middle">' + esc(t.label) + '</text>'; });
+  // one plain sentence: my latest check against the teacher's latest grade, on the keys both rated
+  const lastSelf = log.self.length ? log.self[log.self.length - 1] : null, lastTeach = log.teacher.length ? log.teacher[log.teacher.length - 1] : null;
+  const shared = (key === 'all' ? AP_KEYS_C : [key]).filter(k => lastSelf && lastTeach && lastSelf.v[k] != null && lastTeach.v[k] != null);
+  const avgOf = (v, ks) => ks.reduce((a, k) => a + v[k], 0) / ks.length;
+  let lastS = shared.length ? avgOf(lastSelf.v, shared) : (sp.length ? sp[sp.length - 1][1] : null);
+  let lastT = shared.length ? [avgOf(lastTeach.v, shared), lastTeach.label] : null;
+  if (!lastT && lastTeach && apVal(lastTeach.v, key) != null) lastT = [apVal(lastTeach.v, key), lastTeach.label]; // e.g. the single Canvas AP grade vs my average
+  let say = '';
+  if (lastS != null && lastT) {
+    const me = bandIx(lastS), tb = bandIx(lastT[0]), tn = AP_BANDS[tb].name;
+    const T = AP_BANDS[tb].e + ' ' + tn, M = AP_BANDS[me].e + ' ' + AP_BANDS[me].name;
+    say = me === tb ? 'You and your teacher agree: <b>' + T + '</b>. Great self-awareness 👏'
+      : me > tb ? 'You put yourself at <b>' + M + '</b>; at ' + esc(lastT[1]) + ' your teacher had you at <b>' + T + '</b>. What could you show more of so your teacher sees it too?'
+      : 'Your teacher has you at <b>' + T + '</b>, higher than you rate yourself. You’re doing better than you think 💪'; }
+  else if (lastS != null) say = 'Your teacher’s first band arrives at mid-semester. Keep checking in so you can compare.';
+  else if (lastT) say = AP_SELF_IN_APP ? 'Your teacher has placed you. Tap ✎ Rate myself to see how your view compares.' : 'Your teacher has placed you. Your end-of-lesson check-outs will show how your view compares.';
+  const tail = (say ? '<p class="apsay">' + say + '</p>' : '') + apNextStep(log, key);
+  if (!apEnough(log)) return tail + '<p class="apunlock">📈 Your line through the year appears after ' + AP_LINE_MIN + ' check-ins over a few weeks (' + log.self.length + ' so far).</p>';
+  return tail + '<div class="ap-hd ap-hd2">📈 My check-ins over time</div>' + chips + '<svg class="apchart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="My active participation self-checks and my teacher’s grades over the year">' + g + '</svg>' +
+    '<div class="aplegend"><span><i class="lg-me"></i>Me (' + log.self.length + ' check' + (log.self.length === 1 ? '' : 's') + ')</span><span><i class="lg-t"></i>My teacher’s grade</span>' + (log.lesson.length ? '<span><i class="lg-l"></i>My teacher in lessons</span>' : '') + '</div>';
+}
+const AP_LINE_MIN = 4;
+function apEnough(log) {
+  if (log.self.length < AP_LINE_MIN) return false;
+  const d = s => new Date(s).getTime();
+  return d(log.self[log.self.length - 1].date) - d(log.self[0].date) >= 21 * 864e5;
+}
+// Now: me vs my teacher on each key, as markers on the four bands (readable from the first check-in).
+function apCompare() {
+  const log = apLog(), lastT = log.teacher.length ? log.teacher[log.teacher.length - 1] : null;
+  const latestSelf = k => { for (let i = log.self.length - 1; i >= 0; i--) if (log.self[i].v[k] != null) return log.self[i].v[k]; return null; };
+  const row = (ov, em, name, me, t, meLab) => {
+    const mb = bandOf(me), tb = bandOf(t), same = mb && tb && mb === tb, mi = bandIx(me), ti = bandIx(t);
+    return '<button type="button" class="apc-row' + (ov ? '' : ' apc-all') + '" ' + (ov ? 'data-ov="' + ov + '"' : '') + '>' +
+      '<span class="apc-n">' + em + ' ' + esc(name) + '</span>' +
+      '<span class="apc-track">' + AP_BANDS.map((b, i) => '<i class="apc-seg ' + b.cls + (i === mi ? ' me' : '') + (i === ti ? ' t' : '') + '"><span>' + b.name + '</span>' +
+        (i === ti ? '<em class="mk-t" title="Teacher"></em>' : '') + (i === mi ? '<em class="mk-me" title="Me"></em>' : '') + '</i>').join('') + '</span>' +
+      '<span class="apc-v">' + (same ? '<b>' + mb.e + ' ' + mb.name + '</b><br><span class="agree">✓ we agree</span>'
+        : [mb ? (meLab || 'me') + ' <b>' + mb.name + '</b>' : '', tb ? 'teacher <b>' + tb.name + '</b>' : ''].filter(Boolean).join('<br>')) +
+        (me == null && t == null ? '<span class="apc-none">not rated yet</span>' : '') + '</span></button>';
+  };
+  let out = '';
+  if (lastT && lastT.v.overall != null) {
+    const mine = AP_KEYS_C.map(latestSelf).filter(v => v != null);
+    out += row('', '🏅', 'Overall · ' + lastT.label, mine.length ? mine.reduce((a, b) => a + b, 0) / mine.length : null, lastT.v.overall, 'me');
+  }
+  if (!log.self.length && AP_SELF_IN_APP) out += '<button type="button" class="ct-btn apc-cta" id="toapself2">✎ Rate myself on the five keys</button>';
+  out += AP_ROWS.map(r => row('ap-' + r[0], r[1], r[2], latestSelf(r[0]), lastT && lastT.v[r[0]] != null ? lastT.v[r[0]] : null)).join('');
+  return '<div class="apcompare">' + out +
+    '<div class="aplegend"><span><i class="lg-me2"></i>Me (latest check-in)</span><span><i class="lg-t"></i>My teacher' + (lastT ? ' (' + esc(lastT.label) + ')' : '') + '</span></div></div>';
+}
+// The next band up, worded from the rubric bank, for the chosen key (or the lowest-graded key on "All five").
+function apNextStep(log, key) {
+  const R = (window.RUBRICS || {}).ap; if (!R) return '';
+  const latest = k => { for (let i = log.teacher.length - 1; i >= 0; i--) if (log.teacher[i].v[k] != null) return [log.teacher[i].v[k], 'teacher']; for (let i = log.self.length - 1; i >= 0; i--) if (log.self[i].v[k] != null) return [log.self[i].v[k], 'me']; return null; };
+  let k = key;
+  let cur = null;
+  if (k === 'all') {
+    const ranked = AP_KEYS_C.map(x => [x, latest(x)]).filter(x => x[1]).sort((a, b) => a[1][0] - b[1][0]);
+    if (ranked.length) { k = ranked[0][0]; cur = ranked[0][1]; }
+    else { const o = apTeacherOverall(); if (!o) return ''; k = 'effort'; cur = [o[0], 'teacher']; } // only an overall grade: Active Participation is the headline criterion
+  } else cur = latest(k);
+  if (!cur || !R[k]) return '';
+  const band = bandIx(cur[0]), row = AP_ROWS.find(r => r[0] === k), now = AP_BANDS[band], nx = AP_BANDS[band + 1];
+  return '<div class="apnext"><div class="apn-h">🎯 ' + (key === 'all' ? 'Your focus: ' : 'Next step: ') + row[1] + ' ' + esc(row[2]) + '</div>' +
+    (band === 3 ? '<p>You’re <b>🌟 Leading</b>. Keep it going: ' + rubTxt(apMine(R, k, 3)) + '.</p>'
+      : '<p>' + (cur[1] === 'teacher' ? 'Your teacher has you at ' : 'You put yourself at ') + '<b>' + now.e + ' ' + now.name + '</b>. To reach <b>' + nx.e + ' ' + nx.name + '</b>: ' + rubTxt(apMine(R, k, band + 1)) + '.</p>') + '</div>';
+}
+function apSelfView() {
+  const d = apDraft || (apDraft = {}), R = (window.RUBRICS || {}).ap || {};
+  const rows = AP_ROWS.map(([k, em, name, sub]) => {
+    const pick = d[k] != null ? bandIx(d[k]) : null;
+    return '<div class="aprow"><div class="apr-h"><span class="em">' + em + '</span><span><b>' + esc(name) + '</b><small>' + esc(sub) + '</small></span></div>' +
+      '<div class="apr-b">' + AP_BANDS.map((b, i) => '<button type="button" class="apb ' + b.cls + (pick === i ? ' on' : '') + '" data-k="' + k + '" data-n="' + b.v + '"><span class="apb-e">' + b.e + '</span><b>' + b.name + '</b><small>' + b.tag + '</small></button>').join('') + '</div>' +
+      (pick != null && R[k] ? '<p class="apr-desc">' + AP_BANDS[pick].e + ' <b>' + AP_BANDS[pick].name + '</b> looks like: ' + rubTxt(apMine(R, k, pick)) + '.' + (pick < 3 ? '<br><span>Next: ' + AP_BANDS[pick + 1].e + ' ' + rubTxt(apMine(R, k, pick + 1)) + '.</span>' : '') + '</p>' : '') + '</div>';
+  }).join('');
+  const n = Object.keys(d).length;
+  return '<div class="wrap">' + backBtn() +
+    '<div class="phero"><div class="k">ACTIVE PARTICIPATION CHECK-IN</div><h1>How did you show up, ' + esc(state.student.first) + '?</h1><p>Pick the band that fits you right now. Be honest: it’s how you grow. Your teacher uses the same bands, so you can compare.</p></div>' +
+    '<div class="apself-form">' + rows + '</div>' +
+    '<button type="button" class="ct-btn" id="apsave"' + (n ? '' : ' disabled') + '>Save my check-in' + (n && n < 5 ? ' (' + n + ' of 5)' : '') + '</button></div>';
+}
+async function saveApSelfUI() {
+  const btn = $('#apsave'); if (btn) btn.disabled = true;
+  try {
+    const res = await call('saveApSelf', { ratings: apDraft });
+    const m = state.student.combine || { fitness: {}, skills: {} }; m.apLog = res.apLog; m.ap = res.ap; state.student.combine = m;
+    apDraft = null; toast('Check-in saved.'); show('profile');
+    setTimeout(() => { const el = $('#aptrend'); if (el) el.scrollIntoView({ block: 'center' }); }, 60);
+  } catch (e) { toast(e.message, true); if (btn) btn.disabled = false; }
 }
 
 function lesson1Panel() {
@@ -670,17 +900,18 @@ function cardView(b) {
         '<div class="cwho">' + avatar(st, 'cav') + '<div><div class="cname">' + esc(st.name) + '</div>' + (st.klass ? '<div class="cclass">' + esc(st.klass) + '</div>' : '') + '</div></div>' +
         '<div class="crib"><span id="archt">' + (chosen ? esc(styles[chosen]).toUpperCase() : 'PICK A STYLE') + '</span><span id="arche">' + (chosen ? SKINS[chosen].e : '✨') + '</span></div>' +
         '<div class="crad" id="rad">' + radar(SKINS[chosen] || DEFAULT_SKIN, ax) + '</div>' +
-        '<div class="cstat"><div><b>' + (m && m.fitness && latestOf(m.fitness.mile) != null ? mileStr(latestOf(m.fitness.mile)) : '—') + '</b><span>Mile</span>' + (m && m.fitness && latestOf(m.fitness.mile) != null ? '<em>min : sec</em>' : '') + '</div>' + cardStat(skillsGradeNow(), 'Skills') + cardStat(apOverallNow(), 'Effort') + '</div>' +
+        '<div class="cstat"><div><b>' + (m && m.fitness && latestOf(m.fitness.mile) != null ? mileStr(latestOf(m.fitness.mile)) : '—') + '</b><span>Mile</span>' + (m && m.fitness && latestOf(m.fitness.mile) != null ? '<em>min : sec</em>' : '') + '</div>' + (function () { const b = bandOf(skillsGradeNow()); return '<div><b class="cband">' + (b ? b.e : '—') + '</b><span>Skills</span>' + (b ? '<em>' + b.name + '</em>' : '') + '</div>'; })() + (function () { const b = bandOf(apOverallNow()); return '<div><b class="cband">' + (b ? b.e : '—') + '</b><span>Effort</span>' + (b ? '<em>' + b.name + '</em>' : '') + '</div>'; })() + '</div>' +
         cardBadges() +
         '<div class="cfoot">' + tierNext() + '</div>' +
       '</div></div><div class="cardhint">Your style is your choice. None is "better": it sets your card’s colour and identity.</div></div>';
   const picker = '<div class="styles" id="styles">' + pick + '</div>';
   return '<div class="wrap">' +
     '<button type="button" class="back" id="toprofile">← Back to my profile</button>' +
-    '<div class="hero"><div class="k">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</div><h1>' + (chosen ? 'Your Athlete Card, ' + esc(st.first) : 'Hi ' + esc(st.first) + ', build your Athlete Card') + '</h1><p>' + (chosen ? 'Your card grows all year — every badge and every Combine changes it.' : 'Choose your PE Style and make it yours. Your card grows all year.') + '</p></div>' +
+    '<div class="hero"><div class="k">GRADE 8 PE · ' + esc(b.config.yearLabel) + '</div><h1>' + (chosen ? 'Your Athlete Card, ' + esc(st.first) : 'Hi ' + esc(st.first) + ', build your Athlete Card') + '</h1><p>' + (chosen ? 'Your card grows all year: every Combine, every unit and every badge changes it.' : 'Choose your PE Style and make it yours. Your card grows all year.') + '</p></div>' +
     (chosen
       ? '<div class="grid gchosen">' + stage + '<details class="stylepick"><summary>🎨 Change my style <span class="saved" id="saved">✓ saved</span></summary>' + picker + '<button type="button" class="repack" id="repack">🎁 Rip open a fresh pack</button></details></div>'
       : '<div class="grid"><div><div class="step">Choose your style <span class="saved" id="saved"></span></div>' + picker + '</div>' + stage + '</div>') +
+    cardBuilds(m) +
     '<div class="done"><button type="button" class="ct-btn" id="toprofile2">Done · back to my profile ↗</button></div>' +
   '</div>';
 }
@@ -815,13 +1046,40 @@ async function saveEntry() {
     }
     const el = $('#en-' + f.key); const v = el ? el.value.trim() : ''; if (v !== '') results[f.key] = Number(v);
   });
+  // Check every number here first, so a typo is fixed in seconds instead of failing the whole save.
+  document.querySelectorAll('.en-bad').forEach(x => x.remove());
+  document.querySelectorAll('.enform .bad').forEach(x => x.classList.remove('bad'));
+  const bad = [];
+  FITMETA().forEach(function (f) {
+    if (!(f.key in results)) return;
+    const n = results[f.key], lo = f.min, hi = f.max;
+    if (!isFinite(n) || (lo != null && n < lo) || (hi != null && n > hi)) {
+      let hint = f.key === 'mile' ? 'Between ' + mileStr(lo) + ' and ' + mileStr(hi) + ' (minutes : seconds).' : 'Between ' + lo + ' and ' + hi + ' ' + f.unit + '.';
+      if (f.key === 'broad' && n > 0 && n < 4) hint = 'Broad jump is in cm: ' + n + ' m = ' + Math.round(n * 100) + ' cm.';
+      if (f.key === 'grip' && n > hi) hint = 'Grip is in kg (' + lo + '–' + hi + '). Check the dial.';
+      bad.push([f.key, hint]);
+    }
+  });
+  if (bad.length) {
+    bad.forEach(function (b) {
+      const inp = $(b[0] === 'mile' ? '#en-mile-min' : '#en-' + b[0]); if (!inp) return;
+      const lab = inp.closest('label') || inp.parentElement; lab.classList.add('bad');
+      lab.insertAdjacentHTML('beforeend', '<span class="en-bad">⚠️ ' + esc(b[1]) + '</span>');
+    });
+    const first = document.querySelector('.enform .bad'); if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    btn.disabled = false; btn.textContent = 'Save my results';
+    toast(bad.length === 1 ? 'One number needs checking (highlighted).' : bad.length + ' numbers need checking (highlighted).', true);
+    return;
+  }
   try {
     const res = await call('saveCombine', { checkpoint: entryCp, results: results });
     const m = state.student.combine || { fitness: {}, skills: {}, ap: {}, bands: {}, goals: [], plan: null };
     m.fitness = m.fitness || {};
     Object.keys(res.results).forEach(function (k) { m.fitness[k] = m.fitness[k] || {}; m.fitness[k][entryCp] = res.results[k]; });
     state.student.combine = m;
-    toast('Results saved.'); show(lastHub);
+    if (res.rejected && res.rejected.length) toast('Saved ' + Object.keys(res.results).length + '. Not saved: ' + res.rejected.map(r => (FITMETA().find(f => f.key === r.key) || {}).label || r.key).join(', ') + '.', true);
+    else toast('Results saved.');
+    show(lastHub);
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my results'; toast('Couldn’t save: ' + e.message, true); }
 }
 
@@ -953,7 +1211,10 @@ function normRow(x, part, choice) {
 function normPlan(p) {
   p = p || {};
   const out = { v: 3, warmup: [], cardio: [], strength: [], focus: [], cooldown: [], sChoice: p.sChoice || '', fChoice: p.fChoice || '', hr: p.hr || '', fWhy: p.fWhy || '',
-    equip: (p.equip || []).slice(0, 20), days: p.days || {}, log: (p.log || []).slice(), reflection: p.reflection || p.notes || '' };
+    equip: (p.equip || []).slice(0, 20), days: p.days || {}, log: (p.log || []).slice(), reflection: p.reflection || p.notes || '',
+    why: Object.assign({}, p.why || {}), ref: Object.assign({}, p.ref || {}) };
+  // an older single reflection box carries into "Did it work?"
+  if (out.reflection && !out.ref.worked) out.ref.worked = out.reflection;
   const ch = k => k === 'strength' ? out.sChoice : (k === 'focus' ? out.fChoice : '');
   if (p.v === 3) { WK_PARTS.forEach(w => { out[w[0]] = (p[w[0]] || []).map(x => normRow(x, w[0], ch(w[0]))); }); return out; }
   // migrate the earlier warm-up / main / cool-down plan
@@ -989,6 +1250,7 @@ function partNeeds(part, p) {
   if (mins < tgt) return 'add ' + (Math.round((tgt - mins) * 10) / 10) + ' min more';
   if (part === 'cardio' && !String(p.hr || '').trim()) return 'add your heart-rate zone';
   if (part === 'focus' && !String(p.fWhy || '').trim()) return 'say how it meets your goal';
+  if (part !== 'focus' && !String((p.why || {})[part] || '').trim()) return 'say what it targets';
   return '';
 }
 // Which focus component the student's goals point to.
@@ -1026,14 +1288,21 @@ function wkPart(w) {
   const extra = part === 'cardio'
     ? '<label class="wk-field">❤️ My target heart-rate zone <input type="text" id="wk-hr" maxlength="30" value="' + esc(planDraft.hr) + '" placeholder="e.g. 145–175 bpm"><small>A guide for your age is about 145–175 beats a minute — check it with your pulse or a watch.</small></label>'
     : part === 'focus' && planDraft.fChoice ? '<label class="wk-field">🎯 How does this help you reach your goal? <input type="text" id="wk-why" maxlength="160" value="' + esc(planDraft.fWhy) + '" placeholder="e.g. faster first steps should cut my 30 m sprint time"></label>' : '';
+  const tgt = part === 'focus' ? '' : '<label class="wk-field wk-tgt">🧠 This part targets… <input type="text" id="wk-why-' + part + '" maxlength="160" value="' + esc((planDraft.why || {})[part] || '') + '" placeholder="' + esc(WK_WHY_HINT[part]) + '"><small>Which part of fitness, and how your choices train it.</small></label>';
   return '<div class="wkpart' + (need ? '' : ' ok') + '" data-part="' + part + '"><div class="wk-h"><span class="wk-ht">' + w[1] + (w[3] ? ' <span class="wk-req">' + esc(w[3]) + '</span>' : '') + '</span>' +
     '<span class="wk-time' + (need ? '' : ' ok') + '">' + (need ? Math.round(mins * 10) / 10 + ' / ' + w[2] + ' min · ' + need : '✓ ' + Math.round(mins * 10) / 10 + ' min') + '</span></div>' +
     '<ul class="wk-brief">' + w[4].map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>' +
     wkChoice(part) +
     '<div class="wk-list" data-part="' + part + '">' + rows.map(it => wkRow(part, it)).join('') + '</div>' +
     (rows.length || need === 'pick one first' ? '' : '<div class="wk-empty">Nothing here yet — add an exercise, then drag ⠿ to arrange.</div>') +
-    extra + wkTools(part) + '</div>';
+    extra + tgt + wkTools(part) + '</div>';
 }
+const WK_WHY_HINT = {
+  warmup: 'e.g. raises my heart rate slowly and loosens my hips and legs before I sprint',
+  cardio: 'e.g. intervals keep me at 150–170 bpm, which builds my heart and lungs for the mile',
+  strength: 'e.g. muscular endurance: 3 × 45 s of push-ups and squats so I can keep going longer',
+  cooldown: 'e.g. brings my heart rate down and stretches the legs I used most'
+};
 function equipList() {
   const auto = []; WK_PARTS.forEach(w => (planDraft[w[0]] || []).forEach(r => { const e = EQUIP[r.n]; if (e && auto.indexOf(e) === -1) auto.push(e); }));
   return { auto: auto, extra: planDraft.equip || [] };
@@ -1066,10 +1335,17 @@ function planView(b) {
     '<h3 class="sec"><span class="em">🏠</span> Train at home <span class="tap">· homework</span></h3>' +
     homeworkSection() +
     '<h3 class="sec"><span class="em">✍️</span> Reflection <span class="tap">· after you’ve done it</span></h3>' +
-    '<textarea id="wk-ref" rows="4" maxlength="600" placeholder="How did it go? Did you hit your heart-rate zone? Did it help your goal? What would you change?">' + esc(planDraft.reflection) + '</textarea>' +
+    '<div class="refset">' + REF_PROMPTS.map(r => '<label class="refq"><b>' + r[1] + '</b><small>' + esc(r[2]) + '</small><textarea id="wk-ref-' + r[0] + '" rows="3" maxlength="400" placeholder="' + esc(r[3]) + '">' + esc((planDraft.ref || {})[r[0]] || '') + '</textarea></label>').join('') + '</div>' +
     '<div class="pbar"><div class="pcount">A plan you’ll actually do beats a perfect one.</div><button type="button" class="ct-btn" id="psaveplan">Save my plan</button></div>' +
   '</div>';
 }
+// Reflection prompts, one per thing the rubric looks for (S2: strengths/areas, effectiveness, change, personal connection).
+const REF_PROMPTS = [
+  ['strength', '💪 My strength and my area to improve', 'Use a real number from your Combine or your sessions.', 'e.g. My strength is sit-to-stand (41). I want to improve my mile (10:20).'],
+  ['worked', '📈 Did it work?', 'Did you hit your heart-rate zone? Did your numbers go up across your sessions?', 'e.g. I stayed at 155–165 bpm. My push-ups went from 18 to 22 over three sessions.'],
+  ['change', '🔧 What I would change', 'Too easy, too hard, or not targeting your goal?', 'e.g. Add a fourth interval and swap lunges for step-ups.'],
+  ['matters', '❤️ Why it matters to me', 'Connect it to something you care about.', 'e.g. Fitter legs will help me last a full rugby match.']
+];
 const FIT_LESSONS = [['🫀', 'Cardio & endurance'], ['💪', 'Strength & power'], ['⚡', 'Speed, agility & flexibility']];
 const WHO = { me: ['🙂', 'Just me', 0], friend: ['🤝', 'With a friend', 1], family: ['👪', 'With family', 1] };
 function isoDay(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -1082,7 +1358,7 @@ function homeworkSection() {
     '<div class="hw-rule"><b>Do your workout at least one more time each week</b> on your own, outside PE. <span class="hw-bonus">⭐ Extra points for training with a friend or family member.</span></div>' +
     '<div class="hw-week"><span class="hw-badge' + (met ? ' ok' : '') + '">' + (met ? '✓ ' : '') + n + ' home session' + (n === 1 ? '' : 's') + ' this week</span>' + (buddy ? '<span class="hw-badge star">⭐ Training-buddy bonus</span>' : '') + '<span class="hw-target">target: 1 or more</span></div>' +
     '<div class="hw-how">▶ Use <b>Workout mode</b> — it logs your session when you finish.</div>' +
-    '<details class="hw-manual"><summary>Did it without workout mode? Log it here</summary><div class="hw-add"><button type="button" class="hw-btn" data-log="me">🙂 Just me</button><button type="button" class="hw-btn star" data-log="friend">🤝 With a friend</button><button type="button" class="hw-btn star" data-log="family">👪 With family</button></div></details>' +
+    '<details class="hw-manual"><summary>Did it without workout mode? Log it here</summary><input type="text" id="hw-num" class="wo-num" maxlength="40" placeholder="One number from today, e.g. 22 push-ups"><div class="hw-add"><button type="button" class="hw-btn" data-log="me">🙂 Just me</button><button type="button" class="hw-btn star" data-log="friend">🤝 With a friend</button><button type="button" class="hw-btn star" data-log="family">👪 With family</button></div></details>' +
     (rows ? '<div class="hw-logs">' + rows + '</div>' : '') +
   '</div>';
 }
@@ -1099,6 +1375,9 @@ function syncPlanFromDom() {
   const hr = $('#wk-hr'); if (hr) planDraft.hr = hr.value.trim().slice(0, 30);
   const wy = $('#wk-why'); if (wy) planDraft.fWhy = wy.value.trim().slice(0, 160);
   const r = $('#wk-ref'); if (r) planDraft.reflection = r.value.trim().slice(0, 600);
+  planDraft.why = planDraft.why || {}; planDraft.ref = planDraft.ref || {};
+  WK_PARTS.forEach(w => { const el = $('#wk-why-' + w[0]); if (el) planDraft.why[w[0]] = el.value.trim().slice(0, 160); });
+  REF_PROMPTS.forEach(q => { const el = $('#wk-ref-' + q[0]); if (el) planDraft.ref[q[0]] = el.value.trim().slice(0, 400); });
 }
 // Pointer-based drag (mouse + touch): grab ⠿, move the row within or between the three parts.
 function enableWkDrag(root) {
@@ -1251,13 +1530,15 @@ function woDone() {
     '<div class="wo-q">Where did you train?</div>' + pick('where', [['class', '🏫', 'In PE'], ['home', '🏠', 'At home']]) +
     (wo.where === 'home' ? '<div class="wo-q">Who with? <small>⭐ bonus for a friend or family member</small></div>' + pick('who', [['me', '🙂', 'Just me'], ['friend', '🤝', 'A friend ⭐'], ['family', '👪', 'Family ⭐']]) : '') +
     '<div class="wo-q">How did it feel?</div>' + pick('feel', WO_FEEL) +
+    '<div class="wo-q">One number from today <small>so you can see your progress</small></div><input type="text" id="wo-num" class="wo-num" maxlength="40" value="' + esc(wo.num || '') + '" placeholder="e.g. 22 push-ups · cardio 10 min at 160 bpm">' +
     '<button type="button" class="wo-go wide" id="wo-save"' + (ready ? '' : ' disabled') + '>Save &amp; finish</button>' +
     '<button type="button" class="wo-edit big" id="wo-skip">Skip — don’t log it</button></div>';
 }
 async function woSave() {
   const btn = $('#wo-save'); btn.disabled = true; btn.textContent = 'Saving…';
   const p = woPlan(); p.log = (p.log || []).slice(-59);
-  p.log.push({ date: isoDay(new Date()), who: wo.where === 'class' ? 'me' : wo.who, where: wo.where, feel: wo.feel });
+  const ni = $('#wo-num'); if (ni) wo.num = ni.value.trim().slice(0, 40);
+  p.log.push({ date: isoDay(new Date()), who: wo.where === 'class' ? 'me' : wo.who, where: wo.where, feel: wo.feel, num: wo.num || '' });
   try {
     const res = await call('savePlan', { plan: p });
     const m = state.student.combine || { fitness: {}, skills: {} }; m.plan = res.plan; state.student.combine = m;
@@ -1265,6 +1546,7 @@ async function woSave() {
   } catch (e) { btn.disabled = false; btn.textContent = 'Save & finish'; toast('Couldn’t save: ' + e.message, true); }
 }
 function woHandle(e) {
+  const nIn = $('#wo-num'); if (nIn) wo.num = nIn.value.trim().slice(0, 40); // keep the typed number across re-renders
   const dot = e.target.closest('[data-dot]');
   if (dot) { const it = wo.list[wo.i], k = +dot.dataset.dot; wo.sets = (k < wo.sets) ? k : k + 1; woStop(); wo.rest = false; wo.total = wo.left = woKind(it) === 'interval' ? (parseSecs(it.reps) || 30) : 0; return show('workout'); }
   const id = (e.target.closest('button[id]') || {}).id, pk = e.target.closest('[data-wo]');
@@ -1321,9 +1603,92 @@ function classGrade(s) {
   if (!gs.length) return null;
   return Math.round(gs.reduce(function (a, b) { return a + b; }, 0) / gs.length);
 }
+// ═══════════════ demo student (teacher → "View as a student") ═══════════════
+// A made-up student built entirely in the browser. Nothing is read from or written to
+// the Sheet: saves are answered locally and vanish on exit, so it is safe on the board.
+let demo = null; // { teacher: <teacher bootstrap>, kind: 'fresh'|'example' }
+const DEMO_PREDICT = { items: ['cv', 'me', 'power', 'speed', 'throw', 'catch', 'strike', 'dribble', 'kick', 'balance', 'agility', 'jump', 'core'], checkpoints: ['intro'], ratings: ['strength', 'neutral', 'work-on'], freqs: ['often', 'sometimes', 'rarely'] };
+function demoBootstrap(t, kind) {
+  const ago = d => { const x = new Date(Date.now() - d * 864e5); return x.toISOString().slice(0, 10); };
+  const st = { name: 'Demo Student', first: 'Demo', klass: '8 Demo', initials: 'DS', style: '', goal: '', photoUrl: '', predictions: {}, combine: null, locked: {}, reflections: {} };
+  if (kind === 'example') {
+    st.style = 'improver';
+    const P = t.predict || DEMO_PREDICT, items = {};
+    P.items.forEach((k, i) => { items[k] = { rating: P.ratings[i % 3], freq: P.freqs[(i + 1) % 3] }; });
+    st.predictions = { intro: { timestamp: ago(20), items: items } };
+    st.combine = {
+      fitness: { mile: { sept: 598 }, pushups: { sept: 15 }, sitstand: { sept: 29 }, broad: { sept: 170 }, grip: { sept: 24 }, sprint: { sept: 5.8 }, illinois: { sept: 18.7 }, stork: { sept: 6 } },
+      skills: { throw: { sept: 4 }, catch: { sept: 5 }, strike: { sept: 3 }, dribble: { sept: 4 }, kick: { sept: 4 }, jump: { sept: 4 }, core: { sept: 5 } },
+      ap: { ready: { self: 5, tchr: 5 }, effort: { self: 5, tchr: 4 }, growth: { self: 6, tchr: 5 }, team: { self: 5, tchr: 5 }, manage: { self: 4, tchr: 4 } },
+      apLog: { self: [[40, 6, 6, 5, 6, 5], [26, 5, 5, 4, 6, 4], [12, 6, 5, 5, 6, 5], [3, 5, 5, 6, 5, 4]].map(r => ({ date: ago(r[0]), v: { ready: r[1], effort: r[2], growth: r[3], team: r[4], manage: r[5] } })),
+        teacher: [{ round: 's1-mid', label: 'S1 mid', date: ago(1), v: { ready: 5, effort: 4, growth: 5, team: 5, manage: 4 } }] },
+      bands: {}, goals: [{ component: 'mile', target: 540, goal: '' }, { component: 'pushups', target: 22, goal: '' }], goalNote: 'Run twice a week, push-ups after every PE lesson.',
+      plan: { v: 3,
+        warmup: [{ n: 'Light jog', min: 3, int: 'easy' }, { n: 'Dynamic stretches', min: 2, int: 'easy' }],
+        cardio: [{ n: 'Running intervals', sets: 4, reps: '1 min', min: 6, int: 'hard' }, { n: 'Skipping rope', min: 4, int: 'moderate' }],
+        strength: [{ n: 'Push-ups (max reps)', sets: 3, reps: '8', int: 'hard' }, { n: 'Bodyweight squats', sets: 3, reps: '12', int: 'moderate' }],
+        focus: [{ n: 'Sprints', sets: 4, reps: '20 m', min: 4, int: 'hard' }],
+        cooldown: [{ n: 'Static stretches', min: 4, int: 'easy' }],
+        sChoice: 'strength', fChoice: 'speed', hr: '150–170 bpm', fWhy: 'Faster sprint for my mile finish', equip: ['water bottle'], days: { tue: true, sat: true },
+        log: [{ date: ago(3), who: 'family', where: 'home' }], reflection: '' } };
+  }
+  return { role: 'student', config: t.config, styles: t.styles, meta: t.meta, predict: t.predict || DEMO_PREDICT, student: st };
+}
+async function demoCall(action, p) {
+  const now = new Date().toISOString();
+  const R = {
+    bootstrap: () => state,
+    saveStyle: () => ({ ok: true, style: p.style }),
+    savePrediction: () => ({ ok: true, checkpoint: p.checkpoint, prediction: { timestamp: now, items: p.answers } }),
+    saveCombine: () => ({ ok: true, checkpoint: p.checkpoint, results: p.results }),
+    saveMySkills: () => ({ ok: true, checkpoint: p.checkpoint, levels: p.levels }),
+    saveGoals: () => ({ ok: true, goals: p.goals, note: p.note }),
+    savePlan: () => ({ ok: true, plan: p.plan }),
+    saveReflection: () => ({ ok: true, key: p.key, reflection: { text: p.text, updated: now } }),
+    saveApSelf: () => { const log = JSON.parse(JSON.stringify(apLog())), d = now.slice(0, 10); log.self = log.self.filter(e => e.date !== d).concat([{ date: d, v: Object.assign({}, p.ratings) }]);
+      const ap = {}; AP_KEYS_C.forEach(k => { const s = [...log.self].reverse().find(e => e.v[k] != null), t = [...log.teacher].reverse().find(e => e.v[k] != null); if (s || t) ap[k] = { self: s ? s.v[k] : null, tchr: t ? t.v[k] : null }; });
+      return { ok: true, apLog: log, ap: ap }; }
+  };
+  await sleep(150);
+  if (!R[action]) throw new Error('Not available in the demo');
+  return R[action]();
+}
+function startDemo(kind) {
+  const t = demo ? demo.teacher : state;
+  demo = { teacher: t, kind: kind };
+  wo = null; planDraft = null; goalSel = null; unitDraft = null; lastHub = 'profile';
+  document.body.classList.add('demo');
+  demoBar();
+  render(demoBootstrap(t, kind));
+  window.scrollTo(0, 0);
+}
+function exitDemo() {
+  if (!demo) return;
+  const t = demo.teacher; demo = null;
+  if (wo) { woStop(); woWakeOff(); wo = null; }
+  planDraft = null; goalSel = null; unitDraft = null; closeOv();
+  document.body.classList.remove('demo');
+  const bar = $('#demobar'); if (bar) bar.remove();
+  setSkin(''); document.documentElement.style.removeProperty('--frame');
+  render(t);
+}
+function demoBar() {
+  let bar = $('#demobar');
+  if (!bar) { bar = document.createElement('div'); bar.id = 'demobar'; document.body.appendChild(bar); }
+  bar.innerHTML = '<span class="db-t">👀 <b>Student view</b> · made-up student · nothing is saved</span>' +
+    '<button type="button" data-demo="fresh"' + (demo.kind === 'fresh' ? ' class="on"' : '') + '>New student</button>' +
+    '<button type="button" data-demo="example"' + (demo.kind === 'example' ? ' class="on"' : '') + '>Mid-unit example</button>' +
+    '<button type="button" class="db-x" data-demo="exit">✕ Exit</button>';
+  bar.onclick = e => { const b = e.target.closest('[data-demo]'); if (!b) return; const k = b.getAttribute('data-demo'); if (k === 'exit') exitDemo(); else startDemo(k); };
+}
+
 function teacherLanding(b) {
   return '<div class="wrap"><div class="phero"><div class="k">TEACHER</div><h1>G8 PE — class view</h1><p>Signed in as <code>' + esc(b.email) + '</code>. Open the class dashboard to see everyone’s Combine and record the skill-ladder results your classes run.</p></div>' +
     '<div class="done"><button type="button" class="ct-btn" id="toclass">Open class dashboard ↗</button></div>' +
+    '<button type="button" class="co-entry" id="tocheckout"><span class="ce-i">📲</span><span class="ce-t"><b>AP Check-out</b><span>60 seconds at the end of the lesson: students tap how they did on today’s AP focus, you rate a spotlight group.</span></span><span class="sg-go">Go ↗</span></button>' +
+    '<div class="demobox"><h3>👀 View as a student</h3><p>Show the class what to do, on the board. Uses a <b>made-up student</b>, so no real names or results appear, and nothing is saved.</p>' +
+    '<div class="demobtns"><button type="button" class="ct-btn" data-demo="fresh">New student</button><button type="button" class="ct-btn ghost" data-demo="example">Mid-unit example</button></div>' +
+    '<p class="small">New student: an empty profile, starting from the Athlete Pack. Mid-unit example: Combine done, goals set and a workout built.</p></div>' +
     '<p class="small"><button type="button" class="lnk" id="signout">Sign out</button></p></div>';
 }
 function classView() {
@@ -1339,13 +1704,14 @@ function classView() {
     const bdCells = MX_BANDS.map(b => '<td class="mx-c">' + lvSelect('bd', ' data-email="' + esc(s.id) + '" data-band="' + b[0] + '"', mxBand(s, b[0]), 7) + '</td>').join('');
     const apCells = MX_AP.map(a => { const v = mxAp(s, a[0]); return '<td class="mx-c"><span class="apdot ' + (v == null ? 'lv0' : lvClass(v)) + '">' + (v == null ? '·' : v) + '</span></td>'; }).join('');
     const tag = flag === 'below' ? ' <span class="flag" title="below L4 on 2+ skills">⚑</span>' : (flag === 'none' ? ' <span class="flag off" title="nothing recorded yet">∅</span>' : '');
-    return '<tr' + (flag === 'below' ? ' class="r-flag"' : '') + '><td class="mx-nm">' + esc(s.name) + tag + '</td><td class="mx-cl">' + esc(s.klass) + '</td>' + skCells + bdCells + apCells +
+    return '<tr' + (flag === 'below' ? ' class="r-flag"' : '') + '><td class="mx-nm"><button type="button" class="asb" data-assess="' + esc(s.id) + '" title="Workout assessment evidence">📝</button>' + esc(s.name) + tag + '</td><td class="mx-cl">' + esc(s.klass) + '</td>' + skCells + bdCells + apCells +
       '<td class="mx-c"><button type="button" class="lockb' + (locked ? ' on' : '') + '" data-lock="' + esc(s.id) + '" title="' + (locked ? 'Locked — click to unlock' : 'Unlocked — click to lock (finalise)') + '">' + (locked ? '🔒' : '🔓') + '</button></td></tr>';
   }).join('');
   const classOpts = ['all'].concat(mxClasses()).map(c => '<option value="' + esc(c) + '"' + (c === teacherFilter ? ' selected' : '') + '>' + (c === 'all' ? 'All classes' : esc(c)) + '</option>').join('');
   const cpBtns = CPS.map(cp => '<button type="button" class="cpbtn' + (cp === teacherCp ? ' on' : '') + '" data-cp="' + cp + '">' + CP_LABEL[cp] + '</button>').join('');
   return '<div class="wrap wide">' +
-    '<button type="button" class="back light" id="toprofileT">← Back</button>' +
+    '<button type="button" class="back light" id="toprofileT">← Back</button>' + (state.role === 'teacher' ? '<button type="button" class="back light" id="todemo" style="margin-left:8px">👀 View as a student</button>' : '') +
+    '<button type="button" class="co-entry slim" id="tocheckout2">📲 AP Check-out</button><button type="button" class="back light" id="toapsum" style="margin-left:8px">📊 AP check-out summary</button>' +
     '<div class="phero tight"><div class="k">TEACHER · GRADEBOOK</div><h1>Class dashboard</h1><p>' + rows.length + ' student' + (rows.length === 1 ? '' : 's') + (teacherFilter === 'all' ? '' : ' · ' + esc(teacherFilter)) + '. Tap a skill or band cell to set it. 🔒 locks a student so they can’t change their own entries.</p></div>' +
     '<div class="mxbar">' +
       '<label class="mxf">Class <select id="mxclass">' + classOpts + '</select></label>' +
@@ -1428,6 +1794,60 @@ function skillEntryView(sid) {
     '<div class="pbar"><div class="pcount">Teacher sign-off — the final tick.</div><button type="button" class="ct-btn" id="sksave" data-id="' + esc(sid) + '">Save levels</button></div>' +
   '</div>';
 }
+// ── Teacher: workout assessment evidence for one student (K4 plan · S2 goals & reflection · Self-Management log) ──
+let assessData = null;
+async function loadAssess(sid) {
+  assessData = { id: sid, loading: true };
+  try { const res = await call('classStudent', { email: sid }); assessData = res.student; }
+  catch (e) { assessData = { id: sid, error: e.message }; }
+  if (view === 'assess') show('assess', sid);
+}
+function assessView(sid) {
+  if (!assessData || assessData.id !== sid) { loadAssess(sid); return '<div class="loading"><div class="spinner"></div>Loading…</div>'; }
+  if (assessData.loading) return '<div class="loading"><div class="spinner"></div>Loading…</div>';
+  const back = '<button type="button" class="back light" id="toclassback">← Back to class</button>';
+  if (assessData.error) return '<div class="wrap">' + back + '<p class="lockmsg">' + esc(assessData.error) + '</p></div>';
+  const st = assessData, p = st.plan ? normPlan(st.plan) : null, goals = (st.goals && st.goals.items) || [], gnote = (st.goals && st.goals.note) || '';
+  const miss = t => '<span class="as-miss">' + t + '</span>';
+  // K4 — the plan
+  let k4 = '', whys = 0;
+  if (!p) k4 = miss('No workout plan saved yet.');
+  else {
+    k4 = WK_PARTS.map(w => {
+      const part = w[0], rows = p[part] || [], why = part === 'focus' ? p.fWhy : (p.why || {})[part];
+      if (why && String(why).trim()) whys++;
+      const choice = part === 'strength' && p.sChoice ? ' · ' + (p.sChoice === 'endurance' ? 'muscular endurance' : 'strength') : part === 'focus' && p.fChoice ? ' · ' + esc(goalLabel(p.fChoice)) : '';
+      const ex = rows.length ? rows.map(r => '<li>' + esc(r.n) + (r.sets ? ' · ' + esc(r.sets) + ' × ' + esc(r.reps || '?') : '') + (r.min ? ' · ' + esc(r.min) + ' min' : '') + (r.int ? ' · ' + esc(r.int) : '') + '</li>').join('') : '<li>' + miss('nothing added') + '</li>';
+      return '<div class="as-part"><div class="as-ph">' + w[1] + choice + ' <small>' + Math.round(partMins(part, p)) + ' / ' + w[2] + ' min</small></div><ul>' + ex + '</ul>' +
+        (part === 'cardio' ? '<div class="as-why">❤️ HR zone: ' + (p.hr ? esc(p.hr) : miss('not set')) + '</div>' : '') +
+        '<div class="as-why">🧠 ' + (part === 'focus' ? 'Helps my goal: ' : 'Targets: ') + (why && String(why).trim() ? esc(why) : miss('no reason given')) + '</div></div>';
+    }).join('');
+  }
+  const total = p ? Math.round(WK_PARTS.reduce((a, w) => a + partMins(w[0], p), 0)) : 0;
+  const parts = p ? WK_PARTS.filter(w => (p[w[0]] || []).length).length : 0;
+  // S2 — goals + reflection
+  const fitNow = k => { const f = (st.fitness || {})[k]; return f ? latestOf(f) : null; };
+  const gl = goals.length ? '<ul>' + goals.map(g => { const meta = goalMetaAll().find(x => x.key === g.component); const now = meta && meta.kind === 'fit' ? fitNow(g.component) : (st.skills && st.skills[g.component] ? latestOf(st.skills[g.component]) : null);
+    return '<li><b>' + esc(goalLabel(g.component)) + '</b>: now ' + (meta ? fmtMetric(meta, now) : (now == null ? '—' : now)) + ' → target ' + (meta && g.target != null ? fmtMetric(meta, g.target) : (g.target == null ? '—' : g.target)) + (g.goal ? ' · “' + esc(g.goal) + '”' : '') + '</li>'; }).join('') + '</ul>' : miss('No goals set.');
+  const ref = p ? REF_PROMPTS.map(q => '<div class="as-ref"><b>' + q[1] + '</b><p>' + ((p.ref || {})[q[0]] ? esc(p.ref[q[0]]) : miss('not answered')) + '</p></div>').join('') : '';
+  const nRef = p ? REF_PROMPTS.filter(q => (p.ref || {})[q[0]]).length : 0;
+  // Self-Management — training log
+  const log = ((p && p.log) || []).slice().sort((a, b) => a.date < b.date ? -1 : 1);
+  const home = log.filter(e => e.where !== 'class'), weeks = {}; home.forEach(e => { weeks[weekKey(e.date)] = true; });
+  const first = log.length ? new Date(log[0].date + 'T12:00:00') : null, spanW = first ? Math.max(1, Math.ceil((Date.now() - first) / (7 * 864e5))) : 0;
+  const buddy = home.filter(e => e.who === 'friend' || e.who === 'family').length;
+  const lg = log.length ? '<table class="as-log"><tr><th>Date</th><th>Where</th><th>Who</th><th>Feel</th><th>Number</th></tr>' + log.slice().reverse().map(e => '<tr><td>' + esc(e.date) + '</td><td>' + (e.where === 'class' ? 'PE' : 'home') + '</td><td>' + esc(e.who || '') + '</td><td>' + esc(e.feel || '') + '</td><td>' + esc(e.num || '') + '</td></tr>').join('') + '</table>' : miss('No sessions logged.');
+  const chip = (ok, t) => '<span class="as-chip' + (ok ? ' ok' : '') + '">' + (ok ? '✓ ' : '') + t + '</span>';
+  return '<div class="wrap as-wrap">' + back +
+    '<div class="phero tight"><div class="k">WORKOUT ASSESSMENT EVIDENCE</div><h1>' + esc(st.name) + '</h1><p>' + esc(st.klass) + ' · grade each criterion 1–7 in Canvas. This page only reads the student’s profile.</p></div>' +
+    '<div class="as-card"><h3>📘 Knowledge (K4) · planning a workout</h3><div class="as-chips">' + chip(parts === 5, parts + ' / 5 parts filled') + chip(whys === 5, whys + ' / 5 reasons given') + chip(!!(p && p.hr), 'HR zone') + chip(total >= 40, total + ' min') + '</div>' + k4 +
+      '<p class="as-look">Look for: every part has a clear purpose, exercises match the components named, the focus links to a goal.</p></div>' +
+    '<div class="as-card"><h3>🔍 Skills (S2) · assessing and improving</h3><div class="as-chips">' + chip(goals.length >= 2, goals.length + ' goals') + chip(nRef === 4, nRef + ' / 4 reflection prompts') + '</div><h4>Goals</h4>' + gl + (gnote ? '<p class="as-note">“' + esc(gnote) + '”</p>' : '') + '<h4>Reflection</h4>' + (ref || miss('No reflection yet.')) +
+      '<p class="as-look">Look for: strengths and areas backed by numbers, a judgement of whether the workout worked, a specific change, a personal reason.</p></div>' +
+    '<div class="as-card"><h3>🧭 Self-Management · training independently</h3><div class="as-chips">' + chip(home.length > 0, home.length + ' home sessions') + chip(spanW && Object.keys(weeks).length >= spanW, Object.keys(weeks).length + ' of ' + spanW + ' weeks with a home session') + chip(buddy > 0, buddy + ' with a friend or family') + '</div>' + lg +
+      '<p class="as-look">Also use what you saw in lessons and in the assessment: organised, on task without reminders, consistent effort.</p></div>' +
+  '</div>';
+}
 async function saveSkillsUI(sid) {
   const btn = $('#sksave'); btn.disabled = true; btn.textContent = 'Saving…';
   const levels = {};
@@ -1471,6 +1891,209 @@ async function saveMySkillsUI() {
     state.student.combine = m;
     toast('Levels saved.'); show(lastHub);
   } catch (e) { btn.disabled = false; btn.textContent = 'Save my levels'; toast('Couldn’t save: ' + e.message, true); }
+}
+
+// ═══════════════ AP check-out: 60-second end-of-lesson routine on the teacher's iPad ═══════════════
+// Teacher picks a class and ONE AP focus; students tap name → band (words only) → one word (or skip).
+// The teacher rates a rotating spotlight group 1–7 (stored as 'lesson', never as a Canvas grade).
+// The roster call never returns ratings, and the kiosk shows nothing but a ✓ once a student has tapped.
+const CO_FOCUS = { effort: ['🔥', 'Best effort'], team: ['🙌', 'Great teammate'], ready: ['✅', 'Be ready'], growth: ['🌱', 'Growth mindset'], manage: ['🧘', 'Manage myself'] };
+const CO_ORDER = ['effort', 'team', 'ready', 'growth', 'manage'];
+const CO_KEY = 'pe_checkout';
+let co = null; // { from, roster, klass, focus, step, sel, rating, given:{email:{rating,word}}, saving:{email:true} }
+// Bands come from AP_BANDS (Not yet · Approaching · Got it · Leading); wording from the rubric bank.
+function coBandCls(v) { const i = bandIx(v); return i == null ? 'lv0' : 'kb' + i; }
+function coDesc(key, v) { const a = RUBRICS.ap[key], i = bandIx(v); return i == null ? '' : String(a.levels[i]).replace(/\*/g, ''); }
+function coMine(key, i) { const a = RUBRICS.ap[key]; return String((a.student && a.student[i]) || a.levels[i]).replace(/\*/g, ''); }
+function coRemember() { try { sessionStorage.setItem(CO_KEY, JSON.stringify({ date: co.roster && co.roster.date, klass: co.klass, focus: co.focus })); } catch (e) {} }
+function coRecall(date) { try { const j = JSON.parse(sessionStorage.getItem(CO_KEY) || 'null'); return j && j.date === date ? j : null; } catch (e) { return null; } }
+function coName(s) { return s.first + (s.lastInitial ? ' ' + s.lastInitial + '.' : ''); }
+function coStudent(email) { return ((co.roster && co.roster.students) || []).find(s => s.email === email) || null; }
+
+async function openCheckout(from) {
+  co = { from: from || 'landing', roster: null, klass: '', focus: '', step: 'names', sel: null, rating: null, given: {}, saving: {} };
+  $('#app').innerHTML = '<div class="loading"><div class="spinner"></div>Loading classes…</div>';
+  try {
+    co.roster = await call('checkoutRoster', {});
+    const last = coRecall(co.roster.date);
+    if (last && co.roster.classes.indexOf(last.klass) !== -1) { co.focus = CO_FOCUS[last.focus] ? last.focus : ''; await coLoadClass(last.klass, true); return; }
+    show('checkout');
+  } catch (e) { toast('Couldn’t open the check-out: ' + e.message, true); coLeave(); }
+}
+async function coLoadClass(klass, quiet) {
+  try {
+    co.roster = await call('checkoutRoster', { klass: klass, focus: co.focus });
+    co.klass = co.roster.klass; coRemember(); show('checkout');
+  } catch (e) { if (!quiet) toast('Couldn’t load ' + klass + ': ' + e.message, true); co.klass = ''; show('checkout'); }
+}
+function coLeave() { const from = co ? co.from : 'landing'; co = null; if (from === 'class' && classData) show('class'); else if (state.role === 'student') show('profile'); else renderTeacher(state); }
+
+function checkoutSetupView() {
+  const r = co.roster, studs = r.students || [];
+  const doneSelf = studs.filter(s => s.doneToday.self).length, doneT = studs.filter(s => s.doneToday.teacher).length;
+  const classBtns = r.classes.map(c => '<button type="button" class="co-chip' + (c === co.klass ? ' on' : '') + '" data-coclass="' + esc(c) + '">' + esc(c) + '</button>').join('') || '<span class="small">No classes on the Students tab yet.</span>';
+  const focusBtns = CO_ORDER.map(k => { const a = RUBRICS.ap[k], f = CO_FOCUS[k];
+    return '<button type="button" class="co-focus' + (k === co.focus ? ' on' : '') + '" data-cofocus="' + k + '"><span class="cf-e">' + f[0] + '</span><span class="cf-t"><b>' + esc(f[1]) + '</b><span>' + esc(a.name) + ' · ' + esc(a.code) + '</span></span></button>'; }).join('');
+  const ready = co.klass && co.focus;
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="coback">← Back</button>' +
+    '<div class="phero tight"><div class="k">AP CHECK-OUT · ' + esc(r.date) + '</div><h1>📲 End-of-lesson check-out</h1><p>Pick the class and today’s <b>one</b> AP focus. At the end of the lesson each student taps their name, a number and one word: about 10 seconds each. Then rate your spotlight group on the same focus.</p></div>' +
+    '<h3 class="sec"><span class="em">👥</span> Class</h3><div class="co-chips">' + classBtns + '</div>' +
+    '<h3 class="sec"><span class="em">🎯</span> AP focus of the day</h3><div class="co-focuses">' + focusBtns + '</div>' +
+    (co.klass ? '<p class="seclede co-count">' + esc(co.klass) + ' · ' + studs.length + ' students' + (co.focus ? ' · today on this focus: <b>' + doneSelf + '</b> checked out, <b>' + doneT + '</b> rated by you' : '') + '</p>' : '') +
+    '<div class="co-go">' +
+      '<button type="button" class="ct-btn" id="cokiosk"' + (ready ? '' : ' disabled') + '>▶ Start student check-out</button>' +
+      '<button type="button" class="ct-btn ghost" id="cospot"' + (ready ? '' : ' disabled') + '>🧑‍🏫 Rate my spotlight group</button>' +
+    '</div>' +
+    '<p class="small">Hand the iPad round, or prop it by the door. To leave the student screen, <b>press and hold</b> “Teacher” for a second, so students can’t wander into your view.</p>' +
+  '</div>';
+}
+
+function kioskTop() {
+  const f = CO_FOCUS[co.focus];
+  return '<div class="ko-top"><span class="ko-f">' + f[0] + ' Today: <b>' + esc(f[1]) + '</b></span><span class="ko-k">' + esc(co.klass) + '</span>' +
+    '<button type="button" class="ko-hold" id="kohold" aria-label="Teacher: press and hold to leave"><i></i>Teacher · hold</button></div>';
+}
+function kioskView() {
+  const studs = co.roster.students, f = CO_FOCUS[co.focus];
+  if (co.step === 'rate' || co.step === 'word') {
+    const s = coStudent(co.sel); if (!s) { co.step = 'names'; return kioskView(); }
+    if (co.step === 'rate') {
+      const rows = AP_BANDS.map((b, i) => '<button type="button" class="ko-band kb' + i + '" data-rate="' + b.v + '"><span class="ko-lv">' + b.e + ' ' + esc(b.name) + '</span><span class="ko-bt">' + esc(coMine(co.focus, i)) + '</span></button>').reverse().join('');
+      return '<div class="wrap kiosk">' + kioskTop() +
+        '<div class="ko-q"><h1>Hi ' + esc(s.first) + ' 👋</h1><p>' + f[0] + ' <b>' + esc(f[1]) + '</b>: how did you do today? Tap the one that fits best.</p></div>' +
+        '<div class="ko-bands">' + rows + '</div>' +
+        '<button type="button" class="back light ko-back" data-kback="1">← Not me</button></div>';
+    }
+    return '<div class="wrap kiosk">' + kioskTop() +
+      '<div class="ko-q"><h1>One word for today?</h1><p>Pick the one that fits, or skip.</p></div>' +
+      '<div class="ko-words">' + co.roster.words.map((w, i) => '<button type="button" class="ko-w" data-word="' + i + '">' + esc(w) + '</button>').join('') + '</div>' +
+      '<div class="ko-row"><button type="button" class="back light" data-kback="1">← Change my answer</button><button type="button" class="ct-btn" data-word="skip">Skip ›</button></div></div>';
+  }
+  if (co.step === 'thanks') {
+    const s = coStudent(co.sel);
+    return '<div class="wrap kiosk">' + kioskTop() + '<div class="ko-thanks"><div class="big">✓</div><h1>Thanks' + (s ? ', ' + esc(s.first) : '') + '!</h1><p>Next person: tap your name.</p></div></div>';
+  }
+  const done = studs.filter(s => s.doneToday.self).length;
+  const btns = studs.map(s => {
+    const busy = co.saving[s.email], tick = s.doneToday.self;
+    return '<button type="button" class="ko-name' + (tick ? ' done' : '') + (busy ? ' busy' : '') + '" data-who="' + esc(s.email) + '">' + esc(coName(s)) + (tick ? '<span class="tick">✓</span>' : (busy ? '<span class="tick">…</span>' : '')) + '</button>';
+  }).join('');
+  return '<div class="wrap kiosk">' + kioskTop() +
+    '<div class="ko-q"><h1>Tap your name</h1><p>' + done + ' of ' + studs.length + ' checked out. Tapped by mistake? Tap your name again to change it.</p></div>' +
+    '<div class="ko-names">' + btns + '</div></div>';
+}
+function kioskSave(email, rating, word) {
+  const s = coStudent(email); if (!s) return;
+  co.saving[email] = true;
+  call('saveCheckin', { email: email, focus: co.focus, who: 'self', rating: rating, word: word })
+    .then(() => { s.doneToday.self = true; })
+    .catch(e => { if (!e.authRequired) toast('Couldn’t save ' + s.first + '’s check-out. Tap your name again (' + e.message + ')', true); })
+    .then(() => { delete co.saving[email]; if (co && view === 'kiosk' && co.step === 'names') show('kiosk'); });
+}
+function kioskWire(app) {
+  const w = app.firstElementChild; if (!w) return;
+  w.addEventListener('click', e => {
+    const nm = e.target.closest('[data-who]'); if (nm) { co.sel = nm.getAttribute('data-who'); co.rating = null; co.step = 'rate'; return show('kiosk'); }
+    const rt = e.target.closest('[data-rate]'); if (rt) { co.rating = +rt.getAttribute('data-rate'); co.step = 'word'; return show('kiosk'); }
+    const wd = e.target.closest('[data-word]'); if (wd) {
+      const i = wd.getAttribute('data-word'), word = i === 'skip' ? '' : co.roster.words[+i];
+      kioskSave(co.sel, co.rating, word);
+      co.rating = null; co.step = 'thanks'; show('kiosk');
+      clearTimeout(kioskWire.t); kioskWire.t = setTimeout(() => { if (co && view === 'kiosk' && co.step === 'thanks') { co.sel = null; co.step = 'names'; show('kiosk'); } }, 1100);
+      return;
+    }
+    if (e.target.closest('[data-kback]')) { if (co.step === 'word') co.step = 'rate'; else { co.sel = null; co.step = 'names'; } return show('kiosk'); }
+  });
+  // press-and-hold to leave, so a student can't open the teacher screens with a stray tap
+  const h = $('#kohold'); if (!h) return;
+  let t = null;
+  const cancel = () => { clearTimeout(t); t = null; h.classList.remove('holding'); };
+  h.addEventListener('pointerdown', e => { e.preventDefault(); h.classList.add('holding'); t = setTimeout(() => { cancel(); co.step = 'names'; co.sel = null; coLoadClass(co.klass, true); }, 900); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => h.addEventListener(ev, cancel));
+  h.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+function spotlightView() {
+  const r = co.roster, f = CO_FOCUS[co.focus], a = RUBRICS.ap[co.focus];
+  const spot = r.spotlight.map(coStudent).filter(Boolean), rest = r.students.filter(s => r.spotlight.indexOf(s.email) === -1);
+  const row = s => {
+    const g = co.given[s.email] || {}, b = bandOf(g.rating), busy = co.saving[s.email];
+    const nums = [1, 2, 3, 4, 5, 6, 7].map(n => '<button type="button" class="sp-n ' + coBandCls(n) + (g.rating === n ? ' on' : '') + '" data-sprate="' + n + '" data-em="' + esc(s.email) + '">' + n + '</button>').join('');
+    const words = r.words.map((w, i) => '<button type="button" class="sp-w' + (g.word === w ? ' on' : '') + '" data-spword="' + i + '" data-em="' + esc(s.email) + '">' + esc(w) + '</button>').join('');
+    return '<div class="sp-row' + (g.rating || s.doneToday.teacher ? ' rated' : '') + '"><div class="sp-nm">' + esc(coName(s)) + (busy ? ' <span class="sp-st">saving…</span>' : (g.rating ? ' <span class="sp-st">✓ saved</span>' : (s.doneToday.teacher ? ' <span class="sp-st">✓ rated today</span>' : ''))) + '</div>' +
+      '<div class="sp-nums">' + nums + '</div>' + (b ? '<div class="sp-desc"><b>' + b.e + ' ' + esc(b.name) + '</b> · ' + esc(coDesc(co.focus, g.rating)) + '</div>' : '') +
+      '<div class="sp-words">' + words + '</div></div>';
+  };
+  return '<div class="wrap">' +
+    '<button type="button" class="back light" id="spback">← Check-out setup</button>' +
+    '<div class="phero tight"><div class="k">SPOTLIGHT · ' + esc(co.klass) + ' · ' + esc(r.date) + '</div><h1>' + f[0] + ' ' + esc(f[1]) + '</h1><p>' + esc(a.name) + ' · ' + esc(a.code) + '. Tap 1–7 to save; add a word if it helps. Spotlight = the students you’ve rated least in the last 30 days. These are lesson ratings: they never change a Canvas grade.</p></div>' +
+    '<h3 class="sec"><span class="em">🔦</span> Spotlight today</h3>' + (spot.map(row).join('') || '<p class="seclede">No students in this class.</p>') +
+    (rest.length ? '<details class="sp-more"' + (co.moreOpen ? ' open' : '') + '><summary>Rate someone else in ' + esc(co.klass) + ' (' + rest.length + ')</summary>' + rest.map(row).join('') + '</details>' : '') +
+  '</div>';
+}
+function spotSave(email) {
+  const g = co.given[email], s = coStudent(email); if (!g || !g.rating || !s) return;
+  co.saving[email] = true;
+  call('saveCheckin', { email: email, focus: co.focus, who: 'teacher', rating: g.rating, word: g.word || '' })
+    .then(() => { s.doneToday.teacher = true; })
+    .catch(e => { if (!e.authRequired) { delete g.rating; toast('Couldn’t save ' + s.first + ': ' + e.message, true); } })
+    .then(() => { delete co.saving[email]; if (co && view === 'spotlight') { const y = window.scrollY; show('spotlight'); window.scrollTo(0, y); } });
+}
+function spotWire(app) {
+  const w = app.firstElementChild; if (!w) return;
+  const more = w.querySelector('.sp-more'); if (more) more.addEventListener('toggle', () => { co.moreOpen = more.open; });
+  w.addEventListener('click', e => {
+    const n = e.target.closest('[data-sprate]'), wd = e.target.closest('[data-spword]'); if (!n && !wd) return;
+    const em = (n || wd).getAttribute('data-em'), g = co.given[em] || (co.given[em] = {});
+    if (n) g.rating = +n.getAttribute('data-sprate');
+    else { const word = co.roster.words[+wd.getAttribute('data-spword')]; g.word = g.word === word ? '' : word; }
+    const y = window.scrollY;
+    if (g.rating) spotSave(em);
+    show('spotlight'); window.scrollTo(0, y);
+  });
+}
+
+// Teacher: per-student check-out summary to support the Canvas rubric.
+function apSummaryView() {
+  const rows = mxRows();
+  const head = CO_ORDER.map(k => '<th class="mx-c" title="' + esc(RUBRICS.ap[k].name + ' · ' + RUBRICS.ap[k].code) + '">' + CO_FOCUS[k][0] + ' ' + esc(CO_FOCUS[k][1]) + '</th>').join('');
+  const body = rows.map(s => {
+    const sum = s.checkinSummary || {};
+    const cells = CO_ORDER.map(k => {
+      const c = sum[k]; if (!c) return '<td class="mx-c"><span class="muted">·</span></td>';
+      const basis = c.lessonAvg != null ? c.lessonAvg : c.selfAvg, b = bandOf(basis);
+      return '<td class="mx-c"><button type="button" class="aps ' + coBandCls(basis) + '" data-aps="' + esc(s.id) + '|' + k + '">' +
+        '<b>' + (b ? b.e + ' ' + esc(b.name) : '—') + '</b><span>L ' + (c.lessonAvg == null ? '–' : c.lessonAvg) + ' (' + c.lessonN + ') · S ' + (c.selfAvg == null ? '–' : c.selfAvg) + ' (' + c.selfN + ')</span></button></td>';
+    }).join('');
+    return '<tr><td class="mx-nm">' + esc(s.name) + '</td><td class="mx-cl">' + esc(s.klass) + '</td>' + cells + '</tr>';
+  }).join('');
+  const classOpts = ['all'].concat(mxClasses()).map(c => '<option value="' + esc(c) + '"' + (c === teacherFilter ? ' selected' : '') + '>' + (c === 'all' ? 'All classes' : esc(c)) + '</option>').join('');
+  return '<div class="wrap wide">' +
+    '<button type="button" class="back light" id="apsback">← Class dashboard</button>' +
+    '<div class="phero tight"><div class="k">TEACHER · AP CHECK-OUT SUMMARY</div><h1>Active Participation</h1><p>Lesson check-outs per student and AP criterion: <b>L</b> = your lesson ratings (average and count), <b>S</b> = the student’s own check-ins. The band comes from your average, or the student’s if you haven’t rated them yet. Canvas grades are not in here and are never changed by this: it’s evidence for your summative judgement. Tap a cell for the descriptors.</p></div>' +
+    '<div class="mxbar"><label class="mxf">Class <select id="apsclass">' + classOpts + '</select></label><div class="mxact"><button type="button" class="minib" id="apscsv">⬇ CSV</button></div></div>' +
+    '<div class="tablewrap mxwrap"><table class="mx aps-t"><thead><tr><th class="mx-nm">Student</th><th class="mx-cl">Class</th>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
+  '</div>';
+}
+function apsOverlay(id, k) {
+  const s = classData.students.find(x => x.id === id); if (!s) return;
+  const c = (s.checkinSummary || {})[k], a = RUBRICS.ap[k], basis = c ? (c.lessonAvg != null ? c.lessonAvg : c.selfAvg) : null, here = bandIx(basis);
+  let html = '<button class="x" type="button" data-close="1">✕</button><h4>' + CO_FOCUS[k][0] + ' ' + esc(a.name) + '</h4><div class="om">' + esc(a.code) + ' · ' + esc(s.name) +
+    (c ? ' · lessons ' + (c.lessonAvg == null ? '–' : c.lessonAvg) + ' over ' + c.lessonN + ', self ' + (c.selfAvg == null ? '–' : c.selfAvg) + ' over ' + c.selfN + ' · last ' + esc(c.last) : '') + '</div>';
+  const RANGE = ['1–2', '3–4', '5–6', '7'];
+  AP_BANDS.map((b, i) => [b, i]).reverse().forEach(([b, i]) => { const on = here === i; html += '<div class="lad' + (on ? ' here' : '') + '"><span class="lv">' + RANGE[i] + '</span><span><b>' + b.e + ' ' + esc(b.name) + '.</b> ' + esc(String(a.levels[i]).replace(/\*/g, '')) + '</span>' + (on ? '<span class="youre">suggested</span>' : '') + '</div>'; });
+  $('#ovcard').innerHTML = html; $('#ov').classList.add('show');
+}
+function apsCsv() {
+  const data = [['Student', 'Class'].concat(...CO_ORDER.map(k => [RUBRICS.ap[k].name + ' band', RUBRICS.ap[k].name + ' lesson avg', 'lesson n', RUBRICS.ap[k].name + ' self avg', 'self n']))];
+  mxRows().forEach(s => { const sum = s.checkinSummary || {};
+    data.push([s.name, s.klass].concat(...CO_ORDER.map(k => { const c = sum[k]; if (!c) return ['', '', 0, '', 0]; const b = bandOf(c.lessonAvg != null ? c.lessonAvg : c.selfAvg);
+      return [b ? b.name : '', c.lessonAvg == null ? '' : c.lessonAvg, c.lessonN, c.selfAvg == null ? '' : c.selfAvg, c.selfN]; }))); });
+  const csv = data.map(r => r.map(c => { c = String(c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const el = document.createElement('a'); el.href = url; el.download = 'g8-pe-ap-checkout-' + (teacherFilter === 'all' ? 'all' : teacherFilter.replace(/\W+/g, '')) + '.csv';
+  document.body.appendChild(el); el.click(); el.remove(); URL.revokeObjectURL(url);
 }
 
 function message(big, title, body, extra) {
@@ -1674,7 +2297,7 @@ function show(v, arg) {
         const day = e.target.closest('[data-day]'); if (day) { syncPlanFromDom(); planDraft.days[day.dataset.day] = !planDraft.days[day.dataset.day]; return show('plan'); }
         if (e.target.closest('#wk-eqadd')) { const i = $('#wk-eqi'), v3 = i && i.value.trim(); if (v3) { syncPlanFromDom(); planDraft.equip = (planDraft.equip || []); if (planDraft.equip.length < 20 && planDraft.equip.indexOf(v3) === -1) planDraft.equip.push(v3.slice(0, 30)); show('plan'); } return; }
         const eqr = e.target.closest('[data-eqrm]'); if (eqr) { syncPlanFromDom(); planDraft.equip.splice(+eqr.dataset.eqrm, 1); return show('plan'); }
-        const lg = e.target.closest('[data-log]'); if (lg) { syncPlanFromDom(); planDraft.log = planDraft.log || []; if (planDraft.log.length < 60) planDraft.log.push({ date: isoDay(new Date()), who: lg.dataset.log }); toast(WHO[lg.dataset.log][2] ? 'Logged — ⭐ buddy bonus!' : 'Logged. Nice work.'); return show('plan'); }
+        const lg = e.target.closest('[data-log]'); if (lg) { syncPlanFromDom(); planDraft.log = planDraft.log || []; if (planDraft.log.length < 60) { const hn = $('#hw-num'); planDraft.log.push({ date: isoDay(new Date()), who: lg.dataset.log, num: hn ? hn.value.trim().slice(0, 40) : '' }); } toast(WHO[lg.dataset.log][2] ? 'Logged — ⭐ buddy bonus!' : 'Logged. Nice work.'); return show('plan'); }
         const lr = e.target.closest('[data-logrm]'); if (lr) { syncPlanFromDom(); const q = lr.dataset.logrm.split('|'), j = (planDraft.log || []).findIndex(x => x.date === q[0] && x.who === q[1]); if (j >= 0) planDraft.log.splice(j, 1); return show('plan'); }
       });
       // minutes / heart-rate / goal text update the section status as you type (on leaving the field)
@@ -1689,32 +2312,66 @@ function show(v, arg) {
   } else if (v === 'class') {
     app.innerHTML = classView();
     wire('toprofileT', () => { if (state.role === 'student') show('profile'); else renderTeacher(state); });
+    wire('todemo', () => startDemo('fresh'));
+    wire('tocheckout2', () => openCheckout('class')); wire('toapsum', () => show('apsummary'));
     const cl = $('#mxclass'); if (cl) cl.addEventListener('change', () => { teacherFilter = cl.value; show('class'); });
     document.querySelectorAll('.cpbtn').forEach(b => b.addEventListener('click', () => { teacherCp = b.getAttribute('data-cp'); show('class'); }));
     document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => { const c = th.getAttribute('data-sort'); if (teacherSort.col === c) teacherSort.dir *= -1; else teacherSort = { col: c, dir: 1 }; show('class'); }));
     const tbl = app.querySelector('table.mx');
     if (tbl) {
       tbl.addEventListener('change', e => { const sel = e.target.closest('.cellsel'); if (sel) mxSaveCell(sel); });
-      tbl.addEventListener('click', e => { const lb = e.target.closest('[data-lock]'); if (lb) mxToggleLock(lb.getAttribute('data-lock')); });
+      tbl.addEventListener('click', e => { const ab = e.target.closest('[data-assess]'); if (ab) return show('assess', ab.getAttribute('data-assess')); const lb = e.target.closest('[data-lock]'); if (lb) mxToggleLock(lb.getAttribute('data-lock')); });
     }
     wire('mxlockall', () => mxLockAll(true)); wire('mxunlockall', () => mxLockAll(false)); wire('mxcsv', mxExportCsv);
+  } else if (v === 'checkout') {
+    app.innerHTML = checkoutSetupView();
+    wire('coback', coLeave);
+    wire('cokiosk', () => { co.step = 'names'; co.sel = null; show('kiosk'); });
+    wire('cospot', () => show('spotlight'));
+    onWrap(e => {
+      const c = e.target.closest('[data-coclass]'); if (c) { coLoadClass(c.getAttribute('data-coclass')); return; }
+      const f = e.target.closest('[data-cofocus]'); if (f) { co.focus = f.getAttribute('data-cofocus'); if (co.klass) coLoadClass(co.klass); else { coRemember(); show('checkout'); } }
+    });
+  } else if (v === 'kiosk') {
+    app.innerHTML = kioskView();
+    kioskWire(app);
+  } else if (v === 'spotlight') {
+    app.innerHTML = spotlightView();
+    wire('spback', () => coLoadClass(co.klass, true));
+    spotWire(app);
+    return;
+  } else if (v === 'apsummary') {
+    app.innerHTML = apSummaryView();
+    wire('apsback', () => show('class')); wire('apscsv', apsCsv);
+    const cl = $('#apsclass'); if (cl) cl.addEventListener('change', () => { teacherFilter = cl.value; show('apsummary'); });
+    onWrap(e => { const t = e.target.closest('[data-aps]'); if (t) { const p = t.getAttribute('data-aps').split('|'); apsOverlay(p[0], p[1]); } });
   } else if (v === 'skillentry') {
     currentSid = arg || currentSid;
     app.innerHTML = skillEntryView(currentSid);
     wire('toclassback', () => show('class')); wire('sksave', () => saveSkillsUI(currentSid));
     const cp = $('#skcp'); if (cp) cp.addEventListener('change', () => { teacherCp = cp.value; show('skillentry', currentSid); });
+  } else if (v === 'assess') {
+    currentSid = arg || currentSid;
+    app.innerHTML = assessView(currentSid);
+    wire('toclassback', () => { assessData = null; show('class'); });
+  } else if (v === 'apself') {
+    app.innerHTML = apSelfView();
+    wire('toprofile', () => show(lastHub)); wire('apsave', saveApSelfUI);
+    onWrap(e => { const b = e.target.closest('.apb'); if (!b) return; apDraft[b.dataset.k] = Number(b.dataset.n); const y = window.scrollY; show('apself'); window.scrollTo(0, y); });
   } else {
     app.innerHTML = profileView(state);
     $('#tocard').addEventListener('click', () => show('card'));
     goalSel = null; planDraft = null; unitDraft = null;
     wire('togoals2', () => show('goals')); wire('togoals3', () => show('goals'));
-    wire('tomyskills', () => show('myskills')); wire('toteacher', loadClass); wire('toarchive', () => show('archive'));
+    wire('tomyskills', () => show('myskills')); wire('toteacher', () => demo ? exitDemo() : loadClass()); wire('toarchive', () => show('archive'));
     wire('towo', () => { woStart('profile'); show('workout'); });
+    wire('toapself', () => { apDraft = null; show('apself'); }); wire('toapself2', () => { apDraft = null; show('apself'); });
+    const apt = $('#aptrend'); if (apt) apt.addEventListener('click', e => { const c = e.target.closest('[data-apkey]'); if (!c) return; e.stopPropagation(); apKey = c.dataset.apkey; apt.innerHTML = apCompare() + apTrend(); });
     wire('hubnext', () => { const g = $('#hubnext').dataset.go, to = { topredict: 'predict', toentry: 'entry', tocompare: 'compare', togoals: 'goals', toplan: 'plan' }[g];
       if (g === 'towo') { woStart('profile'); return show('workout'); } lastHub = 'fitness'; show(to); });
     onWrap(e => { if (openUnit(e)) return; const t = e.target.closest('[data-ov]'); if (t) openOv(t.dataset.ov); });
   }
-  if (!(v === 'plan' && prevView === 'plan')) window.scrollTo(0, 0);
+  if (!(v === 'plan' && prevView === 'plan') && !(v === 'apself' && prevView === 'apself')) window.scrollTo(0, 0);
   badgeCheck();
 }
 
@@ -1727,7 +2384,8 @@ function render(b) {
 function renderTeacher(b) {
   document.body.classList.remove('dark');
   $('#app').innerHTML = teacherLanding(b);
-  wire('toclass', loadClass); wire('signout', signOut);
+  wire('toclass', loadClass); wire('signout', signOut); wire('tocheckout', () => openCheckout('landing'));
+  document.querySelectorAll('.demobox [data-demo]').forEach(x => x.addEventListener('click', () => startDemo(x.getAttribute('data-demo'))));
 }
 async function loadClass() {
   $('#app').innerHTML = '<div class="loading"><div class="spinner"></div>Loading the class…</div>';
@@ -1743,7 +2401,8 @@ async function boot() {
   try {
     const b = await call('bootstrap'); render(b);
     let pend = null; try { pend = JSON.parse(sessionStorage.getItem('pe_pending') || 'null'); sessionStorage.removeItem('pe_pending'); } catch (x) {}
-    if (pend && b.role === 'student' && /^save/.test(pend.action)) {
+    // A kiosk tap interrupted by an expired sign-in is replayed for the teacher, like a student's own save.
+    if (pend && /^save/.test(pend.action) && (pend.action === 'saveCheckin' ? (b.role === 'teacher' || b.alsoTeacher) : b.role === 'student')) {
       try { await call(pend.action, pend.payload); render(await call('bootstrap')); toast('Saved what you were doing before you signed in ✓'); }
       catch (x) { toast('Couldn’t save your last change: ' + x.message, true); }
     }
