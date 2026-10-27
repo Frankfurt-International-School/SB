@@ -1,7 +1,7 @@
 # G8 PE Profile — FIS Grade 8
 
 A student-facing PE profile for Grade 8 at Frankfurt International School. A student
-opens one link, signs in with their FIS Google account, is greeted by name, picks their
+opens one link, signs in with their Google account, is greeted by name, picks their
 **PE Style** (their athlete-card identity, saved), makes their Lesson 1 **strengths &
 challenges** prediction, and sees what the year holds. Later phases fill the profile and
 card with their real Active Participation, Combine and fundamental-skill data (see `PLAN.md`).
