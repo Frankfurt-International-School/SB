@@ -102,7 +102,7 @@ var TABS = {
   Participation: apHeaders_(),                                                   // teacher-reported, self + teacher per key
   APLog:         ['Email', 'Date', 'Source', 'Round'].concat(AP_KEYS).concat(['Updated', 'overall', 'Word']), // every AP rating: student self-checks (often) + teacher grades (4 rounds) + teacher lesson ratings ('lesson'); overall = the single Canvas AP grade; Word = check-out evidence word
   Bands:         ['Email'].concat(BAND_KEYS).concat(['Updated']),                // the three report bands
-  Outcomes:      ['Email', 'Outcome', 'Value', 'Updated'],                       // latest 1–7 per standard (K1…C3), imported from Canvas Learning Mastery
+  Outcomes:      ['Email', 'Outcome', 'Value', 'Updated', 'Unit'],               // 1–7 per standard (K1…C3) per unit, imported from Canvas Learning Mastery; Unit added last so it appends onto an existing tab
   Goals:         ['Email', 'Component', 'Goal', 'Updated', 'Target'],            // focus goals: Target added last so it appends cleanly onto an existing Goals tab; plus one '_note' row
 
   Plan:          ['Email', 'Plan', 'Updated'],                                   // the student's personal workout plan (JSON)
@@ -289,7 +289,7 @@ function doPost(e) {
 }
 // Opening the API URL in a browser is not the app; say so, with no data.
 // Bump with each server change: opening the /exec link in a browser shows which build is live.
-var BUILD = '2026-10-29 · plan check, session evidence, reflection evidence';
+var BUILD = '2026-10-30a · outcomes by unit, report picture on track';
 function doGet() {
   return ContentService.createTextOutput(JSON.stringify({ ok: false, build: BUILD, error: 'This is the data service for My PE Profile. Open the app link your PE teacher shared.' }))
     .setMimeType(ContentService.MimeType.JSON);
@@ -313,6 +313,7 @@ function handle_(body) {
     case 'setLock':         return setLock_(cfg, id, body.emails, body.checkpoint, body.locked);
     case 'classOverview':   return classOverview_(cfg, id);
     case 'classStudent':    return classStudent_(cfg, id, body.email);
+    case 'classPlans':      return classPlans_(cfg, id, body.klass);
     case 'checkoutRoster':  return checkoutRoster_(cfg, id, body.klass, body.focus);
     case 'saveCheckin':     return saveCheckin_(cfg, id, body.email, body.focus, body.who, body.rating, body.word);
     default: throw new Error('Unknown action');
@@ -432,15 +433,34 @@ function apFor_(email) {
   var row = readTab_('Participation').filter(function (r) { return lower_(r.Email) === email; })[0];
   return apLatest_(apLogFor_(email), row || null);
 }
-// The student's latest grade per standard, e.g. { K4: 5, S1: 6, C1: 5 }.
+// Units of the year (same dates as UNITS in App.html): an outcome import is labelled with
+// the unit it was taken in, so each unit's grades stay as a step in the student's story.
+var UNIT_DATES = [['fitness', '2026-09-01', '2026-11-16'], ['badminton', '2026-11-17', '2027-01-26'], ['parkour', '2027-01-27', '2027-03-08'],
+                  ['tactics', '2027-03-09', '2027-04-13'], ['tchouk', '2027-04-14', '2027-07-31']];
+var UNIT_KEYS = UNIT_DATES.map(function (u) { return u[0]; });
+function unitForDate_(ymd) {
+  var hit = UNIT_DATES.filter(function (u) { return ymd >= u[1] && ymd <= u[2]; })[0];
+  return hit ? hit[0] : (ymd < UNIT_DATES[0][1] ? UNIT_DATES[0][0] : UNIT_DATES[UNIT_DATES.length - 1][0]);
+}
+// The student's latest grade per standard, e.g. { K4: 5, S1: 6, C1: 5 }, plus every unit's
+// value in year order (the story): [{ code, v, unit, date }].
 var OUTCOME_CODES = ['K1', 'K2', 'K3', 'K4', 'K5', 'S1', 'S2', 'S3', 'S4', 'C1', 'C2', 'C3'];
-function outcomesFor_(email) {
-  var out = {};
+function outcomeRows_(email) {
+  var rows = [];
   readTab_('Outcomes').forEach(function (r) {
     if (lower_(r.Email) !== email) return;
-    var code = str_(r.Outcome).toUpperCase(), n = numOrNull_(r.Value);
-    if (OUTCOME_CODES.indexOf(code) !== -1 && n !== null && n >= 1 && n <= 7) out[code] = n;
+    var code = str_(r.Outcome).toUpperCase(), n = numOrNull_(r.Value), unit = lower_(r.Unit);
+    if (OUTCOME_CODES.indexOf(code) === -1 || n === null || n < 1 || n > 7) return;
+    if (unit && UNIT_KEYS.indexOf(unit) === -1) unit = '';
+    rows.push({ code: code, v: Math.round(n), unit: unit, date: str_(r.Updated).slice(0, 10) });
   });
+  var ord = function (x) { return x.unit ? UNIT_KEYS.indexOf(x.unit) : -1; };
+  rows.sort(function (a, b) { return ord(a) - ord(b) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0); });
+  return rows;
+}
+function outcomesFor_(email, rows) {
+  var out = {};
+  (rows || outcomeRows_(email)).forEach(function (r) { out[r.code] = r.v; }); // sorted, so the last one wins
   return out;
 }
 function bandsFor_(email) {
@@ -499,14 +519,14 @@ function reflectionsFor_(email) {
 // the profile in its "fills in at the Combine" state until there is real data).
 function measuredFor_(email) {
   var fitness = fitnessFor_(email), skills = skillsFor_(email),
-      apLog = apLogFor_(email), bands = bandsFor_(email), outcomes = outcomesFor_(email),
+      apLog = apLogFor_(email), bands = bandsFor_(email), outcomeLog = outcomeRows_(email), outcomes = outcomesFor_(email, outcomeLog),
       g = goalsFor_(email), plan = planFor_(email);
   var row = readTab_('Participation').filter(function (r) { return lower_(r.Email) === email; })[0] || null;
   var ap = apLatest_(apLog, row);
   var any = Object.keys(fitness).length || Object.keys(skills).length ||
             Object.keys(ap).length || apLog.self.length || apLog.teacher.length || Object.keys(bands).length || Object.keys(outcomes).length || g.items.length || g.note || plan;
   if (!any) return null;
-  return { fitness: fitness, skills: skills, ap: ap, apLog: apLog, bands: bands, outcomes: outcomes, goals: g.items, goalNote: g.note, plan: plan };
+  return { fitness: fitness, skills: skills, ap: ap, apLog: apLog, bands: bands, outcomes: outcomes, outcomeLog: outcomeLog, goals: g.items, goalNote: g.note, plan: plan };
 }
 
 // Everything the page needs, for the caller only.
@@ -986,6 +1006,31 @@ function saveCheckin_(cfg, id, targetEmail, focus, who, rating, word) {
   return { ok: true, date: date };
 }
 
+// Printable workout cards for one class (teacher only). Returns just what a card shows: each student's
+// name, the five parts with their "how" lines, heart-rate zone, focus link and goals. No log, no reflection.
+function classPlans_(cfg, id, klass) {
+  requireTeacher_(id);
+  klass = str_(klass);
+  if (!klass) throw new Error('Pick a class first');
+  var roster = readTab_('Students').filter(function (r) { return str_(r.Class) === klass; });
+  if (!roster.length) throw new Error('No students in that class');
+  var plans = {}, goals = {};
+  readTab_('Plan').forEach(function (r) { var e = lower_(r.Email); if (!e) return; try { plans[e] = JSON.parse(str_(r.Plan) || 'null'); } catch (x) {} });
+  var parts = ['warmup', 'cardio', 'strength', 'focus', 'cooldown'];
+  var students = roster.map(function (r) {
+    var e = lower_(r.Email), p = plans[e], card = null;
+    if (p && typeof p === 'object') {
+      card = { v: p.v || 0, sChoice: str_(p.sChoice), fChoice: str_(p.fChoice), hr: str_(p.hr), fWhy: str_(p.fWhy), savedAt: str_(p.savedAt), why: {} };
+      parts.forEach(function (k) {
+        card[k] = ((p[k] instanceof Array) ? p[k] : []).slice(0, 8).map(function (x) { x = x || {}; return { n: str_(x.n).slice(0, 40), sets: str_(x.sets), reps: str_(x.reps), min: str_(x.min), int: str_(x.int) }; });
+        card.why[k] = str_((p.why || {})[k]).slice(0, 160);
+      });
+    }
+    return { name: str_(r.Name), klass: klass, plan: card, goals: goalsFor_(e).items };
+  }).sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+  return { role: 'classPlans', klass: klass, students: students };
+}
+
 // ---------- Sheet menu (teacher, inside the Sheet) ----------
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('PE Profile')
@@ -1034,8 +1079,10 @@ function apNameKey_(n) {
   return t.replace(/[^a-z\u00c0-\u024f]+/g, ' ').trim().split(' ').sort().join(' ');
 }
 // Pure: rows = the CanvasImport values (header row first). Returns counts, never data.
-function importApRows_(rows, round) {
+function importApRows_(rows, round, unit) {
   round = lower_(round);
+  unit = lower_(unit) || unitForDate_(ymd_(new Date()));
+  if (UNIT_KEYS.indexOf(unit) === -1) throw new Error('Unit must be one of ' + UNIT_KEYS.join(', '));
   if (AP_ROUNDS.indexOf(round) === -1) throw new Error('Round must be one of ' + AP_ROUNDS.join(', '));
   if (!rows || rows.length < 2) throw new Error('The import tab is empty');
   var headers = rows[0].map(str_);
@@ -1084,7 +1131,7 @@ function importApRows_(rows, round) {
     Object.keys(outcomeCols).forEach(function (code) {
       var v = numOrNull_(row[outcomeCols[code]]);
       if (v === null || v < 1 || v > 7) return;
-      upsert_('Outcomes', { Email: email, Outcome: code }, { Value: Math.round(v), Updated: new Date() }); nOut++;
+      upsert_('Outcomes', { Email: email, Outcome: code, Unit: unit }, { Value: Math.round(v), Updated: new Date() }); nOut++;
     });
     if (nOut) outcomesImported++;
     if (!n) { if (!nOut) blank++; continue; }
@@ -1093,7 +1140,7 @@ function importApRows_(rows, round) {
     imported++;
   }
   return { imported: imported, unmatched: unmatched, blank: blank, missing: (overallCol !== -1 || hasOutcomes) && missing.length === AP_KEYS.length ? [] : missing,
-           overall: overallCol !== -1, outcomes: Object.keys(outcomeCols), outcomesImported: outcomesImported };
+           overall: overallCol !== -1, outcomes: Object.keys(outcomeCols), outcomesImported: outcomesImported, unit: unit };
 }
 // The tab a Canvas CSV landed in, found by its header row (no renaming needed).
 function canvasTab_() {
@@ -1111,12 +1158,15 @@ function importApFromCanvas() {
   if (!sh) { ui.alert('No Canvas export found', 'In Canvas: Grades → Export → Export entire gradebook (or Learning Mastery → Export). Then here: File → Import → Upload → "Insert new sheet(s)", and run this again.', ui.ButtonSet.OK); return; }
   var ans = ui.prompt('Which AP round is this?', 'Type one of: ' + AP_ROUNDS.join(' · '), ui.ButtonSet.OK_CANCEL);
   if (ans.getSelectedButton() !== ui.Button.OK) return;
+  var guess = unitForDate_(ymd_(new Date()));
+  var u = ui.prompt('Which unit are any outcome grades from?', 'Leave blank for ' + guess + ', or type one of: ' + UNIT_KEYS.join(' · ') + '. Each unit keeps its own grades, so students see their progress.', ui.ButtonSet.OK_CANCEL);
+  if (u.getSelectedButton() !== ui.Button.OK) return;
   var res;
-  try { res = importApRows_(sh.getDataRange().getValues(), ans.getResponseText()); }
+  try { res = importApRows_(sh.getDataRange().getValues(), ans.getResponseText(), u.getResponseText()); }
   catch (e) { ui.alert('Import stopped', e.message, ui.ButtonSet.OK); return; }
   var msg = res.imported + ' students imported into APLog (' + lower_(ans.getResponseText()) + ').';
   if (res.overall) msg += '\nUsed the overall AP grade from the Grades export.';
-  if (res.outcomes.length) msg += '\nUnit outcomes (' + res.outcomes.join(', ') + ') saved for ' + res.outcomesImported + ' students: they feed the Athlete Card.';
+  if (res.outcomes.length) msg += '\nUnit outcomes (' + res.outcomes.join(', ') + ') saved for ' + res.outcomesImported + ' students under ' + res.unit + ': they feed My report picture and the Athlete Card.';
   if (res.missing.length) msg += '\n\nNo column found for: ' + res.missing.join(', ') + '.';
   if (res.blank) msg += '\n' + res.blank + ' rows had no AP scores yet.';
   if (res.unmatched.length) msg += '\n\nNot on the Students tab (check spelling):\n' + res.unmatched.join('\n');
