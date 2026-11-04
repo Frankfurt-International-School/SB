@@ -1085,8 +1085,17 @@ body.demo{padding-top:52px}
 .hl-tt{font-family:var(--disp);font-weight:800;font-size:18px;display:flex;justify-content:space-between;gap:8px;align-items:center}.hl-tt span{font-family:Inter,sans-serif;font-size:12.5px;background:#e9b65a;color:#3b2a0a;border-radius:999px;padding:2px 10px}
 .hl-todo ul{margin:8px 0;padding-left:20px;font-size:15px;line-height:1.5}.hl-todo p{margin:6px 0 10px;font-size:15px}.hl-pbtn{margin:0;font-size:16px;padding:11px 20px}
 .pcard-chg{background:#fff;border:2px solid #6f1d2c;border-radius:16px;padding:14px 16px;margin:0 0 14px}.pcc-h{font-family:var(--disp);font-weight:800;font-size:19px;margin-bottom:4px}
-.pcard-chg p{margin:0 0 8px;font-size:15px;line-height:1.45}.pcard-chg textarea{width:100%;box-sizing:border-box;min-height:80px;font:inherit;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
+.pcard-chg p{margin:0;font-size:15px;line-height:1.45}.pcard-chg textarea{width:100%;box-sizing:border-box;min-height:80px;font:inherit;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
 .pcc-ls{display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:15px;font-weight:600;cursor:pointer}.pcc-ls input{width:20px;height:20px;flex:none;margin-top:1px}
+.hcw{max-width:1200px}.hc-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.hc-tile{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px}.hc-tile b{display:block;font-family:var(--disp);font-size:26px}.hc-tile span{font-size:13px;color:var(--muted)}
+.hc-scroll{overflow-x:auto;background:#fff;border:1.5px solid var(--line);border-radius:14px}
+.hc-t{width:100%;border-collapse:collapse;font-size:13.5px}.hc-t th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:10px;border-bottom:1.5px solid var(--line);white-space:nowrap}.hc-t th small{display:block;font-weight:500}
+.hc-t td{padding:9px 10px;border-bottom:1px solid #f0e9e8;vertical-align:top}.hc-t td small{display:block;color:var(--muted);font-size:12px}
+.hc-nm,.hc-t td:nth-child(2){white-space:nowrap}.hc-nm .lnk{font-weight:700;font-size:14px;padding:0}.hc-c{white-space:nowrap}.hc-ex{min-width:240px;max-width:380px}
+.hc-ok{color:#1f7a45;font-weight:700}.hc-mid{color:#9a5b00;font-weight:700}.hc-no{color:#b0322a;font-weight:600}
+@media(max-width:700px){.hc-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.aps-upd{font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;margin-right:6px}.spinner.sm{width:14px;height:14px;border-width:2px;margin:0}
 </style>
 
 </head>
@@ -2991,7 +3000,6 @@ function lessonChange(p) { const d = p && p.lessons && p.lessons.train; return d
 function planTodo(raw, goals) {
   if (!raw) return [];
   const p = normPlan(raw), out = [];
-  if ((p.cardChg || '').trim().length < 10) out.push('📝 Make the changes you wrote on your printed card, then write what you changed and why.');
   const lc = lessonChange(p); if (lc && p.lsDone !== lc) out.push('📈 Put your Health lesson change into your plan: ' + lc + '. Then tick it.');
   WK_PARTS.forEach(w => { const need = partNeeds(w[0], p); if (need) out.push(w[1] + ': ' + need); });
   planChecks(p, goals).filter(x => !x.ok).forEach(x => { if (!/^🧠/.test(x.t) || !out.some(o => /say how it trains it/.test(o))) out.push(x.t); });
@@ -3013,7 +3021,7 @@ function normPlan(p) {
   p = p || {};
   const out = { v: PLAN_V, warmup: [], cardio: [], strength: [], focus: [], cooldown: [], sChoice: p.sChoice || '', fChoice: p.fChoice || '', hr: p.hr || '', fWhy: p.fWhy || '',
     equip: (p.equip || []).slice(0, 20), days: p.days || {}, log: (p.log || []).slice(), logRemoved: (p.logRemoved || []).slice(), reflection: p.reflection || p.notes || '',
-    why: Object.assign({}, p.why || {}), ref: Object.assign({}, p.ref || {}), lessons: Object.assign({}, p.lessons || {}), cardChg: p.cardChg || '', lsDone: p.lsDone || '' };
+    why: Object.assign({}, p.why || {}), ref: Object.assign({}, p.ref || {}), lessons: Object.assign({}, p.lessons || {}), lsDone: p.lsDone || '' };
   // an older single reflection box carries into "Did it work?"
   if (out.reflection && !out.ref.worked) out.ref.worked = out.reflection;
   const ch = k => k === 'strength' ? out.sChoice : (k === 'focus' ? out.fChoice : '');
@@ -3167,9 +3175,7 @@ function planView(b) {
       '<div class="wk-own"><input type="text" id="wk-eqi" class="wk-owni" maxlength="30" placeholder="add equipment, e.g. water bottle"><button type="button" class="wk-ownb" id="wk-eqadd">+ add</button></div>' +
       '<div class="pl-days"><span>Days I’ll train:</span>' + dayChips + '</div></details>';
     const lc = lessonChange(planDraft);
-    const cardBox = '<div class="pcard-chg"><div class="pcc-h">📝 Changes from my first workout</div>' +
-      '<p>After your first workout you wrote on your printed card. Make those changes in your plan below. Then write what you changed and why.</p>' +
-      '<textarea id="wk-card" maxlength="400" placeholder="For example: I added a 4th sprint because it felt too easy, and I changed lunges to step-ups because my knee hurt.">' + esc(planDraft.cardChg || '') + '</textarea>' +
+    const cardBox = '<div class="pcard-chg"><div class="pcc-h">📝 Got your printed workout card?</div><p>Make the changes you wrote on it in your plan below.</p>' +
       (lc ? '<label class="pcc-ls"><input type="checkbox" id="wk-ls"' + (planDraft.lsDone === lc ? ' checked' : '') + '> 📈 My Health lesson change is in my plan: <b>' + esc(lc) + '</b></label>' : '') + '</div>';
     body = planLeft(planDraft, goals, old) + cardBox + stepAssess(['k4']) + goalLine +
       '<div class="wkcard"><div class="wkcard-h"><span>🏋️ My workout · 40 min</span><span class="wkcard-n' + (ready === WK_PARTS.length ? ' ok' : '') + '">' + ready + ' of ' + WK_PARTS.length + ' parts ready · ' + Math.round(total) + ' min</span></div>' +
@@ -3297,7 +3303,6 @@ function syncPlanFromDom() {
     });
   });
   const hr = $('#wk-hr'); if (hr) planDraft.hr = hr.value.trim().slice(0, 30);
-  const cc = $('#wk-card'); if (cc) planDraft.cardChg = cc.value.trim().slice(0, 400);
   const ls = $('#wk-ls'); if (ls) planDraft.lsDone = ls.checked ? lessonChange(planDraft) : '';
   const wy = $('#wk-why'); if (wy) planDraft.fWhy = wy.value.trim().slice(0, 160);
   const r = $('#wk-ref'); if (r) planDraft.reflection = r.value.trim().slice(0, 600);
@@ -3741,7 +3746,7 @@ function classView() {
     '<div class="mxbar">' +
       '<label class="mxf">Class <select id="mxclass">' + classOpts + '</select></label>' +
       '<div class="cptabs">' + cpBtns + '</div>' +
-      '<div class="mxact"><button type="button" class="minib" id="mxlockall">🔒 Lock all</button><button type="button" class="minib" id="mxunlockall">🔓 Unlock all</button><button type="button" class="minib" id="mxcsv">⬇ CSV</button><button type="button" class="minib" id="mxcards">🖨 Workout cards</button></div>' +
+      '<div class="mxact"><button type="button" class="minib" id="mxlockall">🔒 Lock all</button><button type="button" class="minib" id="mxunlockall">🔓 Unlock all</button><button type="button" class="minib" id="mxcsv">⬇ CSV</button><button type="button" class="minib" id="mxcards">🖨 Workout cards</button><button type="button" class="minib" id="mxlesson">📈 Health lesson</button></div>' +
     '</div>' +
     '<div class="mxleg"><span class="lk lv-lo"></span>below L4<span class="lk lv-mid"></span>at L4<span class="lk lv-hi"></span>above<span class="sep"></span>7 skills · 3 report bands (K/S/C, 1–7) · 5 participation keys</div>' +
     '<div class="tablewrap mxwrap"><table class="mx"><thead><tr>' +
@@ -3818,6 +3823,45 @@ function skillEntryView(sid) {
     '<div class="enform">' + rows + '</div>' +
     '<div class="pbar"><div class="pcount">Teacher sign-off — the final tick.</div><button type="button" class="ct-btn" id="sksave" data-id="' + esc(sid) + '">Save levels</button></div>' +
   '</div>';
+}
+// ── Teacher: the self-paced Health lesson for a whole class, in one call (classLessons).
+let hlClassData = null, assessFrom = '';
+async function openHlClass() {
+  const k = teacherFilter || 'all';
+  hlClassData = { loading: true, klass: k }; show('hlclass');
+  try { hlClassData = await call('classLessons', { klass: k }); }
+  catch (e) { hlClassData = { error: /Unknown action/i.test(e.message) ? 'The server is still on the old version. Paste the new Code.gs into Apps Script, then Deploy → Manage deployments → ✏️ → Version: New version → Deploy. Then try again.' : e.message, klass: k }; }
+  if (view === 'hlclass') show('hlclass');
+}
+function hlClassView() {
+  const D = hlClassData, L = HL.train;
+  const head = '<button type="button" class="back light" id="tohlback">← Back to class</button><div class="phero tight"><div class="k">TEACHER · HEALTH LESSON</div><h1>' + L.e + ' ' + esc(L.name) + '</h1>' +
+    '<p>' + (D && D.klass && D.klass !== 'all' ? esc(D.klass) : 'All classes') + ' · everyone at once. Tap a name for their full page.</p></div>';
+  if (!D || D.loading) return '<div class="wrap">' + head + '<div class="loading"><div class="spinner"></div>Loading the class…</div></div>';
+  if (D.error) return '<div class="wrap">' + head + '<p class="lockmsg">' + esc(D.error) + '</p></div>';
+  const S = D.students || [];
+  const rows = S.map(st => {
+    const p = st.plan, d = p && p.lessons && p.lessons.train, ls = st.logSum || { pe: 0, home: 0, chg: 0 };
+    const todo = p ? planTodo(p, st.goals || []).length : null, sc = d ? hlScore(d) : null;
+    const stat = !d ? '<span class="hc-no">not started</span>' : d.done ? '<span class="hc-ok">✓ ' + esc(fmtDayMonth(d.done)) + '</span>' : '<span class="hc-mid">step ' + Math.min((d.step || 0) + 1, 5) + ' / 5</span>';
+    const how = d && HL_HOW.find(h => h[0] === d.how), pr = d && HL_PRIN.find(x => x[0] === d.prin), fe = d && HL_FEEL.find(f => f[0] === d.feel);
+    return '<tr><td class="hc-nm"><button type="button" class="lnk" data-hlas="' + esc(st.sid) + '">' + esc(st.name) + '</button><small>' + esc(st.klass) + (fe ? ' · ' + fe[1] : '') + '</small></td>' +
+      '<td>' + stat + '</td>' +
+      '<td class="hc-c">' + (d && d.step >= 3 ? '<span class="' + (sc >= 4 ? 'hc-ok' : sc >= 3 ? 'hc-mid' : 'hc-no') + '">' + sc + '/' + L.bank.length + '</span>' : '–') + '</td>' +
+      '<td class="hc-c">' + ls.pe + ' · ' + ls.home + '<small>' + ls.chg + ' with a change' + (d && d.logAll ? ' · ✓ all' : '') + '</small></td>' +
+      '<td class="hc-c">' + (todo == null ? '<span class="hc-no">no plan</span>' : todo ? '<span class="hc-mid">' + todo + ' to do</span>' : '<span class="hc-ok">✓</span>') + '</td>' +
+      '<td>' + (d && d.ex ? esc(d.ex) + (how ? ' <small>(' + esc(how[1].toLowerCase()) + ')</small>' : '') + '<small>' + esc(d.now || '') + ' → ' + esc(d.next || '') + '</small>' : '–') + '</td>' +
+      '<td class="hc-ex">' + (pr ? '<b>' + esc(pr[2]) + '.</b> ' + esc(d.exit || '') : '–') + '</td></tr>';
+  }).join('');
+  const done = S.filter(st => st.plan && st.plan.lessons && st.plan.lessons.train && st.plan.lessons.train.done).length;
+  const started = S.filter(st => st.plan && st.plan.lessons && st.plan.lessons.train).length;
+  const scs = S.map(st => st.plan && st.plan.lessons && st.plan.lessons.train).filter(d => d && d.step >= 3).map(hlScore);
+  const ready = S.filter(st => st.plan && !planTodo(st.plan, st.goals || []).length).length;
+  const tile = (n, t) => '<div class="hc-tile"><b>' + n + '</b><span>' + t + '</span></div>';
+  return '<div class="wrap hcw">' + head +
+    '<div class="hc-tiles">' + tile(done + ' / ' + S.length, 'finished the lesson') + tile(started - done, 'started, not finished') + tile(scs.length ? (scs.reduce((a, b) => a + b, 0) / scs.length).toFixed(1) + ' / 5' : '–', 'average check score') + tile(ready + ' / ' + S.length, 'workout builder with nothing left to fix') + '</div>' +
+    '<div class="hc-scroll"><table class="hc-t"><tr><th>Student</th><th>Lesson</th><th>Check</th><th>Logged since 22 Oct<small>PE · home</small></th><th>Builder</th><th>Progression</th><th>Exit ticket</th></tr>' + rows + '</table></div>' +
+    '<p class="small"><button type="button" class="lnk" id="hlreload">↻ Refresh</button> · uses the Class menu on the dashboard (pick a class to see only that class).</p></div>';
 }
 // ── Teacher: printable workout cards for a whole class (front: the plan to practise from;
 // back: how it's assessed). One A4 per student; print double-sided for the back page.
@@ -3927,7 +3971,7 @@ function assessView(sid) {
     '<div class="phero tight"><div class="k">WORKOUT ASSESSMENT EVIDENCE</div><h1>' + esc(st.name) + '</h1><p>' + esc(st.klass) + ' · grade each criterion 1–7 in Canvas. This page only reads the student’s profile.</p></div>' +
     '<div class="as-card"><h3>📘 Knowledge (K4) · planning a workout</h3><div class="as-chips">' + chip(parts === 5, parts + ' / 5 parts filled') + chip(whys === 5, whys + ' / 5 “how” lines') + chip(!!(p && p.hr), 'HR zone') + chip(total >= 40, total + ' min') + '</div>' + (p ? planCheckHtml(p, goals, 'Plan check · do the choices match the component?') : '') + k4 +
       '<p class="as-look">Look for: the “how” lines explain how each part trains its component, and the sets, reps, rest and effort match it. The structure and component names are given by the profile, so they are not evidence on their own.</p></div>' +
-    '<div class="as-card"><h3>🔍 Skills (S2) · assessing and improving</h3><div class="as-chips">' + chip(goals.length >= 2, goals.length + ' goals') + chip(nRef === 4, nRef + ' / 4 reflection prompts') + '</div><h4>Goals</h4>' + gl + (gnote ? '<p class="as-note">“' + esc(gnote) + '”</p>' : '') + '<h4>Changes from the first workout (printed card)</h4>' + (p && (p.cardChg || '').trim() ? '<p class="as-note">“' + esc(p.cardChg) + '”</p>' : miss('Not written yet.')) + '<h4>Evidence from the log</h4>' + evidenceHtml(log, true) + '<h4>Reflection</h4>' + (ref || miss('No reflection yet.')) +
+    '<div class="as-card"><h3>🔍 Skills (S2) · assessing and improving</h3><div class="as-chips">' + chip(goals.length >= 2, goals.length + ' goals') + chip(nRef === 4, nRef + ' / 4 reflection prompts') + '</div><h4>Goals</h4>' + gl + (gnote ? '<p class="as-note">“' + esc(gnote) + '”</p>' : '') + '<h4>Evidence from the log</h4>' + evidenceHtml(log, true) + '<h4>Reflection</h4>' + (ref || miss('No reflection yet.')) +
       '<p class="as-look">Look for: strengths and areas backed by numbers, a judgement of whether the workout worked (numbers, heart-rate zone), changes that follow from what happened, a personal reason.</p></div>' +
     '<div class="as-card"><h3>🧭 Self-Management · training independently</h3><div class="as-chips">' + chip(home.length > 0, home.length + ' home sessions') + chip(spanW && Object.keys(weeks).length >= spanW, Object.keys(weeks).length + ' of ' + spanW + ' weeks with a home session') + chip(buddy > 0, buddy + ' with a friend or family') + '</div>' + lg +
       '<p class="as-look">Also use what you saw in lessons and in the assessment: organised, on task without reminders, consistent effort.</p></div>' +
@@ -4011,7 +4055,11 @@ function coRecall(date) { try { const j = JSON.parse(sessionStorage.getItem(CO_K
 function coName(s) { return s.first + (s.lastInitial ? ' ' + s.lastInitial + '.' : ''); }
 function coStudent(email) { return ((co.roster && co.roster.students) || []).find(s => s.email === email) || null; }
 
+// The check-out has its own address (…#checkout), so it can be saved to the iPad home screen and
+// opens straight into the check-out. Access is still the server's teacher check, not the address.
+function setHash(h) { try { history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h : '')); } catch (e) {} }
 async function openCheckout(from) {
+  setHash('checkout');
   co = { from: from || 'landing', roster: null, klass: '', focus: '', step: 'names', sel: null, rating: null, given: {}, saving: {} };
   $('#app').innerHTML = '<div class="loading"><div class="spinner"></div>Loading classes…</div>';
   try {
@@ -4039,7 +4087,7 @@ async function coLoadClass(klass, quiet) {
   if (view === 'checkout') show('checkout');
   else if (view === 'kiosk' && co.step === 'names') show('kiosk');
 }
-function coLeave() { const from = co ? co.from : 'landing'; co = null; if (from === 'class' && classData) show('class'); else if (state.role === 'student') show('profile'); else renderTeacher(state); }
+function coLeave() { setHash(''); const from = co ? co.from : 'landing'; co = null; if (from === 'class' && classData) show('class'); else if (state.role === 'student') show('profile'); else renderTeacher(state); }
 
 function checkoutSetupView() {
   const r = co.roster, studs = r.students || [];
@@ -4167,6 +4215,16 @@ function spotWire(app) {
   });
 }
 
+// The summary always reloads the class when opened, so check-outs from the lesson that just
+// happened show up (it used to reuse the class data from when the dashboard was first opened).
+let apsState = { loading: false, at: null, err: '' };
+async function apsRefresh() {
+  if (apsState.loading) return;
+  apsState.loading = true; apsState.err = ''; if (view === 'apsummary') show('apsummary');
+  try { classData = await call('classOverview'); apsState.at = new Date(); }
+  catch (e) { if (e.authRequired) return; apsState.err = e.message; }
+  apsState.loading = false; if (view === 'apsummary') show('apsummary');
+}
 // Teacher: per-student check-out summary to support the Canvas rubric.
 function apSummaryView() {
   const rows = mxRows();
@@ -4185,7 +4243,7 @@ function apSummaryView() {
   return '<div class="wrap wide">' +
     '<button type="button" class="back light" id="apsback">← Class dashboard</button>' +
     '<div class="phero tight"><div class="k">TEACHER · AP CHECK-OUT SUMMARY</div><h1>Active Participation</h1><p>Lesson check-outs per student and AP criterion: <b>L</b> = your lesson ratings (average and count), <b>S</b> = the student’s own check-ins. The band comes from your average, or the student’s if you haven’t rated them yet. Canvas grades are not in here and are never changed by this: it’s evidence for your summative judgement. Tap a cell for the descriptors.</p></div>' +
-    '<div class="mxbar"><label class="mxf">Class <select id="apsclass">' + classOpts + '</select></label><div class="mxact"><button type="button" class="minib" id="apscsv">⬇ CSV</button></div></div>' +
+    '<div class="mxbar"><label class="mxf">Class <select id="apsclass">' + classOpts + '</select></label><div class="mxact"><span class="aps-upd">' + (apsState.loading ? '<span class="spinner sm"></span> Updating…' : apsState.err ? '⚠ Couldn’t update: ' + esc(apsState.err) : apsState.at ? 'Updated ' + apsState.at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '') + '</span><button type="button" class="minib" id="apsreload">↻ Refresh</button><button type="button" class="minib" id="apscsv">⬇ CSV</button></div></div>' +
     '<div class="tablewrap mxwrap"><table class="mx aps-t"><thead><tr><th class="mx-nm">Student</th><th class="mx-cl">Class</th>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
   '</div>';
 }
@@ -4446,7 +4504,7 @@ function show(v, arg) {
       tbl.addEventListener('change', e => { const sel = e.target.closest('.cellsel'); if (sel) mxSaveCell(sel); });
       tbl.addEventListener('click', e => { const ab = e.target.closest('[data-assess]'); if (ab) return show('assess', ab.getAttribute('data-assess')); const lb = e.target.closest('[data-lock]'); if (lb) mxToggleLock(lb.getAttribute('data-lock')); });
     }
-    wire('mxcards', openCards);
+    wire('mxcards', openCards); wire('mxlesson', openHlClass);
     wire('mxlockall', () => mxLockAll(true)); wire('mxunlockall', () => mxLockAll(false)); wire('mxcsv', mxExportCsv);
   } else if (v === 'checkout') {
     app.innerHTML = checkoutSetupView();
@@ -4467,7 +4525,8 @@ function show(v, arg) {
     return;
   } else if (v === 'apsummary') {
     app.innerHTML = apSummaryView();
-    wire('apsback', () => show('class')); wire('apscsv', apsCsv);
+    wire('apsback', () => show('class')); wire('apscsv', apsCsv); wire('apsreload', apsRefresh);
+    if (prevView !== 'apsummary' && !apsState.loading) apsRefresh(); // fresh data every time it is opened
     const cl = $('#apsclass'); if (cl) cl.addEventListener('change', () => { teacherFilter = cl.value; show('apsummary'); });
     onWrap(e => { const t = e.target.closest('[data-aps]'); if (t) { const p = t.getAttribute('data-aps').split('|'); apsOverlay(p[0], p[1]); } });
   } else if (v === 'skillentry') {
@@ -4480,10 +4539,15 @@ function show(v, arg) {
     wire('tocardsback', () => { document.body.classList.remove('printing-cards'); cardsData = null; show('class'); });
     wire('cardsprint', () => window.print());
     const cb = $('#cardsback'); if (cb) cb.addEventListener('change', () => { cardsBack = cb.checked; show('cards'); });
+  } else if (v === 'hlclass') {
+    app.innerHTML = hlClassView();
+    wire('tohlback', () => { hlClassData = null; show('class'); });
+    wire('hlreload', openHlClass);
+    onWrap(e => { const a = e.target.closest('[data-hlas]'); if (a) { assessFrom = 'hlclass'; assessData = null; show('assess', a.dataset.hlas); } });
   } else if (v === 'assess') {
     currentSid = arg || currentSid;
     app.innerHTML = assessView(currentSid);
-    wire('toclassback', () => { assessData = null; show('class'); });
+    wire('toclassback', () => { assessData = null; show(assessFrom === 'hlclass' && hlClassData ? 'hlclass' : 'class'); assessFrom = ''; });
   } else if (v === 'apself') {
     app.innerHTML = apSelfView();
     wire('toprofile', () => show(lastHub)); wire('apsave', saveApSelfUI);
@@ -4508,7 +4572,8 @@ function show(v, arg) {
 function render(b) {
   state = b; seenBadges = null;
   if (b.role === 'student') { show(b.student.style ? 'profile' : 'card'); return; } // first visit → build your card
-  if (b.role === 'teacher') { renderTeacher(b); return; }
+  if (b.role === 'teacher') { renderTeacher(b); if (location.hash === '#checkout') openCheckout('landing'); return; }
+  if (location.hash === '#checkout') setHash(''); // not a teacher: just the normal page
   document.body.classList.remove('dark'); $('#app').innerHTML = otherView(b); wire('signout', signOut);
 }
 function renderTeacher(b) {
